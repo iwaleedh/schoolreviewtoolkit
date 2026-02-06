@@ -1,0 +1,42 @@
+/* Main Layout Styles */
+
+.main-layout {
+    min-height: 100vh;
+    background: var(--color-gray-50);
+}
+
+.main-content {
+    margin-right: var(--sidebar-width);
+    /* RTL: Content shifts left */
+    min-height: 100vh;
+    padding: 2rem;
+    transition: margin-right 0.3s ease;
+}
+
+.main-layout.sidebar-collapsed .main-content {
+    margin-right: var(--sidebar-collapsed);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .main-content {
+        margin-right: var(--sidebar-collapsed);
+    }
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        margin-right: 0;
+        padding-bottom: 80px;
+        /* Space for bottom nav */
+    }
+}
+
+/* Dark mode styles */
+[data-theme="dark"] .main-layout {
+    background: var(--color-gray-50);
+}
+
+[data-theme="dark"] .main-content {
+    background: var(--color-gray-50);
+}
