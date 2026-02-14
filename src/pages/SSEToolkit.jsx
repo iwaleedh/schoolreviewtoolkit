@@ -12,6 +12,11 @@ import {
 } from 'lucide-react';
 import EditableChecklist from '../components/sse/EditableChecklist';
 import LTChecklist from '../components/sse/LTChecklist';
+import LessonPlanChecklist from '../components/sse/LessonPlanChecklist';
+import ParentDataChecklist from '../components/sse/ParentDataChecklist';
+import StudentDataChecklist from '../components/sse/StudentDataChecklist';
+import TeacherDataChecklist from '../components/sse/TeacherDataChecklist';
+import CommentsTable from '../components/sse/CommentsTable';
 import './SSEToolkit.css';
 
 // Tab configuration for Review Toolkit
@@ -31,11 +36,43 @@ const primaryTabs = [
             { id: 'lesson-obs-ks', label: 'Lesson Observation KS' },
         ],
     },
-    { id: 'principal', label: 'Principal', labelDv: 'ޕްރިންސިޕަލް', icon: UserCheck },
-    { id: 'admin', label: 'Admin', labelDv: 'އެޑްމިން', icon: Clipboard },
+    {
+        id: 'principal-dp',
+        label: 'Principal/DP',
+        labelDv: 'ޕްރިންސިޕަލް/ޑޕ',
+        icon: UserCheck,
+        isDropdown: true,
+        children: [
+            { id: 'principal', label: 'Principal' },
+            { id: 'deputy-principal', label: 'Deputy Principal' },
+        ],
+    },
+    {
+        id: 'admin',
+        label: 'Admin',
+        labelDv: 'އެޑްމިން',
+        icon: Clipboard,
+        isDropdown: true,
+        children: [
+            { id: 'admin-administrator', label: 'Administrator' },
+            { id: 'admin-hr', label: 'HR' },
+        ],
+    },
     { id: 'budget', label: 'Budget', labelDv: 'ބަޖެޓް', icon: Calculator },
-    { id: 'general', label: 'General', labelDv: 'ޖެނެރަލް', icon: FileText },
-    { id: 'others', label: 'Others', labelDv: 'އެހެނިހެން', icon: Users },
+    {
+        id: 'general-documents',
+        label: 'General Documents',
+        labelDv: 'ޖެނެރަލް ޑޮކިއުމެންޓްސް',
+        icon: FileText,
+        isDropdown: true,
+        children: [
+            { id: 'literacy-ambassador', label: 'Literacy Ambassador' },
+            { id: 'pd-cordinator', label: 'PD Cordinator' },
+            { id: 'sse-focal', label: 'SSE Focal' },
+            { id: 'general-others', label: 'Others' },
+        ],
+    },
+    { id: 'general-observation', label: 'General Observation', labelDv: 'ޖެނެރަލް އޮބްސަވޭޝަން', icon: Users },
     { id: 'foundation', label: 'Foundation', labelDv: 'ފައުންޑޭޝަން', icon: Baby },
     {
         id: 'questionnaire',
@@ -47,6 +84,7 @@ const primaryTabs = [
             { id: 'parent-data', label: 'Parent Data' },
             { id: 'student-data', label: 'Student Data' },
             { id: 'teacher-data', label: 'Teacher Data' },
+            { id: 'comments', label: 'Comments' },
         ],
     },
 ];
@@ -77,22 +115,36 @@ function SSEToolkit() {
             lt2: { title: 'Leading Teacher 2', titleDv: 'ލީޑިން ޓީޗަރ 2', csv: 'LT2.csv', source: 'LT2' },
         };
 
+        // Lesson Plan checklists (flat table with LP1-LP5 per LT)
+        const lpConfig = {
+            'lesson-plan-fs': { title: 'Lesson Plan (Foundation Stage)', titleDv: 'ލެސަން ޕްލޭން (ފައުންޑޭޝަން ސްޓޭޖް)', csv: 'LP-FS.csv', source: 'LPFS' },
+            'lesson-plan-ks': { title: 'Lesson Plan (Key Stage)', titleDv: 'ލެސަން ޕްލޭން (ކީ ސްޓޭޖް)', csv: 'LP-KS.csv', source: 'LPKS' },
+        };
+
+        // Lesson Observation checklists (flat table with observation columns per Teacher)
+        const loConfig = {
+            'lesson-obs-fs': { title: 'Lesson Observation (Foundation Stage)', titleDv: 'ލެސަން އޮބްސަވޭޝަން (ފައުންޑޭޝަން ސްޓޭޖް)', csv: 'LO-FS.csv', source: 'LOFS' },
+            'lesson-obs-ks': { title: 'Lesson Observation (Key Stage)', titleDv: 'ލެސަން އޮބްސަވޭޝަން (ކީ ސްޓޭޖް)', csv: 'LO-KS.csv', source: 'LOKS' },
+        };
+
         // Data input tabs (Editable - single score column)
         const editableConfig = {
-            'sen-lt': { title: 'SEN Leading Teacher', titleDv: 'ސެން ލީޑިން ޓީޗަރ', csv: 'SEN-LT.csv', source: 'SEN-LT' },
-            'lesson-plan-fs': { title: 'Lesson Plan FS', titleDv: 'ލެސަން ޕްލޭން FS', csv: 'LessonPlanFS.csv', source: 'LessonPlanFS' },
-            'lesson-plan-ks': { title: 'Lesson Plan KS', titleDv: 'ލެސަން ޕްލޭން KS', csv: 'LessonPlanKS.csv', source: 'LessonPlanKS' },
-            'lesson-obs-fs': { title: 'Lesson Observation FS', titleDv: 'ލެސަން އޮބްސަވޭޝަން FS', csv: 'LessonObsFS.csv', source: 'LessonObsFS' },
-            'lesson-obs-ks': { title: 'Lesson Observation KS', titleDv: 'ލެސަން އޮبްސަވޭޝަން KS', csv: 'LessonObsKS.csv', source: 'LessonObsKS' },
-            principal: { title: 'Principal Checklist', titleDv: 'ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'Principal' },
-            admin: { title: 'Admin Checklist', titleDv: 'އެޑްމިން ޗެކްލިސްޓް', csv: 'Admin.csv', source: 'Admin' },
+            'sen-lt': { title: 'SEN Leading Teacher', titleDv: 'ސެން ލީޑިން ޓީޗަރ', csv: 'SEN.csv', source: 'SEN-LT' },
+
+
+            principal: { title: 'Principal Checklist', titleDv: 'ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'Principal', rowRange: { start: 3, end: 39 } },
+            'deputy-principal': { title: 'Deputy Principal Checklist', titleDv: 'ޑެޕިއުޓީ ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'DeputyPrincipal', rowRange: { start: 40, end: 84 } },
+            'admin-administrator': { title: 'Admin Checklist - Administrator', titleDv: 'އެޑްމިން ޗެކްލިސްޓް - އެޑްމިނިސްޓްރޭޓަރ', csv: 'Administrator.csv', source: 'Admin-Administrator' },
+            'admin-hr': { title: 'Admin Checklist - HR', titleDv: 'އެޑްމިން ޗެކްލިސްޓް - އެޗްއާރް', csv: 'HR.csv', source: 'Admin-HR' },
             budget: { title: 'Budget Checklist', titleDv: 'ބަޖެޓް ޗެކްލިސްޓް', csv: 'Budget.csv', source: 'Budget' },
-            general: { title: 'General Checklist', titleDv: 'ޖެނެرަލް ޗެކްލިސްޓް', csv: 'General.csv', source: 'General' },
-            others: { title: 'Others Checklist', titleDv: 'އެހެނިހެން ޗެކްލިސްޓް', csv: 'Others.csv', source: 'Others' },
-            foundation: { title: 'Foundation Checklist', titleDv: 'ފައުންޑޭޝަން ޗެކްލިސްޓް', csv: 'Foundation.csv', source: 'Foundation' },
-            'parent-data': { title: 'Parent Data', titleDv: 'ބެލެނިވެރިންގެ ޑޭޓާ', csv: 'ParentData.csv', source: 'ParentData' },
-            'student-data': { title: 'Student Data', titleDv: 'ދަރިވަރުންގެ ޑޭޓާ', csv: 'StudentData.csv', source: 'StudentData' },
-            'teacher-data': { title: 'Teacher Data', titleDv: 'މުدައްރިسުންގެ ޑޭޓާ', csv: 'TeacherData.csv', source: 'TeacherData' },
+            'literacy-ambassador': { title: 'Literacy Ambassador Checklist', titleDv: 'ލިޓަރަސީ އެމްބެސަޑަރ ޗެކްލިސްޓް', csv: 'Literacy.csv', source: 'Literacy-Ambassador', hideObservations: true },
+            'pd-cordinator': { title: 'PD Cordinator Checklist', titleDv: 'ޕީޑީ ކޯޑިނޭޓަރ ޗެކްލިސްޓް', csv: 'PD.csv', source: 'PD-Cordinator', hideObservations: true },
+            'sse-focal': { title: 'SSE Focal Checklist', titleDv: 'އެސްއީއީ ފޯކަލް ޗެކްލިސްޓް', csv: 'SSE.csv', source: 'SSE-Focal', hideObservations: true },
+            'general-others': { title: 'Others Checklist', titleDv: 'އެހެނިހެން ޗެކްލިސްޓް', csv: 'other.csv', source: 'General-Others', hideObservations: true },
+            'general-observation': { title: 'General Observation Checklist', titleDv: 'ޖެނެރަލް އޮބްސަވޭޝަން ޗެކްލިސްޓް', csv: 'General Observation.csv', source: 'General-Observation', showAllColumns: true },
+            foundation: { title: 'Foundation Checklist', titleDv: 'ފައުންޑޭޝަން ޗެކްލިސްޓް', csv: 'Foundation.csv', source: 'Foundation', showAllColumns: true },
+            // Student data uses StudentDataChecklist component (similar to parent)
+            // Teacher data uses TeacherDataChecklist component (similar to parent)
         };
 
         // Check if it's an LT checklist (multi-column)
@@ -108,15 +160,90 @@ function SSEToolkit() {
             );
         }
 
+        // Check if it's a Lesson Plan checklist (flat table with LP columns)
+        if (lpConfig[tabId]) {
+            const config = lpConfig[tabId];
+            return (
+                <LessonPlanChecklist
+                    csvFileName={config.csv}
+                    title={config.title}
+                    titleDv={config.titleDv}
+                    source={config.source}
+                />
+            );
+        }
+
+        // Check if it's a Lesson Observation checklist (flat table with T columns)
+        if (loConfig[tabId]) {
+            const config = loConfig[tabId];
+            return (
+                <LessonPlanChecklist
+                    csvFileName={config.csv}
+                    title={config.title}
+                    titleDv={config.titleDv}
+                    source={config.source}
+                />
+            );
+        }
+
+        // Parent Data Checklist (special handling for questionnaire)
+        if (tabId === 'parent-data') {
+            return (
+                <ParentDataChecklist
+                    csvFileName="Parents_data.csv"
+                    title="Parent Questionnaire"
+                    titleDv="ބެލެނިވެރިންގެ ސުވާލުފޯމް"
+                />
+            );
+        }
+
+        // Student Data Checklist
+        if (tabId === 'student-data') {
+            return (
+                <StudentDataChecklist
+                    csvFileName="Students_data.csv"
+                    title="Student Questionnaire"
+                    titleDv="ދަރިވަރުންގެ ސުވާލުފޯމް"
+                />
+            );
+        }
+
+        // Teacher Data Checklist
+        if (tabId === 'teacher-data') {
+            return (
+                <TeacherDataChecklist
+                    csvFileName="Teachers_data.csv"
+                    title="Teacher Questionnaire"
+                    titleDv="މުދައްސިސުންގެ ސުވާލުފޯމް"
+                />
+            );
+        }
+
+        // Comments Table - Shows all comments from questionnaires
+        if (tabId === 'comments') {
+            return (
+                <CommentsTable
+                    title="Stakeholder Comments"
+                    titleDv="ސްޓޭކްހޯލްޑަރުންގެ ކޮމެންޓްސް"
+                />
+            );
+        }
+
         // Check if it's an editable data input tab (single score column)
         if (editableConfig[tabId]) {
             const config = editableConfig[tabId];
             return (
                 <EditableChecklist
+                    key={tabId}
                     csvFileName={config.csv}
                     title={config.title}
                     titleDv={config.titleDv}
                     source={config.source}
+                    rowRange={config.rowRange}
+                    filterColumn={config.filterColumn}
+                    filterValue={config.filterValue}
+                    hideObservations={config.hideObservations}
+                    showAllColumns={config.showAllColumns}
                 />
             );
         }

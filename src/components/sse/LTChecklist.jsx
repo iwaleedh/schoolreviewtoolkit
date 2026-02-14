@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronUp, MessageSquarePlus } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { ChevronDown, ChevronUp, MessageSquarePlus, Save, Wifi, WifiOff, RotateCcw } from 'lucide-react';
 import { useSSEData } from '../../context/SSEDataContext';
 import { useChecklistData } from '../../hooks/useChecklistData';
 import './Dimension.css';
 
-// LT columns (1-10)
+// LT columns (1-10) - reversed order so LT1 is next to indicator
 const LT_COLUMNS = ['LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'LT7', 'LT8', 'LT9', 'LT10'];
 
 /**
@@ -65,18 +65,102 @@ function DraggableTableWrapper({ children }) {
  */
 function LTChecklist({ csvFileName, title, titleDv, source }) {
     const { data, loading, error, grouped, titleRows } = useChecklistData(csvFileName);
-    const { getIndicatorLTScore, setIndicatorLTScore, setIndicatorComment, getIndicatorComment } = useSSEData();
+    const { 
+        getIndicatorLTScore, 
+        setIndicatorLTScore, 
+        setIndicatorComment, 
+        getIndicatorComment,
+        savePendingLTScores,
+        hasPendingChanges,
+        getPendingCount,
+        isSyncing,
+        lastSyncTime,
+        pendingComments,
+    } = useSSEData();
 
     const [expandedStrands, setExpandedStrands] = useState({});
     const [expandedSubstrands, setExpandedSubstrands] = useState({});
     const [expandedOutcomes, setExpandedOutcomes] = useState({});
     const [expandedComments, setExpandedComments] = useState({});
+    const [commentDrafts, setCommentDrafts] = useState({}); // Local state for comment drafts
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [saveStatus, setSaveStatus] = useState(null); // null, 'success', 'error'
+    const [selectedView, setSelectedView] = useState('all'); // 'all' or specific LT
+
+    // Monitor online/offline status
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // Clear save status after 3 seconds
+    useEffect(() => {
+        if (saveStatus) {
+            const timer = setTimeout(() => setSaveStatus(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [saveStatus]);
 
     // Toggle functions
     const toggleStrand = (id) => setExpandedStrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleSubstrand = (id) => setExpandedSubstrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleOutcome = (id) => setExpandedOutcomes(prev => ({ ...prev, [id]: !prev[id] }));
-    const toggleComment = (indicatorCode) => setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
+    const toggleComment = (indicatorCode) => {
+        // If closing the comment popup, clear the draft
+        if (expandedComments[indicatorCode]) {
+            setCommentDrafts(prev => {
+                const newDrafts = { ...prev };
+                delete newDrafts[indicatorCode];
+                return newDrafts;
+            });
+        } else {
+            // Opening - initialize draft with current value
+            const currentComment = getIndicatorComment ? getIndicatorComment(indicatorCode) : '';
+            setCommentDrafts(prev => ({ ...prev, [indicatorCode]: currentComment || '' }));
+        }
+        setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
+    };
+    
+    // Save comment and close
+    const saveComment = (indicatorCode) => {
+        const draftComment = commentDrafts[indicatorCode] || '';
+        setIndicatorComment(indicatorCode, draftComment);
+        setExpandedComments(prev => ({ ...prev, [indicatorCode]: false }));
+        setCommentDrafts(prev => {
+            const newDrafts = { ...prev };
+            delete newDrafts[indicatorCode];
+            return newDrafts;
+        });
+    };
+    
+    // Update comment draft locally (no database call)
+    const updateCommentDraft = (indicatorCode, value) => {
+        setCommentDrafts(prev => ({ ...prev, [indicatorCode]: value }));
+    };
+
+    // Save all pending changes to backend
+    const handleSaveAll = async () => {
+        const result = await savePendingLTScores(source);
+        if (result.success) {
+            setSaveStatus('success');
+        } else {
+            setSaveStatus('error');
+        }
+    };
+
+    // Count pending scores and comments
+    const pendingScoresCount = getPendingCount(source);
+    const pendingCommentsCount = Object.keys(pendingComments).length;
+    const totalPendingCount = pendingScoresCount + pendingCommentsCount;
+    const hasChanges = hasPendingChanges(source) || pendingCommentsCount > 0;
 
     // Cycle through LT scores: empty → 1 → 0 → NA → empty
     const handleLTScoreCycle = (indicatorCode, ltColumn) => {
@@ -92,20 +176,66 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
     };
 
     // Calculate average for an indicator across all LTs
+    // Returns: 1 if ≥60% scores are 1, 0 if <60%, NA if no scores
     const calculateAverage = (indicatorCode) => {
-        const scores = LT_COLUMNS.map(lt => getIndicatorLTScore(indicatorCode, lt));
+        const scores = visibleLTColumns.map(lt => getIndicatorLTScore(indicatorCode, lt));
         const numericScores = scores.filter(s => s === 1 || s === 0);
 
         if (numericScores.length === 0) return 'NA';
 
         const sum = numericScores.reduce((acc, val) => acc + val, 0);
-        const avg = sum / numericScores.length;
+        const percentage = (sum / numericScores.length) * 100;
 
-        // Round to 1 decimal place, or return 1/0 if exactly those
-        if (avg === 1) return 1;
-        if (avg === 0) return 0;
-        return Number(avg.toFixed(1));
+        // If 60% or more scores are 1, return 1; otherwise return 0
+        return percentage >= 60 ? 1 : 0;
     };
+
+    // Filter available LT columns based on selection
+    const visibleLTColumns = useMemo(() => {
+        if (selectedView === 'all') return LT_COLUMNS;
+        return [selectedView];
+    }, [selectedView]);
+
+    // Calculate progress stats
+    const progressStats = useMemo(() => {
+        let completed = 0;
+        let yes = 0;
+        let no = 0;
+        let naExplicit = 0;
+        
+        // Count total indicators across all outcomes
+        let totalIndicators = 0;
+        grouped?.forEach(strand => {
+            strand.substrands?.forEach(substrand => {
+                substrand.outcomes?.forEach(outcome => {
+                    totalIndicators += outcome.indicators?.length || 0;
+                });
+            });
+        });
+        
+        const total = totalIndicators * visibleLTColumns.length;
+
+        grouped?.forEach(strand => {
+            strand.substrands?.forEach(substrand => {
+                substrand.outcomes?.forEach(outcome => {
+                    outcome.indicators?.forEach(indicator => {
+                        visibleLTColumns.forEach(lt => {
+                            const score = getIndicatorLTScore(indicator.code, lt);
+                            if (score !== undefined && score !== null) {
+                                completed++;
+                                if (score === 1) yes++;
+                                else if (score === 0) no++;
+                                else if (score === 'NA') naExplicit++;
+                            }
+                        });
+                    });
+                });
+            });
+        });
+
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        return { percentage, yes, no, naExplicit, pending: total - completed, totalIndicators };
+    }, [grouped, visibleLTColumns, getIndicatorLTScore]);
 
     // Get display style for LT score
     const getScoreButtonClass = (score) => {
@@ -121,11 +251,6 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         if (score === 0) return '0';
         if (score === 'NA') return 'NA';
         return '-';
-    };
-
-    // Handle comment change
-    const handleCommentChange = (indicatorCode, comment) => {
-        setIndicatorComment(indicatorCode, comment);
     };
 
     if (loading) {
@@ -164,12 +289,86 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                     <span className="title-en">{title}</span>
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
+                
+                {/* Save Status & Button */}
+                <div className="lt-header-actions">
+                    {/* Online/Offline Status */}
+                    <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
+                        {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        <span>{isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+                    
+                    {/* Pending Changes Badge */}
+                    {hasChanges && (
+                        <div className="pending-badge">
+                            <span>{totalPendingCount} unsaved</span>
+                        </div>
+                    )}
+                    
+                    {/* Last Sync Time */}
+                    {lastSyncTime && (
+                        <div className="last-sync">
+                            <span>Last saved: {new Date(lastSyncTime).toLocaleTimeString()}</span>
+                        </div>
+                    )}
+                    
+                    {/* Save Button */}
+                    <button 
+                        className={`save-all-btn ${saveStatus === 'success' ? 'success' : ''} ${saveStatus === 'error' ? 'error' : ''}`}
+                        onClick={handleSaveAll}
+                        disabled={isSyncing || !hasChanges}
+                        title={!isOnline ? 'You are offline. Changes will sync when you come back online.' : 'Save all changes'}
+                    >
+                        {isSyncing ? (
+                            <><RotateCcw size={16} className="spin" /> Saving...</>
+                        ) : saveStatus === 'success' ? (
+                            <><Save size={16} /> Saved!</>
+                        ) : (
+                            <><Save size={16} /> Save{hasChanges ? ` (${totalPendingCount})` : ''}</>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* Controls */}
+            <div className="lt-controls">
+                <div className="view-selector">
+                    <label htmlFor="lt-view-select">View:</label>
+                    <select
+                        id="lt-view-select"
+                        value={selectedView}
+                        onChange={(e) => setSelectedView(e.target.value)}
+                        className="view-dropdown"
+                    >
+                        <option value="all">Master Sheet (All LTs)</option>
+                        {LT_COLUMNS.map(lt => (
+                            <option key={lt} value={lt}>{lt.replace('LT', 'Leading Teacher ')}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="lt-progress-stats">
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progressStats.percentage}%` }}></div>
+                        <span className="progress-text">{progressStats.percentage}%</span>
+                    </div>
+                    <div className="stat-badges">
+                        <span className="stat-badge green">1: {progressStats.yes}</span>
+                        <span className="stat-badge red">0: {progressStats.no}</span>
+                        <span className="stat-badge gray">NA: {progressStats.naExplicit}</span>
+                        <span className="stat-badge gray-light">⏳ {progressStats.pending}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Editable badge */}
             <div className="editable-badge">
-                <span>✏️ Multi-LT Data Entry</span>
-                <span className="badge-hint">Click cells to cycle: 1 → 0 → NA</span>
+                <span>✏️ Multi-LT Data Entry {isOnline ? '(Online)' : '(Offline Mode)'}</span>
+                <span className="badge-hint">
+                    {selectedView === 'all' 
+                        ? (isOnline ? 'Viewing all LTs • Click cells to enter data' : 'Working offline - all LTs view')
+                        : (isOnline ? `Viewing ${selectedView} only • Click cells to enter data` : `Working offline - ${selectedView} view`)}
+                </span>
             </div>
 
             {/* Title Rows from CSV */}
@@ -242,7 +441,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                                         <tr>
                                                                             <th className="col-comment">💬</th>
                                                                             <th className="col-avg">Avg</th>
-                                                                            {LT_COLUMNS.map(lt => (
+                                                                            {visibleLTColumns.map(lt => (
                                                                                 <th key={lt} className="col-lt">{lt}</th>
                                                                             ))}
                                                                             <th className="col-evidence font-dhivehi" dir="rtl">ބަލާނެ ލިޔެކިޔުން</th>
@@ -254,6 +453,8 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                                             const currentComment = getIndicatorComment ? getIndicatorComment(indicator.code) : '';
                                                                             const isCommentOpen = expandedComments[indicator.code];
                                                                             const avgScore = calculateAverage(indicator.code);
+
+                                                                            const commentDraft = commentDrafts[indicator.code] || '';
 
                                                                             return (
                                                                                 <tr key={indicator.code || idx}>
@@ -269,13 +470,13 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
 
                                                                                         {/* Comment Popup Modal */}
                                                                                         {isCommentOpen && (
-                                                                                            <div className="comment-popup-overlay" onClick={() => toggleComment(indicator.code)}>
+                                                                                            <div className="comment-popup-overlay" onClick={() => saveComment(indicator.code)}>
                                                                                                 <div className="comment-popup-modal" onClick={e => e.stopPropagation()}>
                                                                                                     <div className="comment-popup-header">
                                                                                                         <span className="font-dhivehi" dir="rtl">ކޮމެންޓް</span>
                                                                                                         <button
                                                                                                             className="comment-popup-close"
-                                                                                                            onClick={() => toggleComment(indicator.code)}
+                                                                                                            onClick={() => saveComment(indicator.code)}
                                                                                                         >
                                                                                                             ×
                                                                                                         </button>
@@ -285,15 +486,16 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                                                                             className="comment-textarea font-dhivehi"
                                                                                                             dir="rtl"
                                                                                                             placeholder="ކޮމެންޓް ލިޔުއްވާ..."
-                                                                                                            value={currentComment || ''}
-                                                                                                            onChange={(e) => handleCommentChange(indicator.code, e.target.value)}
+                                                                                                            value={commentDraft}
+                                                                                                            onChange={(e) => updateCommentDraft(indicator.code, e.target.value)}
                                                                                                             rows={4}
+                                                                                                            autoFocus
                                                                                                         />
                                                                                                     </div>
                                                                                                     <div className="comment-popup-footer">
                                                                                                         <button
                                                                                                             className="comment-save-btn"
-                                                                                                            onClick={() => toggleComment(indicator.code)}
+                                                                                                            onClick={() => saveComment(indicator.code)}
                                                                                                         >
                                                                                                             Save
                                                                                                         </button>
@@ -308,8 +510,8 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                                                         <span className="avg-display">{avgScore}</span>
                                                                                     </td>
 
-                                                                                    {/* LT1-LT10 Columns */}
-                                                                                    {LT_COLUMNS.map(lt => {
+                                                                                    {/* LT Columns */}
+                                                                                    {visibleLTColumns.map(lt => {
                                                                                         const ltScore = getIndicatorLTScore(indicator.code, lt);
                                                                                         return (
                                                                                             <td key={lt} className="col-lt">

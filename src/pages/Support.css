@@ -494,6 +494,268 @@
     color: var(--color-gray-500);
 }
 
+/* Dark Mode */
+
+/* === New Dark Mode Fixes === */
+
+/* 1. Fix white/light backgrounds */
+[data-theme="dark"] .search-box {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .guide-card {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-item {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-question:hover {
+    background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-answer {
+    background: #1e293b;
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .contact-card {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .feedback-form {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+    background: var(--color-gray-100);
+    color: #ffffff;
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-tab {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .attach-btn {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .attachment-item {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .attachment-icon {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .star-btn {
+    background: transparent;
+}
+
+[data-theme="dark"] .no-results {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+/* 2. Ensure all text is visible (white) */
+[data-theme="dark"] .support-title .title-en {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .support-subtitle {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .section-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-input {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .guide-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .faq-q-en {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .faq-answer p {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .contact-card h3 {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .contact-value {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .form-group label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .rating-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .form-note {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .feedback-success h3 {
+    color: #ffffff;
+}
+
+/* 3. Fix gradients and special elements */
+[data-theme="dark"] .guide-icon {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
+}
+
+[data-theme="dark"] .contact-icon.phone {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, rgba(22, 163, 74, 0.1) 100%);
+}
+
+[data-theme="dark"] .contact-icon.email {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
+}
+
+[data-theme="dark"] .contact-icon.video {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+}
+
+[data-theme="dark"] .status-card {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, rgba(22, 163, 74, 0.1) 100%);
+    border-color: rgba(22, 163, 74, 0.3);
+}
+
+[data-theme="dark"] .faq-tab.active {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+/* === Existing Dark Mode Rules === */
+[data-theme="dark"] .support-title .title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .support-subtitle {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-box {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .search-icon {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .search-input::placeholder {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .section-title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .guide-card,
+[data-theme="dark"] .faq-item,
+[data-theme="dark"] .contact-card,
+[data-theme="dark"] .feedback-form {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .guide-meta {
+    color: #ffffff;
+    background: #1e293b;
+}
+
+[data-theme="dark"] .guide-title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .guide-steps {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .faq-tabs {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .faq-tab {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .faq-category-title {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .faq-q-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .faq-answer {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .faq-answer p {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .no-results {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .contact-hours,
+[data-theme="dark"] .contact-note {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .status-card {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.2) 0%, rgba(22, 163, 74, 0.1) 100%);
+}
+
+[data-theme="dark"] .status-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .attachment-item {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .attachment-item:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .attachment-icon {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .star-btn {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .attach-btn {
+    background: var(--color-gray-100);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .support-header {
@@ -908,6 +1170,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -932,4 +1195,98 @@
     .form-note {
         text-align: center;
     }
+}
+
+/* Dark Mode - NO WHITE BACKGROUNDS */
+[data-theme="dark"] .support-page {
+    background: transparent;
+}
+
+[data-theme="dark"] .search-box {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .guide-card {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-item {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-question:hover {
+    background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .faq-answer {
+    background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .contact-card {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .feedback-form {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+    background: var(--color-gray-200);
+    color: #ffffff;
+    border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .faq-tab {
+    background: var(--color-gray-100);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .attach-btn {
+    background: var(--color-gray-100);
+    color: #ffffff;
+    border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .attachment-item {
+    background: var(--color-gray-200);
+    border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .attachment-icon {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .star-btn {
+    color: var(--color-gray-600);
+}
+
+[data-theme="dark"] .no-results {
+    background: var(--color-gray-100);
+    border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .status-card {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+}
+
+[data-theme="dark"] .feedback-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%);
+}
+
+[data-theme="dark"] .support-title .title-en,
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .guide-title,
+[data-theme="dark"] .faq-q-en,
+[data-theme="dark"] .contact-card h3,
+[data-theme="dark"] .contact-value,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .rating-label {
+    color: #ffffff;
 }

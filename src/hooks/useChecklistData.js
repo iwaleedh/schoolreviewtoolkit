@@ -4,9 +4,10 @@ import Papa from 'papaparse';
 /**
  * Hook to load and parse checklist CSV data
  * @param {string} fileName - Name of the CSV file (e.g., "Dimension 1.csv")
+ * @param {Object} rowRange - Optional row range to filter data { start, end }
  * @returns {Object} { data, headers, loading, error, grouped, titleRows }
  */
-export function useChecklistData(fileName) {
+export function useChecklistData(fileName, rowRange = null) {
     const [data, setData] = useState([]);
     const [headers, setHeaders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,7 +62,26 @@ export function useChecklistData(fileName) {
                 // If header row found, extract data starting from header row
                 if (headerRowIndex > 0) {
                     setTitleRows(extractedTitles);
-                    csvText = lines.slice(headerRowIndex).join('\n');
+
+                    // Handle row range if specified
+                    let dataStartRow = headerRowIndex;
+                    let dataEndRow = lines.length;
+
+                    if (rowRange) {
+                        // Row numbers are 1-based in the prop, convert to 0-based
+                        // Always include the header row for proper parsing
+                        if (rowRange.start) {
+                            dataStartRow = Math.max(headerRowIndex, rowRange.start - 1);
+                        }
+                        if (rowRange.end) {
+                            dataEndRow = rowRange.end;
+                        }
+                        // Include header row + selected data rows
+                        csvText = lines.slice(headerRowIndex, headerRowIndex + 1).join('\n') + '\n' +
+                            lines.slice(dataStartRow, dataEndRow).join('\n');
+                    } else {
+                        csvText = lines.slice(dataStartRow, dataEndRow).join('\n');
+                    }
                 } else {
                     setTitleRows([]);
                 }
@@ -175,18 +195,156 @@ function groupByHierarchy(data) {
         return '';
     };
 
-    data.forEach((row) => {
-        // Handle various column naming conventions
-        const strandKey = getField(row,
-            'StrandNo and Strand',
-            'StarndNo and Strand',
-            'Strand'
-        ) || 'Unknown';
+    // Check if this is an LT-style CSV (has Dhivehi outcome columns)
+    const isLTFormat = data.length > 0 && (
+        Object.keys(data[0]).some(key => key.includes('އައުޓްކަމް')) ||
+        Object.keys(data[0]).some(key => key.includes('އިންޑިކޭޓަރ'))
+    );
 
-        const substrandKey = getField(row, 'SubstrandNo') || 'Unknown';
-        const substrandTitle = getField(row, 'Substrand');
-        const outcomeNo = getField(row, 'OutcomeNo') || 'Unknown';
-        const outcomeTitle = getField(row, 'Outcomes');
+    // For LT format, columns 3 and 4 are both named އައުޓްކަމް but represent different things
+    // Column 3 (index 2) = OutcomeNo, Column 4 (index 3) = Outcome title
+    const getOutcomeNoFromLT = (row) => {
+        const keys = Object.keys(row);
+        // First try to find the specific 'އައުޓްކަމް ނަމްބަރ' column (Outcome Number)
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].includes('އައުޓްކަމް ނަމްބަރ') || keys[i].includes('އައުޓްކަމް') && keys[i].includes('ނަމްބަރ')) {
+                return row[keys[i]] || '';
+            }
+        }
+        // Fallback: Find the first 'އައުޓްކަމް' column (OutcomeNo) for LT1/LT2 format
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].includes('އައުޓްކަމް') && !keys[i].includes('ނަމްބަރ')) {
+                // Check if this looks like a number (e.g., 1.1.1.1)
+                const value = row[keys[i]] || '';
+                if (/^\d+(\.\d+)*$/.test(value.trim())) {
+                    return value;
+                }
+            }
+        }
+        return '';
+    };
+
+    const getOutcomeTitleFromLT = (row) => {
+        const keys = Object.keys(row);
+        // First, try to find 'އައުޓްކަމް' column that is NOT the number column
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            // Skip the number column
+            if (key.includes('އައުޓްކަމް') && !key.includes('ނަމްބަރ')) {
+                const value = row[key] || '';
+                // If it doesn't look like a number, it's the title
+                if (!/^\d+(\.\d+)*$/.test(value.trim())) {
+                    return value;
+                }
+            }
+        }
+        // Fallback: find the second 'އައުޓްކަމް' column
+        let foundFirst = false;
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].includes('އައުޓްކަމް')) {
+                if (foundFirst) {
+                    return row[keys[i]] || '';
+                }
+                foundFirst = true;
+            }
+        }
+        return '';
+    };
+
+    const getIndicatorTextFromLT = (row) => {
+        const keys = Object.keys(row);
+        for (let i = 0; i < keys.length; i++) {
+            if (keys[i].includes('އިންޑިކޭޓަރ')) {
+                return row[keys[i]] || '';
+            }
+        }
+        return '';
+    };
+
+    // Extract strand prefix from OutcomeNo (e.g., "2.1" from "2.1.1.4")
+    const getStrandFromOutcomeNo = (outcomeNo) => {
+        if (!outcomeNo) return 'Unknown';
+        const parts = outcomeNo.split('.');
+        if (parts.length >= 2) {
+            return `${parts[0]}.${parts[1]}`;
+        }
+        return outcomeNo;
+    };
+
+    data.forEach((row) => {
+        let strandKey, substrandKey, substrandTitle, outcomeNo, outcomeTitle, indicatorText;
+
+        if (isLTFormat) {
+            // LT-style CSV with Dhivehi columns - check for proper structure first
+            const hasProperStructure = Object.keys(row).some(key =>
+                key.includes('ސަބް ސްޓްރޭންޑް') || key.includes('ސްޓްރޭންޑް')
+            );
+
+            if (hasProperStructure) {
+                // New LT format with proper Strand/Substrand columns
+                substrandKey = getField(row,
+                    'ސަބް ސްޓްރޭންޑް ނަމްބަރ',
+                    'SubstrandNo'
+                ) || 'Unknown';
+
+                // Get strand from column - now populated with actual strand names
+                strandKey = getField(row,
+                    'ސްޓްރޭންޑް އަދި ނަމްބަރ',
+                    'StrandNo and Strand',
+                    'Strand'
+                );
+
+                // Fallback to deriving from SubstrandNo only if strand column is empty
+                if (!strandKey && substrandKey && substrandKey !== 'Unknown') {
+                    const firstDigit = substrandKey.split('.')[0];
+                    strandKey = `Dimension ${firstDigit}`;
+                }
+                strandKey = strandKey || 'Unknown';
+
+                substrandTitle = getField(row,
+                    'ސަބް ސްޓްރޭންޑް',
+                    'Substrand'
+                );
+
+                outcomeNo = getOutcomeNoFromLT(row) || 'Unknown';
+                outcomeTitle = getField(row,
+                    'ކުރާނެ ކަންތައް (އައުޓްކަމް)',
+                    'ކުރާނެ ކަންތައް'
+                ) || getOutcomeTitleFromLT(row);
+
+                indicatorText = getIndicatorTextFromLT(row);
+            } else {
+                // Old LT format without proper columns - derive from OutcomeNo
+                outcomeNo = getOutcomeNoFromLT(row) || 'Unknown';
+                outcomeTitle = getOutcomeTitleFromLT(row);
+                indicatorText = getIndicatorTextFromLT(row);
+
+                // Create virtual strand from outcome prefix (e.g., "2.1" from "2.1.1.4")
+                strandKey = getStrandFromOutcomeNo(outcomeNo);
+
+                // Use outcome's parent as substrand (e.g., "2.1.1" from "2.1.1.4")
+                const parts = outcomeNo.split('.');
+                if (parts.length >= 3) {
+                    substrandKey = parts.slice(0, 3).join('.');
+                } else {
+                    substrandKey = outcomeNo;
+                }
+                substrandTitle = ''; // Old LT CSVs don't have substrand titles
+            }
+        } else {
+            // Standard CSV format
+            strandKey = getField(row,
+                'StrandNo and Strand',
+                'StarndNo and Strand',
+                'Strand'
+            ) || 'Unknown';
+
+            substrandKey = getField(row, 'SubstrandNo') || 'Unknown';
+            substrandTitle = getField(row, 'Substrand');
+            outcomeNo = getField(row, 'OutcomeNo') || 'Unknown';
+            outcomeTitle = getField(row, 'Outcomes');
+            indicatorText = getField(row, 'Indicators', 'Indicator');
+        }
 
         // Handle indicator code variations (some CSVs use lowercase)
         const indicatorCode = getField(row, 'indicatorCode', 'IndicatorCode');
@@ -227,14 +385,27 @@ function groupByHierarchy(data) {
         // Add indicator with flexible column names
         outcome.indicators.push({
             code: indicatorCode,
-            text: getField(row, 'Indicators'),
+            text: isLTFormat ? indicatorText : getField(row, 'Indicators', 'Indicator', 'ކަންތައްތައް'),
             informant: getField(row,
+                'ސުވާލުކުރާނެ ފަރާތް',
+                'ސުވާލުކުރާނެ ފަރާތް/Informant/Interviiewee/stakeholder'
+            ),
+            'ސުވާލުކުރާނެ ފަރާތް': getField(row,
                 'ސުވާލުކުރާނެ ފަރާތް',
                 'ސުވާލުކުރާނެ ފަރާތް/Informant/Interviiewee/stakeholder'
             ),
             evidence: getField(row,
                 'ބަލާނެ ލިޔެކިޔުން',
-                'ބަލާނެ ލިޔެކިޔުން/Evidence'
+                'ބަލާނެ ލިޔެކިޔުން/Evidence',
+                'Evidence'
+            ),
+            howToCheck: getField(row,
+                'ހޯދާބެލުން',
+                'How to Check'
+            ),
+            generalObservation: getField(row,
+                'General Observation',
+                'ޖެނެރަލް އޮބްސަވޭޝަން'
             ),
             comment: getField(row, 'Comment'),
             observations: getField(row, 'General Observations'),

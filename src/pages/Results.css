@@ -281,6 +281,101 @@
     font-size: 0.75rem;
 }
 
+/* Dark Mode Overrides */
+
+/* 1. Fix white/light backgrounds */
+[data-theme="dark"] .results-stats .stat-card {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .view-btn {
+    background: var(--color-gray-100);
+}
+
+/* 2. Ensure all text is visible (white) */
+[data-theme="dark"] .results-title .title-en {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .stat-value {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-info h3 {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .score-value {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .grade-legend-section h3 {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .status-complete {
+    color: #ffffff;
+}
+
+/* 3. Fix gradients and special elements */
+[data-theme="dark"] .score-inner {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .dimension-card-header {
+    background: var(--color-gray-100);
+}
+
+/* Original dark mode rules */
+[data-theme="dark"] .results-title .title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .view-btn.active {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .stat-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-card-header {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .dimension-info p {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-meta {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .status-pending {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .grade-legend-section h3 {
+    color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .grade-item {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .grade-threshold {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .score-inner {
+    background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .dimension-card,
+[data-theme="dark"] .grade-legend-section {
+    background: var(--color-gray-100);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .results-header {
@@ -309,4 +404,56 @@
         flex-direction: column;
         gap: 0.75rem;
     }
+}
+
+/* Dark Mode - NO WHITE BACKGROUNDS */
+[data-theme="dark"] .results-page {
+  background: transparent;
+}
+
+[data-theme="dark"] .results-stats .stat-card {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .dimension-card {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .dimension-card-header {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .dimension-card-body {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .score-inner {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .grade-legend-section {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .view-btn.active {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .results-title .title-en {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .stat-value {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-info h3 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .score-value {
+  color: #ffffff;
 }

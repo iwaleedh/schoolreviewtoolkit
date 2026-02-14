@@ -21,20 +21,71 @@ const INDICATOR_SCORES = [
  * @param {string} titleDv - Dhivehi title
  * @param {string} source - Identifier for this checklist (e.g., 'LT1', 'Principal')
  */
-function EditableChecklist({ csvFileName, title, titleDv, source }) {
-    const { data, loading, error, grouped, titleRows } = useChecklistData(csvFileName);
+function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filterColumn, filterValue, hideObservations = false, showAllColumns = false }) {
+    const { data, loading, error, grouped: rawGrouped, titleRows } = useChecklistData(csvFileName, rowRange);
     const { getIndicatorScore, setIndicatorScore, getIndicatorStats, setIndicatorComment, getIndicatorComment } = useSSEData();
+
+    // Filter grouped data by column value if filterColumn and filterValue are provided
+    const grouped = (() => {
+        if (!rawGrouped || !filterColumn || !filterValue) return rawGrouped;
+        
+        return rawGrouped.map(strand => ({
+            ...strand,
+            substrands: strand.substrands.map(substrand => ({
+                ...substrand,
+                outcomes: substrand.outcomes.map(outcome => ({
+                    ...outcome,
+                    indicators: outcome.indicators.filter(indicator => {
+                        const columnValue = indicator[filterColumn];
+                        return columnValue === filterValue;
+                    })
+                })).filter(outcome => outcome.indicators.length > 0)
+            })).filter(substrand => substrand.outcomes.length > 0)
+        })).filter(strand => strand.substrands.length > 0);
+    })();
 
     const [expandedStrands, setExpandedStrands] = useState({});
     const [expandedSubstrands, setExpandedSubstrands] = useState({});
     const [expandedOutcomes, setExpandedOutcomes] = useState({});
     const [expandedComments, setExpandedComments] = useState({}); // Track which comment boxes are open
+    const [commentDrafts, setCommentDrafts] = useState({}); // Local state for comment drafts
 
     // Toggle functions
     const toggleStrand = (id) => setExpandedStrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleSubstrand = (id) => setExpandedSubstrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleOutcome = (id) => setExpandedOutcomes(prev => ({ ...prev, [id]: !prev[id] }));
-    const toggleComment = (indicatorCode) => setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
+    const toggleComment = (indicatorCode) => {
+        // If closing the comment popup, clear the draft
+        if (expandedComments[indicatorCode]) {
+            setCommentDrafts(prev => {
+                const newDrafts = { ...prev };
+                delete newDrafts[indicatorCode];
+                return newDrafts;
+            });
+        } else {
+            // Opening - initialize draft with current value
+            const currentComment = getIndicatorComment ? getIndicatorComment(indicatorCode) : '';
+            setCommentDrafts(prev => ({ ...prev, [indicatorCode]: currentComment || '' }));
+        }
+        setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
+    };
+    
+    // Save comment and close
+    const saveComment = (indicatorCode) => {
+        const draftComment = commentDrafts[indicatorCode] || '';
+        setIndicatorComment(indicatorCode, draftComment);
+        setExpandedComments(prev => ({ ...prev, [indicatorCode]: false }));
+        setCommentDrafts(prev => {
+            const newDrafts = { ...prev };
+            delete newDrafts[indicatorCode];
+            return newDrafts;
+        });
+    };
+    
+    // Update comment draft locally (no database call)
+    const updateCommentDraft = (indicatorCode, value) => {
+        setCommentDrafts(prev => ({ ...prev, [indicatorCode]: value }));
+    };
 
     // Handle indicator score cycle (click to cycle through: null → yes → no → nr → null)
     const handleScoreCycle = (indicatorCode) => {
@@ -58,15 +109,17 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
         return { icon: null, color: 'empty', label: '-' };
     };
 
-    // Handle comment change
-    const handleCommentChange = (indicatorCode, comment) => {
-        setIndicatorComment(indicatorCode, comment);
-    };
-
     // Calculate stats for this checklist
     const checklistStats = (() => {
         if (!data || data.length === 0) return { yes: 0, no: 0, nr: 0, unscored: 0, total: 0 };
-        const indicatorCodes = data.map(row => row['indicatorCode'] || row['IndicatorCode']).filter(Boolean);
+        
+        // Filter data by column value if filter is specified
+        let filteredData = data;
+        if (filterColumn && filterValue) {
+            filteredData = data.filter(row => row[filterColumn] === filterValue);
+        }
+        
+        const indicatorCodes = filteredData.map(row => row['indicatorCode'] || row['IndicatorCode']).filter(Boolean);
         return getIndicatorStats(indicatorCodes);
     })();
 
@@ -204,9 +257,29 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
                                                                         <tr>
                                                                             <th className="col-comment">💬</th>
                                                                             <th className="col-score">Score</th>
+                                                                            {showAllColumns && (
+                                                                                <th className="col-informant font-dhivehi" dir="rtl">
+                                                                                    ސުވާލުކުރާނެ ފަރާތް
+                                                                                </th>
+                                                                            )}
+                                                                            {showAllColumns && (
+                                                                                <th className="col-how-to-check font-dhivehi" dir="rtl">
+                                                                                    ހޯދާބެލުން
+                                                                                </th>
+                                                                            )}
                                                                             <th className="col-evidence font-dhivehi" dir="rtl">
                                                                                 ބަލާނެ ލިޔެކިޔުން (Evidence)
                                                                             </th>
+                                                                            {!hideObservations && !showAllColumns && (
+                                                                                <th className="col-observation font-dhivehi" dir="rtl">
+                                                                                    ޖެނެރަލް އޮބްސަވޭޝަން (General Observation)
+                                                                                </th>
+                                                                            )}
+                                                                            {showAllColumns && (
+                                                                                <th className="col-observation-data font-dhivehi" dir="rtl">
+                                                                                    ޖެނެރަލް އޮބްސަވޭޝަން
+                                                                                </th>
+                                                                            )}
                                                                             <th className="col-indicator font-dhivehi" dir="rtl">
                                                                                 މައުލޫމާތު (Indicator)
                                                                             </th>
@@ -219,6 +292,8 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
                                                                             const isCommentOpen = expandedComments[indicator.code];
                                                                             const scoreDisplay = getScoreDisplay(currentScore);
                                                                             const ScoreIcon = scoreDisplay.icon;
+
+                                                                            const commentDraft = commentDrafts[indicator.code] || '';
 
                                                                             return (
                                                                                 <tr key={indicator.code || idx}>
@@ -234,14 +309,14 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
 
                                                                                         {/* Comment Popup Modal */}
                                                                                         {isCommentOpen && (
-                                                                                            <div className="comment-popup-overlay" onClick={() => toggleComment(indicator.code)}>
+                                                                                            <div className="comment-popup-overlay" onClick={() => saveComment(indicator.code)}>
                                                                                                 <div className="comment-popup" onClick={(e) => e.stopPropagation()}>
                                                                                                     <div className="comment-popup-header">
                                                                                                         <h4 className="font-dhivehi" dir="rtl">ކޮމެންޓް އިތުރުކުރައްވާ</h4>
                                                                                                         <span>Add Comment</span>
                                                                                                         <button
                                                                                                             className="comment-popup-close"
-                                                                                                            onClick={() => toggleComment(indicator.code)}
+                                                                                                            onClick={() => saveComment(indicator.code)}
                                                                                                         >
                                                                                                             <X size={18} />
                                                                                                         </button>
@@ -254,8 +329,8 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
                                                                                                             className="comment-textarea font-dhivehi"
                                                                                                             dir="rtl"
                                                                                                             placeholder="ކޮމެންޓް ލިޔުއްވާ... (Enter your comment...)"
-                                                                                                            value={currentComment || ''}
-                                                                                                            onChange={(e) => handleCommentChange(indicator.code, e.target.value)}
+                                                                                                            value={commentDraft}
+                                                                                                            onChange={(e) => updateCommentDraft(indicator.code, e.target.value)}
                                                                                                             rows={4}
                                                                                                             autoFocus
                                                                                                         />
@@ -263,7 +338,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
                                                                                                     <div className="comment-popup-footer">
                                                                                                         <button
                                                                                                             className="comment-popup-done"
-                                                                                                            onClick={() => toggleComment(indicator.code)}
+                                                                                                            onClick={() => saveComment(indicator.code)}
                                                                                                         >
                                                                                                             Done
                                                                                                         </button>
@@ -284,12 +359,40 @@ function EditableChecklist({ csvFileName, title, titleDv, source }) {
                                                                                         </button>
                                                                                     </td>
 
-                                                                                    {/* Evidence Column - Third */}
+                                                                                    {/* Informant Column - showAllColumns only */}
+                                                                                    {showAllColumns && (
+                                                                                        <td className="col-informant font-dhivehi" dir="rtl">
+                                                                                            {indicator.informant || '-'}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* How to Check Column - Foundation only */}
+                                                                                    {showAllColumns && (
+                                                                                        <td className="col-how-to-check font-dhivehi" dir="rtl">
+                                                                                            {indicator.howToCheck || '-'}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* Evidence Column */}
                                                                                     <td className="col-evidence font-dhivehi" dir="rtl">
                                                                                         {indicator.evidence || '-'}
                                                                                     </td>
 
-                                                                                    {/* Indicator Column - Fourth */}
+                                                                                    {/* General Observation Column - Fourth (conditional) */}
+                                                                                    {!hideObservations && !showAllColumns && (
+                                                                                        <td className="col-observation font-dhivehi" dir="rtl">
+                                                                                            {indicator.observations || '-'}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* General Observation Data Column - for General Observation tab */}
+                                                                                    {showAllColumns && (
+                                                                                        <td className="col-observation-data font-dhivehi" dir="rtl">
+                                                                                            {indicator.generalObservation || '-'}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* Indicator Column */}
                                                                                     <td className="col-indicator font-dhivehi" dir="rtl">
                                                                                         {indicator.text}
                                                                                     </td>

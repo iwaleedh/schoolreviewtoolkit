@@ -1,0 +1,204 @@
+import { v } from "convex/values";
+import { query, mutation } from "./_generated/server";
+
+// Create a new teacher entry
+export const createTeacher = mutation({
+    args: {
+        name: v.string(),
+        subject: v.optional(v.string()),
+    },
+    handler: async (ctx, { name, subject }) => {
+        const teacherId = `T-${Date.now()}`;
+        await ctx.db.insert("teachers", {
+            teacherId,
+            teacherName: name,
+            subject: subject || "",
+            created: Date.now(),
+        });
+        return teacherId;
+    },
+});
+
+// Get all teacher survey responses
+export const getAll = query({
+    handler: async (ctx) => {
+        const responses = await ctx.db.query("teacherSurveyResponses").collect();
+        
+        // Group by teacherId
+        const grouped = new Map();
+        responses.forEach((r) => {
+            if (!grouped.has(r.teacherId)) {
+                grouped.set(r.teacherId, {});
+            }
+            grouped.get(r.teacherId)[r.indicatorCode] = r.rating;
+        });
+        
+        return { responses: Object.fromEntries(grouped) };
+    },
+});
+
+// Get responses for a specific teacher
+export const getByTeacherId = query({
+    args: { teacherId: v.string() },
+    handler: async (ctx, { teacherId }) => {
+        const responses = await ctx.db
+            .query("teacherSurveyResponses")
+            .withIndex("by_teacherId", (q) => q.eq("teacherId", teacherId))
+            .collect();
+        
+        const ratings = {};
+        responses.forEach((r) => {
+            ratings[r.indicatorCode] = r.rating;
+        });
+        
+        return { teacherId, ratings };
+    },
+});
+
+// Set a single rating (for manual entry)
+export const setRating = mutation({
+    args: {
+        teacherId: v.string(),
+        indicatorCode: v.string(),
+        rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    },
+    handler: async (ctx, { teacherId, indicatorCode, rating }) => {
+        // Check if response already exists
+        const existing = await ctx.db
+            .query("teacherSurveyResponses")
+            .withIndex("by_teacherId_indicatorCode", (q) =>
+                q.eq("teacherId", teacherId).eq("indicatorCode", indicatorCode)
+            )
+            .first();
+        
+        if (existing) {
+            // Update existing
+            await ctx.db.patch(existing._id, {
+                rating,
+                submittedAt: Date.now(),
+            });
+        } else {
+            // Create new
+            await ctx.db.insert("teacherSurveyResponses", {
+                teacherId,
+                indicatorCode,
+                rating,
+                submittedAt: Date.now(),
+                isOnline: false,
+            });
+        }
+        
+        return { success: true };
+    },
+});
+
+// Submit online survey (public endpoint)
+export const submitOnlineSurvey = mutation({
+    args: {
+        teacherId: v.string(),
+        responses: v.array(
+            v.object({
+                indicatorCode: v.string(),
+                rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
+            })
+        ),
+        comment: v.optional(v.string()),
+    },
+    handler: async (ctx, { teacherId, responses, comment }) => {
+        for (const r of responses) {
+            const existing = await ctx.db
+                .query("teacherSurveyResponses")
+                .withIndex("by_teacherId_indicatorCode", (q) =>
+                    q.eq("teacherId", teacherId).eq("indicatorCode", r.indicatorCode)
+                )
+                .first();
+            
+            if (existing) {
+                await ctx.db.patch(existing._id, {
+                    rating: r.rating,
+                    submittedAt: Date.now(),
+                    isOnline: true,
+                });
+            } else {
+                await ctx.db.insert("teacherSurveyResponses", {
+                    teacherId,
+                    indicatorCode: r.indicatorCode,
+                    rating: r.rating,
+                    submittedAt: Date.now(),
+                    isOnline: true,
+                });
+            }
+        }
+        
+        // Save comment if provided
+        if (comment !== undefined) {
+            const teacherRecord = await ctx.db
+                .query("teachers")
+                .withIndex("by_teacherId", (q) => q.eq("teacherId", teacherId))
+                .first();
+            
+            if (teacherRecord) {
+                await ctx.db.patch(teacherRecord._id, { comment });
+            }
+        }
+        
+        return { success: true, count: responses.length };
+    },
+});
+
+// Delete a teacher's responses
+export const deleteTeacher = mutation({
+    args: { teacherId: v.string() },
+    handler: async (ctx, { teacherId }) => {
+        const responses = await ctx.db
+            .query("teacherSurveyResponses")
+            .withIndex("by_teacherId", (q) => q.eq("teacherId", teacherId))
+            .collect();
+        
+        for (const r of responses) {
+            await ctx.db.delete(r._id);
+        }
+        
+        return { success: true, deleted: responses.length };
+    },
+});
+
+// Get all teachers with their comments
+export const getAllWithComments = query({
+    handler: async (ctx) => {
+        const teachers = await ctx.db.query("teachers").collect();
+        
+        // Filter only teachers with comments and sort by creation date
+        const teachersWithComments = teachers
+            .filter((t) => t.comment && t.comment.trim() !== "")
+            .sort((a, b) => b.created - a.created)
+            .map((t) => ({
+                teacherId: t.teacherId,
+                teacherName: t.teacherName,
+                subject: t.subject,
+                comment: t.comment,
+                created: t.created,
+            }));
+        
+        return { teachers: teachersWithComments };
+    },
+});
+
+// Get statistics for all responses
+export const getStats = query({
+    handler: async (ctx) => {
+        const responses = await ctx.db.query("teacherSurveyResponses").collect();
+        
+        const stats = {
+            totalTeachers: new Set(responses.map((r) => r.teacherId)).size,
+            totalResponses: responses.length,
+            byRating: { 1: 0, 2: 0, 3: 0 },
+        };
+        
+        responses.forEach((r) => {
+            stats.byRating[r.rating]++;
+        });
+        
+        return stats;
+    },
+});

@@ -408,6 +408,171 @@
     text-align: right;
 }
 
+/* Dark Mode Overrides - Additional Fixes */
+
+/* 1. Fix white/light backgrounds */
+[data-theme="dark"] .report-controls {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .report-page {
+  background: var(--color-gray-100);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .school-info {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .overall-score-section {
+  background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%);
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .overall-score-inner {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .dimension-scores-table th {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .score-bar-container {
+  background: var(--color-gray-700);
+}
+
+[data-theme="dark"] .grade-legend-grid {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+/* 2. Ensure all text is visible (white) */
+[data-theme="dark"] .report-controls-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .report-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .school-info-item span {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .overall-score-value {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-name {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .score-value {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .completion-complete {
+  color: #16a34a;
+}
+
+[data-theme="dark"] .grade-legend-label {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .report-footer {
+  color: #ffffff;
+}
+
+/* 3. Fix gradients and special elements */
+[data-theme="dark"] .grade-badge {
+  color: #ffffff;
+}
+
+/* Existing Dark Mode Overrides */
+[data-theme="dark"] .report-controls {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .report-controls-subtitle {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .report-btn.secondary {
+    background: var(--color-gray-800);
+    color: #ffffff;
+    border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .report-btn.secondary:hover {
+    background: var(--color-gray-700);
+}
+
+[data-theme="dark"] .report-preview {
+    background: var(--color-gray-900);
+}
+
+[data-theme="dark"] .report-subtitle {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .report-meta {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .report-year {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .school-info {
+    background: var(--color-gray-800);
+}
+
+[data-theme="dark"] .school-info-item label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .overall-score-section {
+    background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%);
+}
+
+[data-theme="dark"] .overall-score-inner {
+    background: var(--color-gray-800);
+}
+
+[data-theme="dark"] .overall-score-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-scores-table th {
+    background: var(--color-gray-800);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .dimension-name-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .score-bar-container {
+    background: var(--color-gray-700);
+}
+
+[data-theme="dark"] .completion-partial {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .grade-legend-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .report-footer {
+    color: #ffffff;
+}
+
 /* Print Styles */
 @media print {
     .no-print {
@@ -434,6 +599,64 @@
         size: A4;
         margin: 0;
     }
+}
+
+/* Dark Mode - NO WHITE BACKGROUNDS - Final Overrides */
+[data-theme="dark"] .report-generator {
+  background: transparent;
+}
+
+[data-theme="dark"] .report-preview {
+  background: var(--color-gray-900);
+}
+
+[data-theme="dark"] .report-header {
+  background: var(--color-gray-800);
+}
+
+[data-theme="dark"] .report-section {
+  background: var(--color-gray-800);
+}
+
+[data-theme="dark"] .section-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .subsection-title {
+  color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .dimension-scores-table td {
+  border-color: var(--color-gray-700);
+}
+
+[data-theme="dark"] .report-subtitle {
+  color: var(--color-gray-400);
+}
+
+[data-theme="dark"] .report-meta {
+  color: var(--color-gray-400);
+}
+
+[data-theme="dark"] .report-year {
+  color: var(--color-gray-500);
+}
+
+[data-theme="dark"] .school-info-item label {
+  color: var(--color-gray-400);
+}
+
+[data-theme="dark"] .overall-score-label {
+  color: var(--color-gray-400);
+}
+
+[data-theme="dark"] .completion-partial {
+  color: var(--color-gray-400);
+}
+
+[data-theme="dark"] .report-btn.primary:disabled {
+  opacity: 0.5;
+  background: var(--color-gray-600);
 }
 
 /* Responsive */

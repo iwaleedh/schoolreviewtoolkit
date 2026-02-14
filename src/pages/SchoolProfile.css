@@ -440,6 +440,122 @@
     cursor: not-allowed;
 }
 
+/* Dark Mode Overrides - Background Fixes */
+[data-theme="dark"] .profile-content {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-row {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-row.primary-tabs {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-row.secondary-tabs {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-btn {
+  background: var(--color-gray-100);
+  color: #ffffff;
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-btn.saved:not(.active) {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .content-header {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select {
+  background: var(--color-gray-100);
+  color: #ffffff;
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .checkbox-group {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .form-checkbox {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .progress-indicator {
+  background: var(--color-gray-100);
+}
+
+/* Dark Mode Overrides - Text Color Fixes */
+[data-theme="dark"] .profile-title .title-en {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .progress-count {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .tab-btn .tab-icon {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .content-title h2 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-section-title h4 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .label-en {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-checkbox label {
+  color: #ffffff;
+}
+
+/* Dark Mode Overrides - Hover State Fixes */
+[data-theme="dark"] .tab-btn:hover {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .save-section-btn:hover {
+  background: var(--color-gray-200);
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .profile-title .title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .progress-label {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .content-title-dv {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .saved-badge {
+    background: var(--color-gray-100);
+    color: var(--color-success);
+}
+
+[data-theme="dark"] .label-dv {
+    color: #ffffff;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .tab-row {
@@ -522,4 +638,103 @@
     .progress-count {
         font-size: 1rem;
     }
+}
+
+/* Dark Mode - NO WHITE BACKGROUNDS */
+[data-theme="dark"] .school-profile {
+  background: transparent;
+}
+
+[data-theme="dark"] .tab-row {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .tab-row.primary-tabs {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .tab-row.secondary-tabs {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .tab-btn {
+  background: var(--color-gray-100);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .tab-btn:hover {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .tab-btn.active {
+  background: var(--color-primary);
+}
+
+[data-theme="dark"] .tab-btn.saved:not(.active) {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .profile-content {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .content-header {
+  background: var(--color-gray-200);
+  border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .form-content {
+  background: var(--color-gray-100);
+}
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-select {
+  background: var(--color-gray-200);
+  color: #ffffff;
+  border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .checkbox-group {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .form-checkbox {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+}
+
+[data-theme="dark"] .save-section-btn {
+  background: var(--color-gray-200);
+  color: #ffffff;
+  border-color: var(--color-gray-300);
+}
+
+[data-theme="dark"] .saved-badge {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .progress-indicator {
+  background: var(--color-gray-200);
+}
+
+[data-theme="dark"] .profile-title .title-en {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .progress-count {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .content-title h2 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .label-en {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-checkbox label {
+  color: #ffffff;
 }
