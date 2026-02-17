@@ -17,7 +17,7 @@ function App() {
   return (
     <ThemeProvider>
       <SSEDataProvider>
-        <Router basename="/school-review-toolkit">
+        <Router basename={import.meta.env.DEV ? '/' : '/school-review-toolkit'}>
           <Routes>
             {/* Home redirects to toolkit */}
             <Route path="/" element={<Navigate to="/toolkit" replace />} />

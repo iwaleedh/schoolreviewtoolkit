@@ -228,7 +228,7 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                 // by looking at the first header row
                 const titleRow = lines[0];
                 const isObservation = titleRow.includes('Observation') || titleRow.includes('Obervation') || titleRow.includes('އޮބްސަވޭޝަން');
-                const isTeacherBased = columnHeaderLine.includes('T1') || isObservation;
+                const _isTeacherBased = columnHeaderLine.includes('T1') || isObservation;
                 
                 // Determine columns per group
                 const colsPerGroup = isObservation ? 2 : 5;

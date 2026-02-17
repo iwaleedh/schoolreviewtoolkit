@@ -281,7 +281,8 @@ function SSEToolkit() {
                                     (tab.children && tab.children.some(c => c.id === activeTab)) ? 'active' : ''}`}
                                 onClick={() => handleTabClick(tab.id, tab.isDropdown)}
                             >
-                                {Icon && <Icon size={16} className="tab-icon" />}
+
+
                                 <span className="tab-label">{tab.label}</span>
                                 {tab.isDropdown && <ChevronDown size={16} className="dropdown-icon" />}
                             </button>

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Plus, Trash2, Copy, Check, X, Link } from 'lucide-react';
+import { Plus, Trash2, Copy, Check, X, Link, Save, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useChecklistData } from '../../hooks/useChecklistData';
@@ -15,13 +15,19 @@ const RATINGS = [
 function StudentDataChecklist({ csvFileName, title, titleDv }) {
     const { loading, error, grouped } = useChecklistData(csvFileName);
     const responses = useQuery(api.studentSurvey.getAll) ?? { responses: {} };
-    const setRatingMutation = useMutation(api.studentSurvey.setRating);
+
+
     const deleteStudentMutation = useMutation(api.studentSurvey.deleteStudent);
+    const saveManualResponsesMutation = useMutation(api.studentSurvey.saveManualResponses);
+    const updateSettingMutation = useMutation(api.studentSurvey.updateSetting);
+    const studentSurveyEnabled = useQuery(api.studentSurvey.getSetting, { key: "studentSurveyEnabled" });
 
     const [students, setStudents] = useState([]);
     const [newStudentId, setNewStudentId] = useState('');
     const [showAddStudent, setShowAddStudent] = useState(false);
     const [copiedUrl, setCopiedUrl] = useState(false);
+    const [pendingUpdates, setPendingUpdates] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
 
     // Generate survey URL
     const baseUrl = window.location.origin;
@@ -60,14 +66,43 @@ function StudentDataChecklist({ csvFileName, title, titleDv }) {
     };
 
     // Set rating
-    const handleSetRating = async (studentId, indicatorCode, rating) => {
-        await setRatingMutation({ studentId, indicatorCode, rating });
+    const handleSetRating = (studentId, indicatorCode, rating) => {
+        const key = `${studentId}-${indicatorCode}`;
+        setPendingUpdates(prev => ({
+            ...prev,
+            [key]: { studentId, indicatorCode, rating }
+        }));
+    };
+
+    // Save all pending updates
+    const handleSave = async () => {
+        if (Object.keys(pendingUpdates).length === 0) return;
+        setIsSaving(true);
+        try {
+            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates) });
+            setPendingUpdates({});
+        } catch (error) {
+            console.error("Failed to save:", error);
+            alert("Failed to save changes. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Toggle Response (Global Setting)
+    const handleToggleResponse = async () => {
+        const newValue = !studentSurveyEnabled;
+        await updateSettingMutation({ key: "studentSurveyEnabled", value: newValue });
     };
 
     // Get rating for a student-indicator
     const getRating = useCallback((studentId, indicatorCode) => {
+        const key = `${studentId}-${indicatorCode}`;
+        if (pendingUpdates[key]) {
+            return pendingUpdates[key].rating;
+        }
         return responses.responses[studentId]?.[indicatorCode] || null;
-    }, [responses.responses]);
+    }, [responses.responses, pendingUpdates]);
 
     // Flatten indicators from grouped data (must be before early returns)
     const indicators = useMemo(() => {
@@ -151,6 +186,27 @@ function StudentDataChecklist({ csvFileName, title, titleDv }) {
                     <span className="stat-badge blue">
                         Students: {students.length}
                     </span>
+                </div>
+                <div className="header-actions">
+                    <button
+                        className={`toggle-response-btn ${studentSurveyEnabled ? 'active' : ''}`}
+                        onClick={handleToggleResponse}
+                        title={studentSurveyEnabled ? "Public Survey is ON" : "Public Survey is OFF"}
+                    >
+                        {studentSurveyEnabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                        <span>Responses: {studentSurveyEnabled ? 'ON' : 'OFF'}</span>
+                    </button>
+                    <button
+                        className={`save-btn ${Object.keys(pendingUpdates).length > 0 ? 'dirty' : ''}`}
+                        onClick={handleSave}
+                        disabled={Object.keys(pendingUpdates).length === 0 || isSaving}
+                    >
+                        <Save size={18} />
+                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                        {Object.keys(pendingUpdates).length > 0 && (
+                            <span className="unsaved-badge">{Object.keys(pendingUpdates).length}</span>
+                        )}
+                    </button>
                 </div>
             </div>
 

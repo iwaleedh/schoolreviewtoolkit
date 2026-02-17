@@ -19,12 +19,8 @@ import { useSSEData } from '../../context/SSEDataContext';
 import {
     processChecklistData,
     calculateOverallScore,
-    findStrengths,
-    findWeaknesses,
     calculateCompletionRate,
     OUTCOME_GRADES,
-    formatScore,
-    getGradeBadgeColor,
 } from '../../utils/scoringEngine';
 import './ReportGenerator.css';
 
@@ -113,7 +109,7 @@ function ReportGenerator({ schoolName = 'Sample School', schoolId = '001' }) {
 
     // Render grade badge
     const renderGradeBadge = (grade, size = 'normal') => {
-        const gradeInfo = OUTCOME_GRADES[grade] || OUTCOME_GRADES.NR;
+        const _gradeInfo = OUTCOME_GRADES[grade] || OUTCOME_GRADES.NR;
         const colors = {
             FA: { bg: '#f3e8ff', text: '#7c3aed' },
             MA: { bg: '#dcfce7', text: '#16a34a' },

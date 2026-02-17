@@ -216,7 +216,7 @@ export function extractPhrases(comments, topN = 10) {
     });
     
     return Object.entries(phraseFreq)
-        .filter(([phrase, count]) => count > 1)
+        .filter(([, count]) => count > 1)
         .sort((a, b) => b[1] - a[1])
         .slice(0, topN)
         .map(([phrase, count]) => ({ phrase, count }));

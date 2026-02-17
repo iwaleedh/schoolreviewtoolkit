@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { generateCommentSummary, analyzeSentiment, extractKeywords, extractPhrases } from '../../utils/textAnalysis';
+import { generateCommentSummary } from '../../utils/textAnalysis';
 
 // WordCloud component using wordcloud2
 function WordCloud({ data, width = 400, height = 300 }) {
@@ -99,19 +99,19 @@ function TopicDistribution({ categories }) {
     return (
         <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
             {Object.entries(categories)
-                .filter(([topic, indices]) => indices.length > 0)
+                .filter(([, indices]) => indices.length > 0)
                 .sort((a, b) => b[1].length - a[1].length)
-                .map(([topic, indices], i) => {
+                .map(([topicName, indices], i) => {
                     const percentage = Math.round((indices.length / total) * 100);
                     return (
-                        <div key={topic} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div key={topicName} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <div 
                                 className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
                                 style={{ backgroundColor: colors[i % colors.length] }}
                             />
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="text-sm font-medium text-gray-700 truncate">{topic}</span>
+                                    <span className="text-sm font-medium text-gray-700 truncate">{topicName}</span>
                                     <span className="text-xs text-gray-500 ml-2 flex-shrink-0">{indices.length} ({percentage}%)</span>
                                 </div>
                                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -330,6 +330,7 @@ function ManualThemeCoding({ comments, stakeholderType, onThemesChange }) {
 function CommentSummary({ parentsData, studentsData, teachersData }) {
     const [activeTab, setActiveTab] = useState('overview');
     const [activeStakeholder, setActiveStakeholder] = useState('all');
+    // eslint-disable-next-line no-unused-vars
     const [stakeholderThemes, setStakeholderThemes] = useState({});
     
     // Get data based on selection
@@ -473,7 +474,7 @@ function CommentSummary({ parentsData, studentsData, teachersData }) {
                                     މުހިންމު ލަފުޒުތައް
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {summary.keywords.slice(0, 15).map((kw, i) => (
+                                    {summary.keywords.slice(0, 15).map((kw) => (
                                         <span 
                                             key={kw.word}
                                             className="px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm bg-white border border-gray-200 text-gray-700"

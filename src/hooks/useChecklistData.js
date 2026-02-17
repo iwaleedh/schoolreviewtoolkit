@@ -130,7 +130,7 @@ export function useChecklistData(fileName, rowRange = null) {
         if (fileName) {
             loadData();
         }
-    }, [fileName]);
+    }, [fileName, rowRange]);
 
     return { data, headers, loading, error, grouped, titleRows };
 }
@@ -444,5 +444,3 @@ function groupByHierarchy(data) {
 
     return result;
 }
-
-export default useChecklistData;

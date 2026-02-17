@@ -8,9 +8,13 @@ function CommentsTable({ title, titleDv }) {
     const [showSummary, setShowSummary] = useState(true);
     
     // Fetch comments from all three sources
-    const parentsDataRaw = useQuery(api.parentSurvey.getAllWithComments) ?? { parents: [] };
-    const studentsDataRaw = useQuery(api.studentSurvey.getAllWithComments) ?? { students: [] };
-    const teachersDataRaw = useQuery(api.teacherSurvey.getAllWithComments) ?? { teachers: [] };
+    const parentsDataRawResult = useQuery(api.parentSurvey.getAllWithComments);
+    const studentsDataRawResult = useQuery(api.studentSurvey.getAllWithComments);
+    const teachersDataRawResult = useQuery(api.teacherSurvey.getAllWithComments);
+    
+    const parentsDataRaw = useMemo(() => parentsDataRawResult ?? { parents: [] }, [parentsDataRawResult]);
+    const studentsDataRaw = useMemo(() => studentsDataRawResult ?? { students: [] }, [studentsDataRawResult]);
+    const teachersDataRaw = useMemo(() => teachersDataRawResult ?? { teachers: [] }, [teachersDataRawResult]);
     
     // Normalize data for summary component
     const parentsData = useMemo(() => {

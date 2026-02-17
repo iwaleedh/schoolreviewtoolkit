@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Plus, Trash2, Copy, Check, X, Link } from 'lucide-react';
+import { Plus, Trash2, Copy, Check, X, Link, Save, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useChecklistData } from '../../hooks/useChecklistData';
@@ -13,32 +13,41 @@ const RATINGS = [
 ];
 
 function TeacherDataChecklist({ csvFileName, title, titleDv }) {
-    const { data, loading, error, grouped } = useChecklistData(csvFileName);
+    const { loading, error, grouped } = useChecklistData(csvFileName);
     const responses = useQuery(api.teacherSurvey.getAll) ?? { responses: {} };
     const setRatingMutation = useMutation(api.teacherSurvey.setRating);
+
     const deleteTeacherMutation = useMutation(api.teacherSurvey.deleteTeacher);
+    const saveManualResponsesMutation = useMutation(api.teacherSurvey.saveManualResponses);
+    const updateSettingMutation = useMutation(api.teacherSurvey.updateSetting);
+    const teacherSurveyEnabled = useQuery(api.teacherSurvey.getSetting, { key: "teacherSurveyEnabled" });
 
     const [teachers, setTeachers] = useState([]);
     const [newTeacherId, setNewTeacherId] = useState('');
     const [showAddTeacher, setShowAddTeacher] = useState(false);
     const [copiedUrl, setCopiedUrl] = useState(false);
+    const [pendingUpdates, setPendingUpdates] = useState({});
+    const [isSaving, setIsSaving] = useState(false);
 
     // Generate survey URL
     const baseUrl = window.location.origin;
 
     // Flatten indicators from grouped data (must be before early returns)
-    const indicators = [];
-    if (grouped) {
-        grouped.forEach((strand) => {
-            strand.substrands.forEach((substrand) => {
-                substrand.outcomes.forEach((outcome) => {
-                    outcome.indicators.forEach((indicator) => {
-                        indicators.push(indicator);
+    const indicators = useMemo(() => {
+        const result = [];
+        if (grouped) {
+            grouped.forEach((strand) => {
+                strand.substrands.forEach((substrand) => {
+                    substrand.outcomes.forEach((outcome) => {
+                        outcome.indicators.forEach((indicator) => {
+                            result.push(indicator);
+                        });
                     });
                 });
             });
-        });
-    }
+        }
+        return result;
+    }, [grouped]);
 
     // Load existing teachers from responses
     useEffect(() => {
@@ -74,14 +83,43 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
     };
 
     // Set rating
-    const handleSetRating = async (teacherId, indicatorCode, rating) => {
-        await setRatingMutation({ teacherId, indicatorCode, rating });
+    const handleSetRating = (teacherId, indicatorCode, rating) => {
+        const key = `${teacherId}-${indicatorCode}`;
+        setPendingUpdates(prev => ({
+            ...prev,
+            [key]: { teacherId, indicatorCode, rating }
+        }));
+    };
+
+    // Save all pending updates
+    const handleSave = async () => {
+        if (Object.keys(pendingUpdates).length === 0) return;
+        setIsSaving(true);
+        try {
+            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates) });
+            setPendingUpdates({});
+        } catch (error) {
+            console.error("Failed to save:", error);
+            alert("Failed to save changes. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Toggle Response (Global Setting)
+    const handleToggleResponse = async () => {
+        const newValue = !teacherSurveyEnabled;
+        await updateSettingMutation({ key: "teacherSurveyEnabled", value: newValue });
     };
 
     // Get rating for a teacher-indicator
-    const getRating = (teacherId, indicatorCode) => {
+    const getRating = useCallback((teacherId, indicatorCode) => {
+        const key = `${teacherId}-${indicatorCode}`;
+        if (pendingUpdates[key]) {
+            return pendingUpdates[key].rating;
+        }
         return responses.responses[teacherId]?.[indicatorCode] || null;
-    };
+    }, [responses.responses, pendingUpdates]);
 
     // Calculate indicator-wise totals (Row totals) - must be before early returns
     const indicatorTotals = useMemo(() => {
@@ -147,6 +185,27 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
                     <span className="stat-badge blue">
                         Teachers: {teachers.length}
                     </span>
+                </div>
+                <div className="header-actions">
+                    <button
+                        className={`toggle-response-btn ${teacherSurveyEnabled ? 'active' : ''}`}
+                        onClick={handleToggleResponse}
+                        title={teacherSurveyEnabled ? "Public Survey is ON" : "Public Survey is OFF"}
+                    >
+                        {teacherSurveyEnabled ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                        <span>Responses: {teacherSurveyEnabled ? 'ON' : 'OFF'}</span>
+                    </button>
+                    <button
+                        className={`save-btn ${Object.keys(pendingUpdates).length > 0 ? 'dirty' : ''}`}
+                        onClick={handleSave}
+                        disabled={Object.keys(pendingUpdates).length === 0 || isSaving}
+                    >
+                        <Save size={18} />
+                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                        {Object.keys(pendingUpdates).length > 0 && (
+                            <span className="unsaved-badge">{Object.keys(pendingUpdates).length}</span>
+                        )}
+                    </button>
                 </div>
             </div>
 
@@ -268,9 +327,8 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
                                                         {RATINGS.map((r) => (
                                                             <button
                                                                 key={r.value}
-                                                                className={`rating-btn ${r.color} ${
-                                                                    rating === r.value ? 'selected' : ''
-                                                                }`}
+                                                                className={`rating-btn ${r.color} ${rating === r.value ? 'selected' : ''
+                                                                    }`}
                                                                 onClick={() =>
                                                                     handleSetRating(
                                                                         teacherId,

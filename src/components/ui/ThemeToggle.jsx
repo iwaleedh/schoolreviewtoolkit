@@ -9,7 +9,7 @@ import { useTheme } from '../../context/ThemeContext';
 import './ThemeToggle.css';
 
 function ThemeToggle({ showLabel = true, size = 'medium' }) {
-    const { theme, isDark, toggleTheme } = useTheme();
+    const { isDark, toggleTheme } = useTheme();
 
     return (
         <div className={`theme-toggle-wrapper ${size}`}>

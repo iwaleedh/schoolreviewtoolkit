@@ -64,7 +64,7 @@ function DraggableTableWrapper({ children }) {
  * Average is calculated as the mean of non-NA values
  */
 function LTChecklist({ csvFileName, title, titleDv, source }) {
-    const { data, loading, error, grouped, titleRows } = useChecklistData(csvFileName);
+    const { loading, error, grouped, titleRows } = useChecklistData(csvFileName);
     const { 
         getIndicatorLTScore, 
         setIndicatorLTScore, 

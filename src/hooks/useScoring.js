@@ -5,7 +5,7 @@
  * Integrates with SSEDataContext to provide real-time score calculations
  */
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { useSSEData } from '../context/SSEDataContext';
 import {
     processChecklistData,
@@ -14,7 +14,6 @@ import {
     findWeaknesses,
     calculateCompletionRate,
     normalizeIndicatorValue,
-    calculateOutcomeGrade,
     OUTCOME_GRADES,
 } from '../utils/scoringEngine';
 

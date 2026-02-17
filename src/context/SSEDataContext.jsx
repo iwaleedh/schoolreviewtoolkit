@@ -85,7 +85,9 @@ export function SSEDataProvider({ children }) {
     useEffect(() => {
         try {
             localStorage.setItem('sse_pending_comments', JSON.stringify(pendingComments));
-        } catch {}
+        } catch (error) {
+            console.warn('Failed to save pending comments to localStorage:', error);
+        }
     }, [pendingComments]);
 
     // Extract scores and sources from query result
@@ -144,13 +146,11 @@ export function SSEDataProvider({ children }) {
 
         let yesCount = 0;
         let noCount = 0;
-        let nrCount = 0;
 
         indicatorCodes.forEach(code => {
             const score = indicatorScores[code];
             if (score === 'yes') yesCount++;
             else if (score === 'no') noCount++;
-            else nrCount++;
         });
 
         const scoredCount = yesCount + noCount;
@@ -215,7 +215,9 @@ export function SSEDataProvider({ children }) {
         // Also save to localStorage immediately for persistence
         try {
             localStorage.setItem('sse_pending_comments', JSON.stringify(newPending));
-        } catch {}
+        } catch (error) {
+            console.warn('Failed to save comment to localStorage:', error);
+        }
     }, [pendingComments]);
 
     /**
@@ -508,6 +510,7 @@ export function SSEDataProvider({ children }) {
 /**
  * Hook to access SSE data context
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSSEData() {
     const context = useContext(SSEDataContext);
     if (!context) {
@@ -516,4 +519,3 @@ export function useSSEData() {
     return context;
 }
 
-export default SSEDataContext;

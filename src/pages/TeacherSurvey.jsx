@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
@@ -76,22 +76,14 @@ function TeacherSurvey() {
     const submitSurvey = useMutation(api.teacherSurvey.submitOnlineSurvey);
     const createTeacherMutation = useMutation(api.teacherSurvey.createTeacher);
 
-    const [responses, setResponses] = useState({});
+    // Initialize responses from existing data if available
+    const initialResponses = (!isStartMode && existingResponsesResult?.ratings) 
+        ? existingResponsesResult.ratings 
+        : {};
+    const [responses, setResponses] = useState(initialResponses);
     const [submitted, setSubmitted] = useState(false);
     const [expandedStrands, setExpandedStrands] = useState({});
     const [comment, setComment] = useState('');
-
-    // Load existing responses when data is available
-    useEffect(() => {
-        if (!isStartMode && existingResponsesResult?.ratings) {
-            setResponses((prev) => {
-                if (Object.keys(prev).length === 0 && Object.keys(existingResponsesResult.ratings).length > 0) {
-                    return existingResponsesResult.ratings;
-                }
-                return prev;
-            });
-        }
-    }, [isStartMode, existingResponsesResult]);
 
     // Handle create teacher
     const handleStartSurvey = async (name, subject) => {

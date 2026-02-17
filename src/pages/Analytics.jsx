@@ -58,6 +58,7 @@ const mockWeaknesses = [
 
 function Analytics() {
     const [activeView, setActiveView] = useState('overview');
+    // eslint-disable-next-line no-unused-vars
     const [selectedSchool, setSelectedSchool] = useState(null);
     const [filterDimension, setFilterDimension] = useState('all');
 
