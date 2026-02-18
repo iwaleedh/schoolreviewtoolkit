@@ -1,0 +1,43 @@
+# Cursor Rules & AI Behavior Guidelines
+
+> **Strategy:** Recursive Context Search (Scaffolding) & RIPL (Read-Eval-Print-Loop)
+> **Goal:** Prevent "Context Rot" by minimizing active tokens and treating the codebase as a dependency graph.
+
+## 1. 🛑 NO CONTEXT DUMPING
+*   **NEVER** read all files at once.
+*   **NEVER** assume you know the file structure; always verify with `ls` or `find`.
+*   **NEVER** start coding without a Plan.
+
+## 2. 🗺️ THE "RECURSIVE SEARCH" WORKFLOW
+Follow this loop for EVERY complex task:
+
+1.  **PLAN (The Map)**
+    *   Read `school_review_app_prompt.md` (Master Index) First.
+    *   Identify the *specific* domain (e.g., `context/02_analytics_specs.md`).
+    *   Read *only* that domain context.
+
+2.  **SEARCH (The Google)**
+    *   Use `find_by_name` or `grep_search` to locate files.
+    *   Do not guess paths (e.g., don't assume `src/components/Dimension1.jsx`, check if it exists).
+
+3.  **RETRIEVE (The Microscope)**
+    *   Read *only* the specific target files.
+    *   If you need a dependency (e.g., an imported Context), read that file *individually*.
+    *   **Constraint:** Keep active context to < 5 files if possible.
+
+4.  **EXECUTE (The Action)**
+    *   Write `implementation_plan.md` for any code changes.
+    *   Use `replace_file_content` for edits.
+
+## 3. 🧠 RIPL STRATEGY (For Data & Analytics)
+When dealing with large data (e.g., School Reports, CSVs):
+*   **DO NOT** read the entire raw data file into context.
+*   **DO:** Write a script (or use a tool) to query/summarize the data.
+    *   *Example:* Don't read `Backend.csv` (300KB). Run a script to "Get all indicators for Strand 1.1".
+*   Treat data as a **Dependency Graph**: A score depends on an Indicator, which depends on a sub-strand. content.
+
+## 4. 📝 PROJECT SPECIFICS
+*   **Language:** React 18 (Vite) + Node.js (Express).
+*   **Style:** Vanilla CSS (No Tailwind).
+*   **RTL:** All Dhivehi text must be `dir="rtl"` with `font-dhivehi`.
+*   **Context Source:** `Review Toolkit/context/`.
