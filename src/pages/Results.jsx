@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import ReportGenerator from '../components/reports/ReportGenerator';
 import Backend from './Backend';
+import DimensionResultCard from '../components/results/DimensionResultCard';
+import { useAllDimensionsData } from '../hooks/useAllDimensionsData';
 import { useSSEData } from '../context/SSEDataContext';
 import {
     processChecklistData,
@@ -28,9 +30,10 @@ import './Results.css';
 function Results() {
     const [activeView, setActiveView] = useState('summary');
     const { allData } = useSSEData();
+    const { dimensions: backendDimensions, loading: backendLoading } = useAllDimensionsData();
 
-    // Process dimension data
-    const dimensionResults = useMemo(() => {
+    // Process dimension data from SSEDataContext (fallback)
+    const fallbackDimensionResults = useMemo(() => {
         const results = {};
         DIMENSIONS.forEach(dim => {
             const data = allData[dim.id] || [];
@@ -47,18 +50,48 @@ function Results() {
         return results;
     }, [allData]);
 
+    // Merge Backend data with fallback
+    const mergedDimensionData = useMemo(() => {
+        const merged = {};
+        DIMENSIONS.forEach(dim => {
+            const backendData = backendDimensions[dim.id];
+            const fallbackData = fallbackDimensionResults[dim.id];
+            
+            if (backendData?.hasData) {
+                merged[dim.id] = {
+                    score: backendData.score,
+                    grade: backendData.grade,
+                    indicatorCount: backendData.indicatorCount,
+                    strands: backendData.strands,
+                    hasData: true,
+                    fallbackScore: fallbackData?.dimension?.score || 0,
+                    fallbackGrade: fallbackData?.dimension?.grade || 'NR',
+                };
+            } else {
+                merged[dim.id] = {
+                    score: fallbackData?.dimension?.score || 0,
+                    grade: fallbackData?.dimension?.grade || 'NR',
+                    indicatorCount: fallbackData?.indicators?.length || 0,
+                    strands: [],
+                    hasData: false,
+                    fallbackScore: undefined,
+                    fallbackGrade: undefined,
+                };
+            }
+        });
+        return merged;
+    }, [backendDimensions, fallbackDimensionResults]);
+
     const overallScore = useMemo(() => {
         return calculateOverallScore(
-            DIMENSIONS.map(d => dimensionResults[d.id]?.dimension || { score: 0 })
+            DIMENSIONS.map(d => ({ score: mergedDimensionData[d.id]?.score || 0 }))
         );
-    }, [dimensionResults]);
+    }, [mergedDimensionData]);
 
-    // Count completed dimensions
     const completedDimensions = DIMENSIONS.filter(
-        d => dimensionResults[d.id]?.dimension?.grade !== 'NR'
+        d => mergedDimensionData[d.id]?.grade !== 'NR'
     ).length;
 
-    // Render grade badge
     const renderGradeBadge = (grade) => {
         const color = GRADE_COLORS[grade] || GRADE_COLORS.NR;
         
@@ -119,7 +152,9 @@ function Results() {
                                 <Award size={24} aria-hidden="true" />
                             </div>
                             <div className="stat-content">
-                                <div className="stat-value">{overallScore.score}%</div>
+                                <div className="stat-value">
+                                    {backendLoading ? '...' : `${overallScore.score}%`}
+                                </div>
                                 <div className="stat-label">Overall Score</div>
                             </div>
                             {renderGradeBadge(overallScore.grade)}
@@ -152,54 +187,21 @@ function Results() {
                     <div className="results-dimensions">
                         <h2 className="section-title">Dimension Results</h2>
                         <div className="dimension-cards">
-                            {DIMENSIONS.map((dim, idx) => {
-                                const result = dimensionResults[dim.id];
-                                const score = result?.dimension?.score || 0;
-                                const grade = result?.dimension?.grade || 'NR';
-                                const indicatorCount = result?.indicators?.length || 0;
+                            {DIMENSIONS.map((dim) => {
+                                const dimData = mergedDimensionData[dim.id];
                                 
                                 return (
-                                    <div key={dim.id} className="dimension-card">
-                                        <div 
-                                            className="dimension-card-header"
-                                            style={{ borderLeftColor: dim.color }}
-                                        >
-                                            <span 
-                                                className="dimension-badge"
-                                                style={{ backgroundColor: dim.color }}
-                                            >
-                                                D{idx + 1}
-                                            </span>
-                                            <div className="dimension-info">
-                                                <h3>{dim.name}</h3>
-                                                <p className="font-dhivehi" dir="rtl">{dim.nameDv}</p>
-                                            </div>
-                                        </div>
-                                        <div className="dimension-card-body">
-                                            <div className="dimension-score">
-                                                <div className="score-circle" style={{
-                                                    background: `conic-gradient(${dim.color} ${score * 3.6}deg, #e5e7eb 0deg)`
-                                                }}>
-                                                    <div className="score-inner">
-                                                        <span className="score-value">{score}%</span>
-                                                    </div>
-                                                </div>
-                                                {renderGradeBadge(grade)}
-                                            </div>
-                                            <div className="dimension-meta">
-                                                <span>{indicatorCount} indicators</span>
-                                                {grade === 'NR' ? (
-                                                    <span className="status-pending">
-                                                        <AlertCircle size={14} aria-hidden="true" /> Not started
-                                                    </span>
-                                                ) : (
-                                                    <span className="status-complete">
-                                                        <CheckCircle size={14} aria-hidden="true" /> Complete
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <DimensionResultCard
+                                        key={dim.id}
+                                        dimension={dim}
+                                        score={dimData?.score || 0}
+                                        grade={dimData?.grade || 'NR'}
+                                        indicatorCount={dimData?.indicatorCount || 0}
+                                        strands={dimData?.strands || []}
+                                        hasData={dimData?.hasData || false}
+                                        fallbackScore={dimData?.fallbackScore}
+                                        fallbackGrade={dimData?.fallbackGrade}
+                                    />
                                 );
                             })}
                         </div>

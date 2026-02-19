@@ -27,6 +27,22 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
     const [pendingUpdates, setPendingUpdates] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
+    // Monitor online/offline status
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
     // Generate survey URL
     const baseUrl = window.location.origin;
 
@@ -91,7 +107,7 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
 
     // Save all pending updates
     const handleSave = async () => {
-        if (Object.keys(pendingUpdates).length === 0) return;
+        if (Object.keys(pendingUpdates).length === 0 || !isOnline) return;
         setIsSaving(true);
         try {
             await saveManualResponsesMutation({ updates: Object.values(pendingUpdates) });
@@ -180,6 +196,10 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
                 <div className="dimension-stats">
+                    {/* Online/Offline Status */}
+                    <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
+                        <span>{isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
                     <span className="stat-badge blue">
                         Teachers: {teachers.length}
                     </span>
@@ -196,7 +216,8 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
                     <button
                         className={`save-btn ${Object.keys(pendingUpdates).length > 0 ? 'dirty' : ''}`}
                         onClick={handleSave}
-                        disabled={Object.keys(pendingUpdates).length === 0 || isSaving}
+                        disabled={Object.keys(pendingUpdates).length === 0 || isSaving || !isOnline}
+                        title={!isOnline ? 'You are offline. Reconnect to save changes.' : 'Save Changes'}
                     >
                         <Save size={18} />
                         <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>

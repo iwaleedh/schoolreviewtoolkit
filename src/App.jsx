@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import SSEToolkit from './pages/SSEToolkit';
 import Analytics from './pages/Analytics';
 import Results from './pages/Results';
+import DimensionDistribution from './pages/DimensionDistribution';
 import SchoolProfile from './pages/SchoolProfile';
 import Support from './pages/Support';
 import ParentSurvey from './pages/ParentSurvey';
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/toolkit" element={<SSEToolkit />} />
                 <Route path="/school-profile" element={<SchoolProfile />} />
                 <Route path="/results" element={<Results />} />
+                <Route path="/results/dimension/:dimensionId" element={<DimensionDistribution />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
               </Route>

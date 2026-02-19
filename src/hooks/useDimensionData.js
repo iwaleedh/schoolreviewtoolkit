@@ -180,7 +180,14 @@ export function useDimensionData(dimension) {
                     outcomes: outcomesArray,
                     distribution,
                 });
+                
+                // Add outcomes to strand-level collection
+                if (!strandObj.allOutcomes) strandObj.allOutcomes = [];
+                strandObj.allOutcomes.push(...outcomesArray);
             });
+            
+            // Calculate strand-level distribution
+            strandObj.distribution = calculateSubstrandDistribution(strandObj.allOutcomes || []);
 
             result.push(strandObj);
         });

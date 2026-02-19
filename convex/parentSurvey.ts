@@ -155,19 +155,18 @@ export const deleteParent = mutation({
 export const getAllWithComments = query({
     handler: async (ctx) => {
         const parents = await ctx.db.query("parents").collect();
-        
+
         // Filter only parents with comments and sort by creation date
         const parentsWithComments = parents
             .filter((p) => p.comment && p.comment.trim() !== "")
             .sort((a, b) => b.created - a.created)
             .map((p) => ({
                 parentId: p.parentId,
-                parentName: p.parentName,
                 studentName: p.studentName,
                 comment: p.comment,
                 created: p.created,
             }));
-        
+
         return { parents: parentsWithComments };
     },
 });
