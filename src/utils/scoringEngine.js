@@ -12,6 +12,14 @@
  * - 60% threshold for multi-column data normalization
  */
 
+import { 
+    SCORING_THRESHOLDS, 
+    GRADE_COLORS, 
+    GRADE_LABELS,
+    MULTI_COLUMN_THRESHOLD,
+    getGradeFromPercentage 
+} from './constants';
+
 // ============================================
 // INDICATOR SCORING
 // ============================================
@@ -67,8 +75,8 @@ export function normalizeMultiColumnIndicator(dataPoints) {
     // Calculate percentage
     const percentage = (positiveCount / validPoints.length) * 100;
     
-    // Apply 60% threshold
-    return percentage >= 60 ? 1 : 0;
+    // Apply threshold from constants
+    return percentage >= MULTI_COLUMN_THRESHOLD ? 1 : 0;
 }
 
 // ============================================
@@ -76,14 +84,14 @@ export function normalizeMultiColumnIndicator(dataPoints) {
 // ============================================
 
 /**
- * Outcome grade thresholds
+ * Outcome grade thresholds - uses constants for consistency
  */
 export const OUTCOME_GRADES = {
-    FA: { min: 90, label: 'Fully Achieved', labelDv: 'އެއްކޮށް ހާސިލުވެފައި', color: 'purple' },
-    MA: { min: 70, label: 'Mostly Achieved', labelDv: 'ގިނައިން ހާސިލުވެފައި', color: 'green' },
-    A: { min: 50, label: 'Achieved', labelDv: 'ހާސިލުވެފައި', color: 'yellow' },
-    NS: { min: 0, label: 'Not Sufficient', labelDv: 'ނުފުދޭ', color: 'red' },
-    NR: { min: -1, label: 'Not Reviewed', labelDv: 'ބެލިފައި ނެތް', color: 'gray' },
+    FA: { min: SCORING_THRESHOLDS.FULLY_ACHIEVED, label: GRADE_LABELS.FA.en, labelDv: GRADE_LABELS.FA.dv, color: GRADE_COLORS.FA.hex },
+    MA: { min: SCORING_THRESHOLDS.MOSTLY_ACHIEVED, label: GRADE_LABELS.MA.en, labelDv: GRADE_LABELS.MA.dv, color: GRADE_COLORS.MA.hex },
+    A: { min: SCORING_THRESHOLDS.ACHIEVED, label: GRADE_LABELS.A.en, labelDv: GRADE_LABELS.A.dv, color: GRADE_COLORS.A.hex },
+    NS: { min: SCORING_THRESHOLDS.NOT_SUFFICIENT, label: GRADE_LABELS.NS.en, labelDv: GRADE_LABELS.NS.dv, color: GRADE_COLORS.NS.hex },
+    NR: { min: -1, label: GRADE_LABELS.NR.en, labelDv: GRADE_LABELS.NR.dv, color: GRADE_COLORS.NR.hex },
 };
 
 /**
@@ -103,10 +111,7 @@ export function calculateOutcomeGrade(indicatorScores) {
     const total = validScores.length;
     const percentage = Math.round((met / total) * 100);
     
-    let grade = 'NS';
-    if (percentage >= 90) grade = 'FA';
-    else if (percentage >= 70) grade = 'MA';
-    else if (percentage >= 50) grade = 'A';
+    const grade = getGradeFromPercentage(percentage);
     
     return { grade, percentage, met, total };
 }
@@ -185,11 +190,7 @@ export function calculateDimensionScore(strands) {
     const totalScore = validStrands.reduce((acc, s) => acc + s.score, 0);
     const score = Math.round(totalScore / validStrands.length);
     
-    // Determine grade based on score
-    let grade = 'NS';
-    if (score >= 90) grade = 'FA';
-    else if (score >= 70) grade = 'MA';
-    else if (score >= 50) grade = 'A';
+    const grade = getGradeFromPercentage(score);
     
     return { score, totalStrands: validStrands.length, grade };
 }
@@ -209,11 +210,7 @@ export function calculateOverallScore(dimensions) {
     const totalScore = validDimensions.reduce((acc, d) => acc + d.score, 0);
     const score = Math.round(totalScore / validDimensions.length);
     
-    // Determine grade
-    let grade = 'NS';
-    if (score >= 90) grade = 'FA';
-    else if (score >= 70) grade = 'MA';
-    else if (score >= 50) grade = 'A';
+    const grade = getGradeFromPercentage(score);
     
     return { score, grade };
 }
@@ -340,9 +337,9 @@ export function processChecklistData(checklistData, scoreColumn = 'Score') {
  * @returns {string} CSS class name
  */
 export function getScoreColorClass(score) {
-    if (score >= 90) return 'score-excellent';
-    if (score >= 70) return 'score-good';
-    if (score >= 50) return 'score-fair';
+    if (score >= SCORING_THRESHOLDS.FULLY_ACHIEVED) return 'score-excellent';
+    if (score >= SCORING_THRESHOLDS.MOSTLY_ACHIEVED) return 'score-good';
+    if (score >= SCORING_THRESHOLDS.ACHIEVED) return 'score-fair';
     return 'score-poor';
 }
 
@@ -352,14 +349,7 @@ export function getScoreColorClass(score) {
  * @returns {string} Color name
  */
 export function getGradeBadgeColor(grade) {
-    const colors = {
-        FA: 'purple',
-        MA: 'green',
-        A: 'yellow',
-        NS: 'red',
-        NR: 'gray',
-    };
-    return colors[grade] || 'gray';
+    return GRADE_COLORS[grade]?.css || 'gray';
 }
 
 /**

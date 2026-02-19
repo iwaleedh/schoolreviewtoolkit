@@ -2,9 +2,10 @@
  * Results Page
  * 
  * Displays school review results and provides report generation functionality
+ * Contains tabs: Summary, Backend, Generate Report
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     FileText,
     BarChart3,
@@ -12,31 +13,24 @@ import {
     Award,
     CheckCircle,
     AlertCircle,
+    Database,
 } from 'lucide-react';
 import ReportGenerator from '../components/reports/ReportGenerator';
+import Backend from './Backend';
 import { useSSEData } from '../context/SSEDataContext';
 import {
     processChecklistData,
     calculateOverallScore,
-    OUTCOME_GRADES,
 } from '../utils/scoringEngine';
+import { DIMENSIONS, GRADE_COLORS, GRADE_LABELS, SCORING_THRESHOLDS } from '../utils/constants';
 import './Results.css';
-
-// Dimension configuration
-const DIMENSIONS = [
-    { id: 'D1', name: 'Inclusivity', nameDv: 'ޝާމިލުކުރުން', color: '#7c3aed' },
-    { id: 'D2', name: 'Teaching & Learning', nameDv: 'އުނގެނުމާއި އުނގައްނައިދިނުން', color: '#4f46e5' },
-    { id: 'D3', name: 'Health & Safety', nameDv: 'ސިއްހަތާއި ރައްކާތެރިކަން', color: '#10b981' },
-    { id: 'D4', name: 'Community', nameDv: 'މުޖުތަމައު', color: '#f59e0b' },
-    { id: 'D5', name: 'Leadership', nameDv: 'ލީޑަރޝިޕް', color: '#f43f5e' },
-];
 
 function Results() {
     const [activeView, setActiveView] = useState('summary');
     const { allData } = useSSEData();
 
     // Process dimension data
-    const getDimensionResults = () => {
+    const dimensionResults = useMemo(() => {
         const results = {};
         DIMENSIONS.forEach(dim => {
             const data = allData[dim.id] || [];
@@ -51,12 +45,13 @@ function Results() {
             }
         });
         return results;
-    };
+    }, [allData]);
 
-    const dimensionResults = getDimensionResults();
-    const overallScore = calculateOverallScore(
-        DIMENSIONS.map(d => dimensionResults[d.id]?.dimension || { score: 0 })
-    );
+    const overallScore = useMemo(() => {
+        return calculateOverallScore(
+            DIMENSIONS.map(d => dimensionResults[d.id]?.dimension || { score: 0 })
+        );
+    }, [dimensionResults]);
 
     // Count completed dimensions
     const completedDimensions = DIMENSIONS.filter(
@@ -65,14 +60,7 @@ function Results() {
 
     // Render grade badge
     const renderGradeBadge = (grade) => {
-        const colors = {
-            FA: { bg: '#f3e8ff', text: '#7c3aed' },
-            MA: { bg: '#dcfce7', text: '#16a34a' },
-            A: { bg: '#fef3c7', text: '#d97706' },
-            NS: { bg: '#fee2e2', text: '#dc2626' },
-            NR: { bg: '#f3f4f6', text: '#6b7280' },
-        };
-        const color = colors[grade] || colors.NR;
+        const color = GRADE_COLORS[grade] || GRADE_COLORS.NR;
         
         return (
             <span 
@@ -98,15 +86,25 @@ function Results() {
                     <button
                         className={`view-btn ${activeView === 'summary' ? 'active' : ''}`}
                         onClick={() => setActiveView('summary')}
+                        aria-pressed={activeView === 'summary'}
                     >
-                        <BarChart3 size={16} />
+                        <BarChart3 size={16} aria-hidden="true" />
                         Summary
+                    </button>
+                    <button
+                        className={`view-btn ${activeView === 'backend' ? 'active' : ''}`}
+                        onClick={() => setActiveView('backend')}
+                        aria-pressed={activeView === 'backend'}
+                    >
+                        <Database size={16} aria-hidden="true" />
+                        Backend
                     </button>
                     <button
                         className={`view-btn ${activeView === 'report' ? 'active' : ''}`}
                         onClick={() => setActiveView('report')}
+                        aria-pressed={activeView === 'report'}
                     >
-                        <FileText size={16} />
+                        <FileText size={16} aria-hidden="true" />
                         Generate Report
                     </button>
                 </div>
@@ -118,7 +116,7 @@ function Results() {
                     <div className="results-stats">
                         <div className="stat-card">
                             <div className="stat-icon blue">
-                                <Award size={24} />
+                                <Award size={24} aria-hidden="true" />
                             </div>
                             <div className="stat-content">
                                 <div className="stat-value">{overallScore.score}%</div>
@@ -129,7 +127,7 @@ function Results() {
 
                         <div className="stat-card">
                             <div className="stat-icon green">
-                                <CheckCircle size={24} />
+                                <CheckCircle size={24} aria-hidden="true" />
                             </div>
                             <div className="stat-content">
                                 <div className="stat-value">{completedDimensions}/5</div>
@@ -139,7 +137,7 @@ function Results() {
 
                         <div className="stat-card">
                             <div className="stat-icon purple">
-                                <TrendingUp size={24} />
+                                <TrendingUp size={24} aria-hidden="true" />
                             </div>
                             <div className="stat-content">
                                 <div className="stat-value">
@@ -192,11 +190,11 @@ function Results() {
                                                 <span>{indicatorCount} indicators</span>
                                                 {grade === 'NR' ? (
                                                     <span className="status-pending">
-                                                        <AlertCircle size={14} /> Not started
+                                                        <AlertCircle size={14} aria-hidden="true" /> Not started
                                                     </span>
                                                 ) : (
                                                     <span className="status-complete">
-                                                        <CheckCircle size={14} /> Complete
+                                                        <CheckCircle size={14} aria-hidden="true" /> Complete
                                                     </span>
                                                 )}
                                             </div>
@@ -210,16 +208,23 @@ function Results() {
                     {/* Grade Legend */}
                     <div className="grade-legend-section">
                         <h3>Grade Scale</h3>
-                        <div className="grade-legend">
-                            {Object.entries(OUTCOME_GRADES).map(([code, info]) => (
-                                <div key={code} className="grade-item">
-                                    {renderGradeBadge(code)}
-                                    <span>{info.label}</span>
-                                    <span className="grade-threshold">
-                                        {info.min === -1 ? 'N/A' : `≥${info.min}%`}
-                                    </span>
-                                </div>
-                            ))}
+                        <div className="grade-legend" role="list">
+                            {Object.entries(GRADE_COLORS).map(([code]) => {
+                                const threshold = code === 'FA' ? SCORING_THRESHOLDS.FULLY_ACHIEVED :
+                                    code === 'MA' ? SCORING_THRESHOLDS.MOSTLY_ACHIEVED :
+                                    code === 'A' ? SCORING_THRESHOLDS.ACHIEVED :
+                                    code === 'NS' ? SCORING_THRESHOLDS.NOT_SUFFICIENT : null;
+                                
+                                return (
+                                    <div key={code} className="grade-item" role="listitem">
+                                        {renderGradeBadge(code)}
+                                        <span>{GRADE_LABELS[code]?.en || code}</span>
+                                        <span className="grade-threshold">
+                                            {code === 'NR' ? 'N/A' : `≥${threshold}%`}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </>
@@ -230,6 +235,10 @@ function Results() {
                     schoolName="Sample School"
                     schoolId="SCH-001"
                 />
+            )}
+
+            {activeView === 'backend' && (
+                <Backend />
             )}
         </div>
     );

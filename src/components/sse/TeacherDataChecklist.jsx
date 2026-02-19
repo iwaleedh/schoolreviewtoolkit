@@ -15,8 +15,6 @@ const RATINGS = [
 function TeacherDataChecklist({ csvFileName, title, titleDv }) {
     const { loading, error, grouped } = useChecklistData(csvFileName);
     const responses = useQuery(api.teacherSurvey.getAll) ?? { responses: {} };
-    const setRatingMutation = useMutation(api.teacherSurvey.setRating);
-
     const deleteTeacherMutation = useMutation(api.teacherSurvey.deleteTeacher);
     const saveManualResponsesMutation = useMutation(api.teacherSurvey.saveManualResponses);
     const updateSettingMutation = useMutation(api.teacherSurvey.updateSetting);

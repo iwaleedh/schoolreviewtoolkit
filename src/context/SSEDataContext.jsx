@@ -1,6 +1,18 @@
-import { createContext, useContext, useCallback, useMemo, useState, useEffect } from 'react';
+import { createContext, useContext, useCallback, useMemo, useState, useEffect, useReducer } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { 
+    STORAGE_KEYS, 
+    ERROR_MESSAGES, 
+    UI_CONFIG,
+    SCORING_THRESHOLDS 
+} from '../utils/constants';
+import { 
+    sanitizeComment, 
+    sanitizeIndicatorCode, 
+    validateScore,
+    validateLTScore 
+} from '../utils/sanitizers';
 
 /**
  * SSEDataContext - Global state for all checklist scores
@@ -14,10 +26,101 @@ import { api } from '../../convex/_generated/api';
 
 const SSEDataContext = createContext(null);
 
+// Action types for reducer
+const ACTIONS = {
+    SET_PENDING_LT_SCORE: 'SET_PENDING_LT_SCORE',
+    SET_PENDING_COMMENT: 'SET_PENDING_COMMENT',
+    CLEAR_PENDING_FOR_SOURCE: 'CLEAR_PENDING_FOR_SOURCE',
+    CLEAR_PENDING_COMMENTS: 'CLEAR_PENDING_COMMENTS',
+    CLEAR_ALL_PENDING: 'CLEAR_ALL_PENDING',
+    SET_SYNCING: 'SET_SYNCING',
+    SET_LAST_SYNC: 'SET_LAST_SYNC',
+    SET_ERROR: 'SET_ERROR',
+    CLEAR_ERROR: 'CLEAR_ERROR',
+};
+
+// Reducer for pending state management
+function pendingReducer(state, action) {
+    switch (action.type) {
+        case ACTIONS.SET_PENDING_LT_SCORE: {
+            const { indicatorCode, ltColumn, value, source } = action.payload;
+            return {
+                ...state,
+                ltScores: {
+                    ...state.ltScores,
+                    [indicatorCode]: {
+                        ...state.ltScores[indicatorCode],
+                        [ltColumn]: { value, source, timestamp: Date.now() }
+                    }
+                },
+            };
+        }
+        case ACTIONS.SET_PENDING_COMMENT: {
+            const { indicatorCode, comment } = action.payload;
+            return {
+                ...state,
+                comments: {
+                    ...state.comments,
+                    [indicatorCode]: { comment, timestamp: Date.now() }
+                },
+            };
+        }
+        case ACTIONS.CLEAR_PENDING_FOR_SOURCE: {
+            const { source } = action.payload;
+            const newLtScores = { ...state.ltScores };
+            Object.keys(newLtScores).forEach(indicatorCode => {
+                const columns = { ...newLtScores[indicatorCode] };
+                Object.keys(columns).forEach(ltColumn => {
+                    if (columns[ltColumn].source === source) {
+                        delete columns[ltColumn];
+                    }
+                });
+                if (Object.keys(columns).length === 0) {
+                    delete newLtScores[indicatorCode];
+                } else {
+                    newLtScores[indicatorCode] = columns;
+                }
+            });
+            return {
+                ...state,
+                ltScores: newLtScores,
+            };
+        }
+        case ACTIONS.CLEAR_PENDING_COMMENTS: {
+            return {
+                ...state,
+                comments: {},
+            };
+        }
+        case ACTIONS.CLEAR_ALL_PENDING: {
+            return {
+                ...state,
+                ltScores: {},
+                comments: {},
+                indicatorScores: {},
+            };
+        }
+        case ACTIONS.SET_SYNCING: {
+            return { ...state, isSyncing: action.payload };
+        }
+        case ACTIONS.SET_LAST_SYNC: {
+            return { ...state, lastSyncTime: action.payload };
+        }
+        case ACTIONS.SET_ERROR: {
+            return { ...state, error: action.payload };
+        }
+        case ACTIONS.CLEAR_ERROR: {
+            return { ...state, error: null };
+        }
+        default:
+            return state;
+    }
+}
+
 // Load pending changes from localStorage
 const loadPendingFromStorage = () => {
     try {
-        const stored = localStorage.getItem('sse_pending_scores');
+        const stored = localStorage.getItem(STORAGE_KEYS.PENDING_SCORES);
         return stored ? JSON.parse(stored) : {};
     } catch {
         return {};
@@ -27,11 +130,34 @@ const loadPendingFromStorage = () => {
 // Save pending changes to localStorage
 const savePendingToStorage = (pending) => {
     try {
-        localStorage.setItem('sse_pending_scores', JSON.stringify(pending));
-    } catch {
-        // Ignore storage errors
+        localStorage.setItem(STORAGE_KEYS.PENDING_SCORES, JSON.stringify(pending));
+    } catch (error) {
+        console.warn('Failed to save to localStorage:', error);
     }
 };
+
+// Initial state for reducer
+const createInitialState = () => ({
+    ltScores: loadPendingFromStorage(),
+    comments: (() => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEYS.PENDING_COMMENTS);
+            return stored ? JSON.parse(stored) : {};
+        } catch {
+            return {};
+        }
+    })(),
+    isSyncing: false,
+    lastSyncTime: (() => {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+            return stored ? new Date(stored) : null;
+        } catch {
+            return null;
+        }
+    })(),
+    error: null,
+});
 
 export function SSEDataProvider({ children }) {
     // Convex queries - real-time data from database
@@ -57,25 +183,9 @@ export function SSEDataProvider({ children }) {
     // Outcome scores are calculated, not stored
     const [outcomeScores, setOutcomeScores] = useState({});
 
-    // OFFLINE-FIRST: Pending changes that haven't been synced to backend yet
-    const [pendingLTScores, setPendingLTScores] = useState(() => loadPendingFromStorage());
-    const [pendingComments, setPendingComments] = useState(() => {
-        try {
-            const stored = localStorage.getItem('sse_pending_comments');
-            return stored ? JSON.parse(stored) : {};
-        } catch {
-            return {};
-        }
-    });
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [lastSyncTime, setLastSyncTime] = useState(() => {
-        try {
-            const stored = localStorage.getItem('sse_last_sync');
-            return stored ? new Date(stored) : null;
-        } catch {
-            return null;
-        }
-    });
+    // Use reducer for pending state management
+    const [pendingState, dispatch] = useReducer(pendingReducer, null, createInitialState);
+    const { ltScores: pendingLTScores, comments: pendingComments, isSyncing, lastSyncTime, error } = pendingState;
 
     // Persist pending changes to localStorage whenever they change
     useEffect(() => {
@@ -84,9 +194,9 @@ export function SSEDataProvider({ children }) {
 
     useEffect(() => {
         try {
-            localStorage.setItem('sse_pending_comments', JSON.stringify(pendingComments));
-        } catch (error) {
-            console.warn('Failed to save pending comments to localStorage:', error);
+            localStorage.setItem(STORAGE_KEYS.PENDING_COMMENTS, JSON.stringify(pendingComments));
+        } catch (err) {
+            console.warn('Failed to save pending comments to localStorage:', err);
         }
     }, [pendingComments]);
 
@@ -114,28 +224,54 @@ export function SSEDataProvider({ children }) {
     }, [checklistData]);
 
     /**
-     * Set score for a single indicator
+     * Set score for a single indicator with validation
      */
     const setIndicatorScore = useCallback(async (indicatorCode, value, source = 'unknown') => {
-        await setIndicatorScoreMutation({
-            indicatorCode,
-            value,
-            source,
-        });
+        const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
+        const validatedScore = validateScore(value);
+        
+        if (!sanitizedCode) {
+            console.warn('Invalid indicator code:', indicatorCode);
+            return;
+        }
+        
+        try {
+            await setIndicatorScoreMutation({
+                indicatorCode: sanitizedCode,
+                value: validatedScore,
+                source,
+            });
+            dispatch({ type: ACTIONS.CLEAR_ERROR });
+        } catch (err) {
+            dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
+            throw err;
+        }
     }, [setIndicatorScoreMutation]);
 
     /**
      * Set scores for multiple indicators at once
      */
     const setMultipleIndicatorScores = useCallback(async (scores, source = 'unknown') => {
-        const scoresArray = Object.entries(scores).map(([indicatorCode, value]) => ({
-            indicatorCode,
-            value,
-        }));
-        await setMultipleScoresMutation({
-            scores: scoresArray,
-            source,
-        });
+        const scoresArray = Object.entries(scores)
+            .map(([indicatorCode, value]) => {
+                const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
+                const validatedScore = validateScore(value);
+                return sanitizedCode ? { indicatorCode: sanitizedCode, value: validatedScore } : null;
+            })
+            .filter(Boolean);
+        
+        if (scoresArray.length === 0) return;
+        
+        try {
+            await setMultipleScoresMutation({
+                scores: scoresArray,
+                source,
+            });
+            dispatch({ type: ACTIONS.CLEAR_ERROR });
+        } catch (err) {
+            dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
+            throw err;
+        }
     }, [setMultipleScoresMutation]);
 
     /**
@@ -162,10 +298,10 @@ export function SSEDataProvider({ children }) {
         const percentage = (yesCount / scoredCount) * 100;
 
         // Grade thresholds (SIQAAF framework)
-        if (percentage >= 90) return 'FA';      // Fully Achieved
-        if (percentage >= 70) return 'MA';      // Mostly Achieved
-        if (percentage >= 50) return 'A';       // Achieved
-        return 'NS';                            // Not Sufficient
+        if (percentage >= SCORING_THRESHOLDS.FA) return 'FA';
+        if (percentage >= SCORING_THRESHOLDS.MA) return 'MA';
+        if (percentage >= SCORING_THRESHOLDS.A) return 'A';
+        return 'NS';
     }, [indicatorScores]);
 
     /**
@@ -207,18 +343,19 @@ export function SSEDataProvider({ children }) {
      * Set comment locally (offline-first with localStorage persistence)
      */
     const setIndicatorComment = useCallback((indicatorCode, comment) => {
-        const newPending = {
-            ...pendingComments,
-            [indicatorCode]: { comment, timestamp: Date.now() }
-        };
-        setPendingComments(newPending);
-        // Also save to localStorage immediately for persistence
-        try {
-            localStorage.setItem('sse_pending_comments', JSON.stringify(newPending));
-        } catch (error) {
-            console.warn('Failed to save comment to localStorage:', error);
+        const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
+        const sanitizedComment = sanitizeComment(comment);
+        
+        if (!sanitizedCode) {
+            console.warn('Invalid indicator code for comment:', indicatorCode);
+            return;
         }
-    }, [pendingComments]);
+        
+        dispatch({ 
+            type: ACTIONS.SET_PENDING_COMMENT, 
+            payload: { indicatorCode: sanitizedCode, comment: sanitizedComment } 
+        });
+    }, []);
 
     /**
      * Get comment - check pending first, then server data
@@ -248,10 +385,12 @@ export function SSEDataProvider({ children }) {
                 )
             );
 
-            setPendingComments({});
+            dispatch({ type: ACTIONS.CLEAR_PENDING_COMMENTS });
+            localStorage.removeItem(STORAGE_KEYS.PENDING_COMMENTS);
             return { success: true, count: pending.length };
         } catch (error) {
             console.error('Failed to sync comments:', error);
+            dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             return { success: false, error, count: pending.length };
         }
     }, [pendingComments, setCommentMutation]);
@@ -260,18 +399,19 @@ export function SSEDataProvider({ children }) {
      * Set LT score locally (offline-first - doesn't sync immediately)
      */
     const setIndicatorLTScore = useCallback((indicatorCode, ltColumn, value, source = 'unknown') => {
-        // Store in pending state (local only)
-        const newPending = {
-            ...pendingLTScores,
-            [indicatorCode]: {
-                ...pendingLTScores[indicatorCode],
-                [ltColumn]: { value, source, timestamp: Date.now() }
-            }
-        };
-        setPendingLTScores(newPending);
-        // Also save to localStorage immediately for persistence
-        savePendingToStorage(newPending);
-    }, [pendingLTScores]);
+        const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
+        const validatedValue = validateLTScore(value);
+        
+        if (!sanitizedCode) {
+            console.warn('Invalid indicator code:', indicatorCode);
+            return;
+        }
+        
+        dispatch({
+            type: ACTIONS.SET_PENDING_LT_SCORE,
+            payload: { indicatorCode: sanitizedCode, ltColumn, value: validatedValue, source },
+        });
+    }, []);
 
     /**
      * Get LT score - check pending (local) first, then server data
@@ -323,7 +463,7 @@ export function SSEDataProvider({ children }) {
             return { success: true, count: 0 };
         }
 
-        setIsSyncing(true);
+        dispatch({ type: ACTIONS.SET_SYNCING, payload: true });
         try {
             // Save LT scores
             if (pending.length > 0) {
@@ -354,34 +494,20 @@ export function SSEDataProvider({ children }) {
             }
 
             // Clear pending scores for this source
-            setPendingLTScores(prev => {
-                const newPending = { ...prev };
-                Object.keys(newPending).forEach(indicatorCode => {
-                    const columns = { ...newPending[indicatorCode] };
-                    Object.keys(columns).forEach(ltColumn => {
-                        if (columns[ltColumn].source === source) {
-                            delete columns[ltColumn];
-                        }
-                    });
-                    if (Object.keys(columns).length === 0) {
-                        delete newPending[indicatorCode];
-                    } else {
-                        newPending[indicatorCode] = columns;
-                    }
-                });
-                return newPending;
-            });
+            dispatch({ type: ACTIONS.CLEAR_PENDING_FOR_SOURCE, payload: { source } });
 
             const now = new Date();
-            setLastSyncTime(now);
-            localStorage.setItem('sse_last_sync', now.toISOString());
+            dispatch({ type: ACTIONS.SET_LAST_SYNC, payload: now });
+            localStorage.setItem(STORAGE_KEYS.LAST_SYNC, now.toISOString());
+            dispatch({ type: ACTIONS.CLEAR_ERROR });
 
             return { success: true, count: pending.length };
-        } catch (error) {
-            console.error('Failed to sync LT scores:', error);
-            return { success: false, error, count: pending.length };
+        } catch (err) {
+            console.error('Failed to sync LT scores:', err);
+            dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
+            return { success: false, error: err, count: pending.length };
         } finally {
-            setIsSyncing(false);
+            dispatch({ type: ACTIONS.SET_SYNCING, payload: false });
         }
     }, [getPendingLTScoresForSource, setLtScoreMutation, setMultipleLtScoresMutation, pendingComments, savePendingComments]);
 
@@ -389,23 +515,7 @@ export function SSEDataProvider({ children }) {
      * Discard pending changes for a source
      */
     const discardPendingLTScores = useCallback((source) => {
-        setPendingLTScores(prev => {
-            const newPending = { ...prev };
-            Object.keys(newPending).forEach(indicatorCode => {
-                const columns = { ...newPending[indicatorCode] };
-                Object.keys(columns).forEach(ltColumn => {
-                    if (columns[ltColumn].source === source) {
-                        delete columns[ltColumn];
-                    }
-                });
-                if (Object.keys(columns).length === 0) {
-                    delete newPending[indicatorCode];
-                } else {
-                    newPending[indicatorCode] = columns;
-                }
-            });
-            return newPending;
-        });
+        dispatch({ type: ACTIONS.CLEAR_PENDING_FOR_SOURCE, payload: { source } });
     }, []);
 
     /**
@@ -419,16 +529,21 @@ export function SSEDataProvider({ children }) {
      * Clear all scores (reset)
      */
     const clearAllScores = useCallback(async () => {
-        await Promise.all([
-            clearIndicatorScoresMutation(),
-            clearLtScoresMutation(),
-            clearCommentsMutation(),
-        ]);
-        setOutcomeScores({});
-        setPendingLTScores({});
-        setPendingComments({});
-        localStorage.removeItem('sse_pending_scores');
-        localStorage.removeItem('sse_pending_comments');
+        try {
+            await Promise.all([
+                clearIndicatorScoresMutation(),
+                clearLtScoresMutation(),
+                clearCommentsMutation(),
+            ]);
+            setOutcomeScores({});
+            dispatch({ type: ACTIONS.CLEAR_ALL_PENDING });
+            localStorage.removeItem(STORAGE_KEYS.PENDING_SCORES);
+            localStorage.removeItem(STORAGE_KEYS.PENDING_COMMENTS);
+        } catch (err) {
+            console.error('Failed to clear all scores:', err);
+            dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
+            throw err;
+        }
     }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation]);
 
     const value = useMemo(() => ({
@@ -445,6 +560,7 @@ export function SSEDataProvider({ children }) {
         pendingComments,
         isSyncing,
         lastSyncTime,
+        error,
 
         // Actions
         setIndicatorScore,
@@ -479,6 +595,7 @@ export function SSEDataProvider({ children }) {
         pendingComments,
         isSyncing,
         lastSyncTime,
+        error,
         setIndicatorScore,
         setMultipleIndicatorScores,
         calculateOutcomeScore,

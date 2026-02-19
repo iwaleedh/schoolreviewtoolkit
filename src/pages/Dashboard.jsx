@@ -5,6 +5,7 @@
  * with key stats, progress indicators, and quick actions
  */
 
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
     LayoutDashboard,
@@ -25,54 +26,158 @@ import {
     ArrowUpRight,
     ArrowDownRight,
 } from 'lucide-react';
+import { useSSEData } from '../context/SSEDataContext';
+import { 
+    processChecklistData, 
+    calculateOverallScore,
+    calculateCompletionRate,
+    OUTCOME_GRADES 
+} from '../utils/scoringEngine';
+import { DIMENSIONS, getProgressColor } from '../utils/constants';
 import './Dashboard.css';
 
-// Mock data for dashboard
-const schoolInfo = {
-    name: 'Majeedhiyya School',
-    nameDv: 'މަޖީދިއްޔާ ސްކޫލް',
-    id: 'SCH-001',
-    location: 'Male\', Maldives',
-    academicYear: '2026',
-};
-
-const reviewProgress = {
-    overall: 68,
-    dimensions: [
-        { id: 'D1', name: 'Inclusivity', progress: 85, color: '#7c3aed' },
-        { id: 'D2', name: 'Teaching & Learning', progress: 72, color: '#4f46e5' },
-        { id: 'D3', name: 'Health & Safety', progress: 90, color: '#10b981' },
-        { id: 'D4', name: 'Community', progress: 45, color: '#f59e0b' },
-        { id: 'D5', name: 'Leadership', progress: 50, color: '#f43f5e' },
-    ],
-};
-
-const quickStats = [
-    { label: 'Total Indicators', value: '847', icon: ClipboardList, color: 'blue', change: null },
-    { label: 'Completed', value: '576', icon: CheckCircle, color: 'green', change: '+24 today' },
-    { label: 'In Progress', value: '156', icon: Clock, color: 'amber', change: null },
-    { label: 'Pending', value: '115', icon: AlertCircle, color: 'red', change: '-12 this week' },
-];
-
-const recentActivity = [
-    { action: 'Completed LT1 Checklist', time: '2 hours ago', icon: CheckCircle, color: 'green' },
-    { action: 'Updated Principal Checklist', time: '5 hours ago', icon: FileText, color: 'blue' },
-    { action: 'Started Dimension 4 Review', time: 'Yesterday', icon: Clock, color: 'amber' },
-    { action: 'Generated Progress Report', time: '2 days ago', icon: BarChart3, color: 'purple' },
-];
-
-const quickActions = [
-    { label: 'Continue Review', labelDv: 'ރިވިއު ކުރިއަށް ގެންދާ', path: '/toolkit', icon: ClipboardList, color: 'primary' },
-    { label: 'View Analytics', labelDv: 'އެނަލިޓިކްސް ބައްލަވާ', path: '/analytics', icon: TrendingUp, color: 'purple' },
-    { label: 'Generate Report', labelDv: 'ރިޕޯޓް ހައްދަވާ', path: '/results', icon: FileText, color: 'green' },
-];
-
 function Dashboard() {
-    const getProgressColor = (progress) => {
-        if (progress >= 80) return '#22c55e';
-        if (progress >= 50) return '#f59e0b';
-        return '#ef4444';
-    };
+    const { allData, indicatorScores } = useSSEData();
+
+    // Calculate real dimension scores from context
+    const dimensionResults = useMemo(() => {
+        const results = {};
+        DIMENSIONS.forEach(dim => {
+            const data = allData[dim.id] || [];
+            if (data.length > 0) {
+                const processed = processChecklistData(data, 'Score');
+                results[dim.id] = {
+                    ...processed,
+                    completion: calculateCompletionRate(processed),
+                };
+            } else {
+                results[dim.id] = {
+                    dimension: { score: 0, grade: 'NR' },
+                    indicators: [],
+                    completion: { completed: 0, total: 0, percentage: 0 },
+                };
+            }
+        });
+        return results;
+    }, [allData]);
+
+    // Calculate overall score
+    const overallScore = useMemo(() => {
+        const dimensionScores = DIMENSIONS.map(d => 
+            dimensionResults[d.id]?.dimension || { score: 0 }
+        );
+        return calculateOverallScore(dimensionScores);
+    }, [dimensionResults]);
+
+    // Calculate total stats
+    const stats = useMemo(() => {
+        let totalIndicators = 0;
+        let completedIndicators = 0;
+        let yesCount = 0;
+        let noCount = 0;
+        let nrCount = 0;
+
+        // Count from indicator scores in context
+        Object.values(indicatorScores || {}).forEach(score => {
+            totalIndicators++;
+            if (score === 'yes') {
+                completedIndicators++;
+                yesCount++;
+            } else if (score === 'no') {
+                completedIndicators++;
+                noCount++;
+            } else if (score === 'nr') {
+                completedIndicators++;
+                nrCount++;
+            }
+        });
+
+        // Also count from dimension results
+        DIMENSIONS.forEach(dim => {
+            const result = dimensionResults[dim.id];
+            if (result?.indicators) {
+                totalIndicators = Math.max(totalIndicators, result.indicators.length);
+            }
+        });
+
+        const pendingCount = totalIndicators - completedIndicators;
+
+        return {
+            total: totalIndicators,
+            completed: completedIndicators,
+            pending: pendingCount,
+            yes: yesCount,
+            no: noCount,
+            nr: nrCount,
+        };
+    }, [indicatorScores, dimensionResults]);
+
+    // School info (could be from context in future)
+    const schoolInfo = useMemo(() => ({
+        name: 'Majeedhiyya School',
+        nameDv: 'މަޖީދިއްޔާ ސްކޫލް',
+        id: 'SCH-001',
+        location: 'Male\', Maldives',
+        academicYear: '2026',
+    }), []);
+
+    // Review progress calculation
+    const reviewProgress = useMemo(() => ({
+        overall: overallScore.score || 0,
+        dimensions: DIMENSIONS.map((dim, idx) => ({
+            id: `D${idx + 1}`,
+            name: dim.name,
+            progress: dimensionResults[dim.id]?.dimension?.score || 0,
+            color: dim.color,
+        })),
+    }), [overallScore, dimensionResults]);
+
+    // Quick stats
+    const quickStats = useMemo(() => [
+        { 
+            label: 'Total Indicators', 
+            value: stats.total.toString(), 
+            icon: ClipboardList, 
+            color: 'blue', 
+            change: null 
+        },
+        { 
+            label: 'Completed', 
+            value: stats.completed.toString(), 
+            icon: CheckCircle, 
+            color: 'green', 
+            change: stats.yes > 0 ? `+${stats.yes} yes` : null 
+        },
+        { 
+            label: 'In Progress', 
+            value: stats.pending.toString(), 
+            icon: Clock, 
+            color: 'amber', 
+            change: null 
+        },
+        { 
+            label: 'Reviewed', 
+            value: `${Math.round((stats.completed / Math.max(stats.total, 1)) * 100)}%`, 
+            icon: BarChart3, 
+            color: 'purple', 
+            change: null 
+        },
+    ], [stats]);
+
+    // Recent activity (placeholder - could be from context in future)
+    const recentActivity = [
+        { action: 'Completed LT1 Checklist', time: '2 hours ago', icon: CheckCircle, color: 'green' },
+        { action: 'Updated Principal Checklist', time: '5 hours ago', icon: FileText, color: 'blue' },
+        { action: 'Started Dimension 4 Review', time: 'Yesterday', icon: Clock, color: 'amber' },
+        { action: 'Generated Progress Report', time: '2 days ago', icon: BarChart3, color: 'purple' },
+    ];
+
+    // Quick actions
+    const quickActions = [
+        { label: 'Continue Review', labelDv: 'ރިވިއު ކުރިއަށް ގެންދާ', path: '/toolkit', icon: ClipboardList, color: 'primary' },
+        { label: 'View Analytics', labelDv: 'އެނަލިޓިކްސް ބައްލަވާ', path: '/analytics', icon: TrendingUp, color: 'purple' },
+        { label: 'Generate Report', labelDv: 'ރިޕޯޓް ހައްދަވާ', path: '/results', icon: FileText, color: 'green' },
+    ];
 
     return (
         <div className="dashboard">
@@ -116,8 +221,8 @@ function Dashboard() {
                                     <div className="stat-value">{stat.value}</div>
                                     <div className="stat-label">{stat.label}</div>
                                     {stat.change && (
-                                        <div className={`stat-change ${stat.change.startsWith('+') ? 'positive' : 'negative'}`}>
-                                            {stat.change.startsWith('+') ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                                        <div className={`stat-change positive`}>
+                                            <ArrowUpRight size={12} />
                                             {stat.change}
                                         </div>
                                     )}
@@ -293,8 +398,21 @@ function Dashboard() {
                                     <Users size={18} />
                                 </div>
                                 <div className="info-content">
-                                    <span className="info-label">Students</span>
-                                    <span className="info-value">1,250</span>
+                                    <span className="info-label">Review Status</span>
+                                    <span className="info-value">
+                                        <span 
+                                            className={`status-badge ${overallScore.grade === 'NR' ? 'pending' : 'complete'}`}
+                                            style={{ 
+                                                backgroundColor: OUTCOME_GRADES[overallScore.grade]?.color || '#6b7280',
+                                                color: 'white',
+                                                padding: '0.25rem 0.5rem',
+                                                borderRadius: '4px',
+                                                fontSize: '0.75rem',
+                                            }}
+                                        >
+                                            {overallScore.grade}
+                                        </span>
+                                    </span>
                                 </div>
                             </div>
                             <div className="info-item">
@@ -302,8 +420,8 @@ function Dashboard() {
                                     <Award size={18} />
                                 </div>
                                 <div className="info-content">
-                                    <span className="info-label">Teachers</span>
-                                    <span className="info-value">85</span>
+                                    <span className="info-label">Overall Score</span>
+                                    <span className="info-value">{overallScore.score}%</span>
                                 </div>
                             </div>
                         </div>
