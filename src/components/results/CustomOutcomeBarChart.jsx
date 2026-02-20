@@ -73,48 +73,43 @@ function CustomOutcomeBarChart({ outcomes, indicatorScores, indicatorTextMap = {
             <div className="chart-body">
                 <div className="chart-y-axis"></div>
 
-                <div className="chart-content">
-                    <div className="chart-bars-row">
-                        {chartData.map(outcome => {
-                            const heightPercent = (outcome.score / maxScore) * 100;
-                            const avgScore = outcome.score / outcome.maxScore * 3;
-                            const color = avgScore >= 3 ? SCORE_COLORS[3] :
-                                avgScore >= 2 ? SCORE_COLORS[2] :
-                                    avgScore >= 1 ? SCORE_COLORS[1] : SCORE_COLORS[0];
+                <div className="chart-columns-row">
+                    {chartData.map(outcome => {
+                        const heightPercent = (outcome.score / maxScore) * 100;
+                        const avgScore = outcome.score / outcome.maxScore * 3;
+                        const color = avgScore >= 3 ? SCORE_COLORS[3] :
+                            avgScore >= 2 ? SCORE_COLORS[2] :
+                                avgScore >= 1 ? SCORE_COLORS[1] : SCORE_COLORS[0];
 
-                            return (
-                                <div key={outcome.outcomeNo} className="chart-bar-group">
-                                    <div className="bars-container single-bar">
-                                        <div className="bar-wrapper">
-                                            <div
-                                                className="chart-bar"
-                                                style={{
-                                                    backgroundColor: color,
-                                                    height: `${heightPercent}%`,
-                                                    width: '40px',
-                                                }}
-                                            >
-                                                {outcome.score > 0 && (
-                                                    <span className="bar-value">{outcome.score}</span>
-                                                )}
-                                            </div>
+                        return (
+                            <div key={outcome.outcomeNo} className="chart-column">
+                                {/* Bar */}
+                                <div className="bars-container single-bar">
+                                    <div className="bar-wrapper">
+                                        <div
+                                            className="chart-bar"
+                                            style={{
+                                                backgroundColor: color,
+                                                height: `${heightPercent}%`,
+                                                width: '40px',
+                                            }}
+                                        >
+                                            {outcome.score > 0 && (
+                                                <span className="bar-value">{outcome.score}</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="chart-labels-row">
-                        {chartData.map(outcome => (
-                            <div key={outcome.outcomeNo} className="x-label-wrapper custom-outcome-label">
-                                <div className="x-label" title={outcome.title}>
-                                    <span className="outcome-no">{outcome.outcomeNo}</span>
-                                    <span className="outcome-text" dir="rtl">{outcome.title}</span>
+                                {/* Label - always starts at same fixed position */}
+                                <div className="x-label-wrapper custom-outcome-label">
+                                    <div className="x-label" title={outcome.title}>
+                                        <span className="outcome-no">{outcome.outcomeNo}</span>
+                                        <span className="outcome-text" dir="rtl">{outcome.title}</span>
+                                    </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
 

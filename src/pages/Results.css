@@ -678,8 +678,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
-    min-width: 80px;
+    flex: 0 0 120px;
+    min-width: 120px;
+    max-width: 120px;
 }
 
 .bars-container {
@@ -719,8 +720,9 @@
 }
 
 .x-label-wrapper {
-    flex: 1;
-    min-width: 80px;
+    flex: 0 0 120px;
+    min-width: 120px;
+    max-width: 120px;
     display: flex;
     justify-content: center;
 }
