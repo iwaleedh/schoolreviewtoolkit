@@ -1,17 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import {
-    ChevronDown,
-    FileText,
-    Users,
-    Clipboard,
-    BookOpen,
-    Calculator,
-    Settings,
-    UserCheck,
-    Baby,
-    Database,
-    Trash2,
-} from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Database, Trash2 } from 'lucide-react';
 import { useSSEData } from '../context/SSEDataContext';
 import EditableChecklist from '../components/sse/EditableChecklist';
 import LTChecklist from '../components/sse/LTChecklist';
@@ -117,81 +105,52 @@ const generateDummyData = () => {
 
 // Tab configuration for Review Toolkit
 const primaryTabs = [
-    {
-        id: 'lt',
-        label: 'Leading Teacher',
-        labelDv: 'ލީޑިން ޓީޗަރ',
-        isDropdown: true,
-        children: [
-            { id: 'lt1', label: 'LT1' },
-            { id: 'lt2', label: 'LT2' },
-            { id: 'sen-lt', label: 'SEN-LT' },
-            { id: 'lesson-plan-fs', label: 'Lesson Plan FS' },
-            { id: 'lesson-plan-ks', label: 'Lesson Plan KS' },
-            { id: 'lesson-obs-fs', label: 'Lesson Observation FS' },
-            { id: 'lesson-obs-ks', label: 'Lesson Observation KS' },
-        ],
-    },
-    {
-        id: 'principal-dp',
-        label: 'Principal/DP',
-        labelDv: 'ޕްރިންސިޕަލް/ޑޕ',
-        icon: UserCheck,
-        isDropdown: true,
-        children: [
-            { id: 'principal', label: 'Principal' },
-            { id: 'deputy-principal', label: 'Deputy Principal' },
-        ],
-    },
-    {
-        id: 'admin',
-        label: 'Admin',
-        labelDv: 'އެޑްމިން',
-        icon: Clipboard,
-        isDropdown: true,
-        children: [
-            { id: 'admin-administrator', label: 'Administrator' },
-            { id: 'admin-hr', label: 'HR' },
-        ],
-    },
-    { id: 'budget', label: 'Budget', labelDv: 'ބަޖެޓް', icon: Calculator },
-    {
-        id: 'general-documents',
-        label: 'General Documents',
-        labelDv: 'ޖެނެރަލް ޑޮކިއުމެންޓްސް',
-        icon: FileText,
-        isDropdown: true,
-        children: [
-            { id: 'literacy-ambassador', label: 'Literacy Ambassador' },
-            { id: 'pd-cordinator', label: 'PD Cordinator' },
-            { id: 'sse-focal', label: 'SSE Focal' },
-            { id: 'general-others', label: 'Others' },
-        ],
-    },
-    { id: 'general-observation', label: 'General Observation', labelDv: 'ޖެނެރަލް އޮބްސަވޭޝަން', icon: Users },
-    { id: 'foundation', label: 'Foundation', labelDv: 'ފައުންޑޭޝަން', icon: Baby },
-    {
-        id: 'questionnaire',
-        label: 'Questionnaire',
-        labelDv: 'ސުވާލުފޯމް',
-        icon: Settings,
-        isDropdown: true,
-        children: [
-            { id: 'parent-data', label: 'Parent Data' },
-            { id: 'student-data', label: 'Student Data' },
-            { id: 'teacher-data', label: 'Teacher Data' },
-            { id: 'comments', label: 'Comments' },
-        ],
-    },
+    { id: 'lt', label: 'ލީޑިން ޓީޗަރ' },
+    { id: 'principal-dp', label: 'ޕްރިންސިޕަލް/ޑޕ' },
+    { id: 'admin', label: 'އެޑްމިން' },
+    { id: 'budget', label: 'ބަޖެޓް' },
+    { id: 'general-documents', label: 'ޖެނެރަލް ޑޮކިއުމެންޓްސް' },
+    { id: 'general-observation', label: 'ޖެނެރަލް އޮބްސަވޭޝަން' },
+    { id: 'foundation', label: 'ފައުންޑޭޝަން' },
+    { id: 'questionnaire', label: 'ސުވާލުފޯމް' },
 ];
 
+const secondaryTabsMap = {
+    'lt': [
+        { id: 'lt1', label: 'ލީޑިން ޓީޗަރ 1' },
+        { id: 'lt2', label: 'ލީޑިން ޓީޗަރ 2' },
+        { id: 'sen-lt', label: 'ސެން ލީޑިން ޓީޗަރ' },
+        { id: 'lesson-plan-fs', label: 'ލެސަން ޕްލޭން (ފައުންޑޭޝަން ސްޓޭޖް)' },
+        { id: 'lesson-plan-ks', label: 'ލެސަން ޕްލޭން (ކީ ސްޓޭޖް)' },
+        { id: 'lesson-obs-fs', label: 'ލެސަން އޮބްސަވޭޝަން (ފައުންޑޭޝަން ސްޓޭޖް)' },
+        { id: 'lesson-obs-ks', label: 'ލެސަން އޮބްސަވޭޝަން (ކީ ސްޓޭޖް)' },
+    ],
+    'principal-dp': [
+        { id: 'principal', label: 'ޕްރިންސިޕަލް' },
+        { id: 'deputy-principal', label: 'ޑެޕިއުޓީ ޕްރިންސިޕަލް' },
+    ],
+    'admin': [
+        { id: 'admin-administrator', label: 'އެޑްމިނިސްޓްރޭޓަރ' },
+        { id: 'admin-hr', label: 'އެޗްއާރް' },
+    ],
+    'general-documents': [
+        { id: 'literacy-ambassador', label: 'ލިޓަރަސީ އެމްބެސަޑަރ' },
+        { id: 'pd-cordinator', label: 'ޕީޑީ ކޯޑިނޭޓަރ' },
+        { id: 'sse-focal', label: 'އެސްއީއީ ފޯކަލް' },
+        { id: 'general-others', label: 'އެހެނިހެން' },
+    ],
+    'questionnaire': [
+        { id: 'parent-data', label: 'ބެލެނިވެރިންގެ ޑޭޓާ' },
+        { id: 'student-data', label: 'ދަރިވަރުންގެ ޑޭޓާ' },
+        { id: 'teacher-data', label: 'މުދައްރިސުންގެ ޑޭޓާ' },
+        { id: 'comments', label: 'ކޮމެންޓްސް' },
+    ],
+};
+
 function SSEToolkit() {
-    const [activeTab, setActiveTab] = useState('lt1');
-    const [openDropdown, setOpenDropdown] = useState(null);
-    const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [activePrimaryTab, setActivePrimaryTab] = useState('lt');
+    const [activeSecondaryTab, setActiveSecondaryTab] = useState('lt1');
     const [dummyDataLoaded, setDummyDataLoaded] = useState(false);
-    const dropdownRefs = useRef({});
-    const buttonRefs = useRef({});
 
     // Get SSEData context functions
     const { setIndicatorLTScore, setIndicatorScore, clearAllScores, discardPendingLTScores } = useSSEData();
@@ -258,112 +217,18 @@ function SSEToolkit() {
         }
     }, [clearAllScores, discardPendingLTScores]);
 
-    // Get all dropdown children for keyboard navigation
-    const getCurrentDropdownChildren = useCallback(() => {
-        if (!openDropdown) return [];
-        const tab = primaryTabs.find(t => t.id === openDropdown);
-        return tab?.children || [];
-    }, [openDropdown]);
-
-    // Handle keyboard navigation
-    const handleKeyDown = useCallback((e, tabId, isDropdown) => {
-        const children = getCurrentDropdownChildren();
-
-        switch (e.key) {
-            case 'Enter':
-            case ' ':
-                e.preventDefault();
-                if (isDropdown) {
-                    if (openDropdown === tabId) {
-                        setOpenDropdown(null);
-                    } else {
-                        setOpenDropdown(tabId);
-                        setFocusedIndex(0);
-                    }
-                }
-                break;
-
-            case 'ArrowDown':
-                e.preventDefault();
-                if (isDropdown) {
-                    if (openDropdown !== tabId) {
-                        setOpenDropdown(tabId);
-                        setFocusedIndex(0);
-                    } else if (focusedIndex < children.length - 1) {
-                        setFocusedIndex(prev => prev + 1);
-                    }
-                }
-                break;
-
-            case 'ArrowUp':
-                e.preventDefault();
-                if (isDropdown && openDropdown === tabId && focusedIndex > 0) {
-                    setFocusedIndex(prev => prev - 1);
-                }
-                break;
-
-            case 'Escape':
-                setOpenDropdown(null);
-                setFocusedIndex(-1);
-                // Return focus to the button
-                if (buttonRefs.current[tabId]) {
-                    buttonRefs.current[tabId].focus();
-                }
-                break;
-
-            case 'Tab':
-                // Close dropdown on tab away
-                setOpenDropdown(null);
-                setFocusedIndex(-1);
-                break;
-
-            default:
-                break;
-        }
-    }, [openDropdown, focusedIndex, getCurrentDropdownChildren]);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (openDropdown && dropdownRefs.current[openDropdown]) {
-                if (!dropdownRefs.current[openDropdown].contains(e.target)) {
-                    setOpenDropdown(null);
-                    setFocusedIndex(-1);
-                }
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [openDropdown]);
-
-    // Focus the dropdown item when index changes
-    useEffect(() => {
-        if (openDropdown && focusedIndex >= 0) {
-            const dropdownEl = dropdownRefs.current[openDropdown];
-            if (dropdownEl) {
-                const items = dropdownEl.querySelectorAll('.dropdown-item');
-                if (items[focusedIndex]) {
-                    items[focusedIndex].focus();
-                }
-            }
-        }
-    }, [focusedIndex, openDropdown]);
-
-    const handleTabClick = (tabId, isDropdown) => {
-        if (isDropdown) {
-            setOpenDropdown(openDropdown === tabId ? null : tabId);
-            setFocusedIndex(0);
+    const handlePrimaryTabClick = (tabId) => {
+        setActivePrimaryTab(tabId);
+        const children = secondaryTabsMap[tabId];
+        if (children && children.length > 0) {
+            setActiveSecondaryTab(children[0].id);
         } else {
-            setActiveTab(tabId);
-            setOpenDropdown(null);
+            setActiveSecondaryTab(tabId);
         }
     };
 
-    const handleChildClick = (childId) => {
-        setActiveTab(childId);
-        setOpenDropdown(null);
-        setFocusedIndex(-1);
+    const handleSecondaryTabClick = (tabId) => {
+        setActiveSecondaryTab(tabId);
     };
 
     // Render content based on active tab
@@ -530,7 +395,7 @@ function SSEToolkit() {
                     </h1>
                 </div>
                 <div className="header-actions">
-                    <button 
+                    <button
                         className="dummy-data-btn load"
                         onClick={handleLoadDummyData}
                         disabled={dummyDataLoaded}
@@ -540,7 +405,7 @@ function SSEToolkit() {
                         <Database size={16} aria-hidden="true" />
                         Load Dummy Data
                     </button>
-                    <button 
+                    <button
                         className="dummy-data-btn clear"
                         onClick={handleClearDummyData}
                         disabled={!dummyDataLoaded}
@@ -556,74 +421,41 @@ function SSEToolkit() {
                 </div>
             </header>
 
-            {/* Primary Tabs (All Checklists) */}
+            {/* Primary Navigation Strip */}
             <div className="tab-row primary-tabs" role="tablist">
-                {primaryTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isOpen = openDropdown === tab.id;
-                    const hasActiveChild = tab.children && tab.children.some(c => c.id === activeTab);
-
-                    return (
-                        <div 
-                            key={tab.id} 
-                            className="tab-wrapper"
-                            ref={el => dropdownRefs.current[tab.id] = el}
-                        >
-                            <button
-                                ref={el => buttonRefs.current[tab.id] = el}
-                                className={`tab-btn ${activeTab === tab.id || hasActiveChild ? 'active' : ''}`}
-                                onClick={() => handleTabClick(tab.id, tab.isDropdown)}
-                                onKeyDown={(e) => handleKeyDown(e, tab.id, tab.isDropdown)}
-                                aria-expanded={tab.isDropdown ? isOpen : undefined}
-                                aria-haspopup={tab.isDropdown ? 'menu' : undefined}
-                                aria-controls={tab.isDropdown ? `dropdown-${tab.id}` : undefined}
-                                role="tab"
-                                aria-selected={activeTab === tab.id || hasActiveChild}
-                            >
-                                <span className="tab-label">{tab.label}</span>
-                                {tab.isDropdown && (
-                                    <ChevronDown 
-                                        size={16} 
-                                        className={`dropdown-icon ${isOpen ? 'rotated' : ''}`} 
-                                        aria-hidden="true"
-                                    />
-                                )}
-                            </button>
-
-                            {tab.isDropdown && isOpen && (
-                                <div 
-                                    className="dropdown-menu"
-                                    id={`dropdown-${tab.id}`}
-                                    role="menu"
-                                    aria-label={`${tab.label} submenu`}
-                                >
-                                    {tab.children.map((child, idx) => (
-                                        <button
-                                            key={child.id}
-                                            className={`dropdown-item ${activeTab === child.id ? 'active' : ''}`}
-                                            onClick={() => handleChildClick(child.id)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    handleChildClick(child.id);
-                                                }
-                                            }}
-                                            role="menuitem"
-                                            tabIndex={focusedIndex === idx ? 0 : -1}
-                                        >
-                                            {child.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+                {primaryTabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        className={`tab-pill ${activePrimaryTab === tab.id ? 'active' : ''}`}
+                        onClick={() => handlePrimaryTabClick(tab.id)}
+                        role="tab"
+                        aria-selected={activePrimaryTab === tab.id}
+                    >
+                        <span className="tab-label-dv font-dhivehi" dir="rtl">{tab.label}</span>
+                    </button>
+                ))}
             </div>
+
+            {/* Secondary Navigation Strip (If Applicable) */}
+            {secondaryTabsMap[activePrimaryTab] && (
+                <div className="tab-row secondary-tabs" role="tablist">
+                    {secondaryTabsMap[activePrimaryTab].map((tab) => (
+                        <button
+                            key={tab.id}
+                            className={`tab-pill secondary ${activeSecondaryTab === tab.id ? 'active' : ''}`}
+                            onClick={() => handleSecondaryTabClick(tab.id)}
+                            role="tab"
+                            aria-selected={activeSecondaryTab === tab.id}
+                        >
+                            <span className="tab-label-dv font-dhivehi" dir="rtl">{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Content Area */}
             <div className="toolkit-content">
-                {renderContent(activeTab)}
+                {renderContent(activeSecondaryTab)}
             </div>
         </div>
     );

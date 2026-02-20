@@ -191,35 +191,45 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    padding: 0.75rem;
-    background: var(--color-gray-50);
-    border-radius: var(--radius-lg);
+    padding: 0;
+    background: transparent;
 }
 
 .faq-tab {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    background: white;
-    border: 1px solid var(--color-gray-200);
+    justify-content: center;
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    border: none;
     border-radius: var(--radius-md);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--color-gray-600);
+    color: var(--color-gray-500);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    white-space: nowrap;
+    position: relative;
+}
+
+.faq-tab .tab-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .faq-tab:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
 }
 
 .faq-tab.active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: white;
+    background: hsl(var(--color-primary-raw) / 0.08);
+    color: var(--color-primary);
+}
+
+.faq-tab.active .tab-label {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-primary);
 }
 
 /* FAQ List */
@@ -542,8 +552,13 @@
 }
 
 [data-theme="dark"] .faq-tab {
+    background: transparent;
+    color: var(--color-gray-500);
+}
+
+[data-theme="dark"] .faq-tab:hover {
     background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
+    color: #ffffff;
 }
 
 [data-theme="dark"] .attach-btn {
@@ -646,8 +661,12 @@
 }
 
 [data-theme="dark"] .faq-tab.active {
-    background: var(--color-primary);
-    color: #ffffff;
+    background: hsl(var(--color-primary-raw) / 0.15);
+    color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .faq-tab.active .tab-label {
+    color: var(--color-primary-light);
 }
 
 /* === Existing Dark Mode Rules === */
@@ -696,11 +715,7 @@
 }
 
 [data-theme="dark"] .faq-tabs {
-    background: #1e293b;
-}
-
-[data-theme="dark"] .faq-tab {
-    background: var(--color-gray-100);
+    background: transparent;
 }
 
 [data-theme="dark"] .faq-category-title {

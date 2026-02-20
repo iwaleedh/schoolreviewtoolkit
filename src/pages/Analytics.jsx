@@ -215,9 +215,9 @@ function Analytics() {
                                     </span>
                                     <span className="dimension-score-value">
                                         {score}%
-                                        <span 
+                                        <span
                                             className="grade-badge"
-                                            style={{ 
+                                            style={{
                                                 backgroundColor: GRADE_COLORS[grade]?.bg,
                                                 color: GRADE_COLORS[grade]?.text,
                                                 marginLeft: '0.5rem',
@@ -389,7 +389,7 @@ function Analytics() {
                                 <tr key={dim.id}>
                                     <td>
                                         <span className="school-name">
-                                            <span 
+                                            <span
                                                 className="dimension-badge"
                                                 style={{ backgroundColor: dim.color, marginRight: '0.5rem' }}
                                             >
@@ -404,8 +404,8 @@ function Analytics() {
                                         </span>
                                     </td>
                                     <td>
-                                        <span 
-                                            style={{ 
+                                        <span
+                                            style={{
                                                 backgroundColor: GRADE_COLORS[grade]?.bg,
                                                 color: GRADE_COLORS[grade]?.text,
                                                 padding: '0.25rem 0.5rem',
@@ -454,15 +454,13 @@ function Analytics() {
                         className={`view-toggle-btn ${activeView === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveView('overview')}
                     >
-                        <BarChart3 size={16} />
-                        Overview
+                        <span className="tab-label font-dhivehi" dir="rtl">އޯވަވިއު</span>
                     </button>
                     <button
                         className={`view-toggle-btn ${activeView === 'dimensions' ? 'active' : ''}`}
                         onClick={() => setActiveView('dimensions')}
                     >
-                        <Award size={16} />
-                        Dimensions
+                        <span className="tab-label font-dhivehi" dir="rtl">ޑައިމެންޝަންސް</span>
                     </button>
                 </div>
             </header>

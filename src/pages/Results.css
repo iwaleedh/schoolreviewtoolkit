@@ -36,34 +36,52 @@
 .view-toggle {
     display: flex;
     gap: 0.5rem;
-    background: var(--color-gray-100);
-    padding: 0.25rem;
-    border-radius: var(--radius-md);
+    background: transparent;
+    padding: 0;
+    border: none;
+    overflow-x: auto;
+    align-items: center;
+}
+
+.view-toggle::-webkit-scrollbar {
+    display: none;
 }
 
 .view-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    justify-content: center;
+    padding: 0.5rem 1.2rem;
     background: transparent;
     border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-gray-600);
+    border-radius: var(--radius-md);
+    color: var(--color-gray-500);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+}
+
+.view-btn .tab-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .view-btn:hover {
+    background: var(--color-gray-100);
     color: var(--color-gray-900);
 }
 
 .view-btn.active {
-    background: white;
+    background: hsl(var(--color-primary-raw) / 0.08);
     color: var(--color-primary);
-    box-shadow: var(--shadow-sm);
+}
+
+.view-btn.active .tab-label {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-primary);
 }
 
 /* Stats Section */

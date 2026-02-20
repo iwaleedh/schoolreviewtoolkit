@@ -279,7 +279,7 @@ function Support() {
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedFaq, setExpandedFaq] = useState(null);
     const [activeCategory, setActiveCategory] = useState('getting-started');
-    
+
     // Feedback form state
     const [feedbackForm, setFeedbackForm] = useState({
         name: '',
@@ -315,26 +315,26 @@ function Support() {
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        
+
         files.forEach(file => {
             // Check if we've reached max files
             if (attachments.length >= MAX_FILES) {
                 alert(`Maximum ${MAX_FILES} files allowed`);
                 return;
             }
-            
+
             // Check file size
             if (file.size > MAX_FILE_SIZE) {
                 alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
                 return;
             }
-            
+
             // Check file type
             if (!ALLOWED_TYPES.includes(file.type)) {
                 alert(`File type not supported. Please upload images (JPG, PNG, GIF) or documents (PDF, DOC, DOCX).`);
                 return;
             }
-            
+
             // Add file with preview
             const newAttachment = {
                 id: Date.now() + Math.random(),
@@ -344,10 +344,10 @@ function Support() {
                 type: file.type,
                 preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
             };
-            
+
             setAttachments(prev => [...prev, newAttachment]);
         });
-        
+
         // Reset input
         e.target.value = '';
     };
@@ -377,11 +377,11 @@ function Support() {
     const handleSubmitFeedback = (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        
+
         // Simulate form submission with attachments
         console.log('Submitting feedback:', feedbackForm);
         console.log('Attachments:', attachments.map(a => ({ name: a.name, size: a.size, type: a.type })));
-        
+
         setTimeout(() => {
             setIsSubmitting(false);
             setSubmitSuccess(true);
@@ -497,8 +497,7 @@ function Support() {
                                 className={`faq-tab ${activeCategory === category.id ? 'active' : ''}`}
                                 onClick={() => setActiveCategory(category.id)}
                             >
-                                <Icon size={16} />
-                                <span>{category.title}</span>
+                                <span className="tab-label font-dhivehi" dir="rtl">{category.titleDv}</span>
                             </button>
                         );
                     })}
@@ -557,7 +556,7 @@ function Support() {
                     Send Feedback or Report an Issue
                     <span className="section-title-dv font-dhivehi" dir="rtl">ފީޑްބެކް ފޮނުއްވާ</span>
                 </h2>
-                
+
                 {submitSuccess ? (
                     <div className="feedback-success">
                         <CheckCircle size={48} />
@@ -669,7 +668,7 @@ function Support() {
                                     multiple
                                     className="file-input-hidden"
                                 />
-                                
+
                                 {attachments.length > 0 && (
                                     <div className="attachment-list">
                                         {attachments.map((attachment) => {
@@ -677,8 +676,8 @@ function Support() {
                                             return (
                                                 <div key={attachment.id} className="attachment-item">
                                                     {attachment.preview ? (
-                                                        <img 
-                                                            src={attachment.preview} 
+                                                        <img
+                                                            src={attachment.preview}
                                                             alt={attachment.name}
                                                             className="attachment-preview"
                                                         />
@@ -712,8 +711,8 @@ function Support() {
                                     disabled={attachments.length >= MAX_FILES}
                                 >
                                     <Paperclip size={18} />
-                                    {attachments.length === 0 
-                                        ? 'Add attachments' 
+                                    {attachments.length === 0
+                                        ? 'Add attachments'
                                         : `Add more (${attachments.length}/${MAX_FILES})`
                                     }
                                 </button>
@@ -748,8 +747,8 @@ function Support() {
                         </div>
 
                         <div className="form-actions">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 className="submit-btn"
                                 disabled={isSubmitting}
                             >

@@ -5,78 +5,138 @@
 /* CSS Variables (Enhanced Design Tokens) */
 :root {
   /* Dimension Themes - Enhanced with gradients */
-  --color-d1: #7c3aed;
-  --color-d1-light: #a78bfa;
-  --color-d1-gradient: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  --color-d1-raw: 262 83% 58%;
+  --color-d1: hsl(var(--color-d1-raw));
+  /* #7c3aed */
+  --color-d1-light-raw: 258 90% 66%;
+  --color-d1-light: hsl(var(--color-d1-light-raw));
+  /* #8b5cf6 */
+  --color-d1-gradient: linear-gradient(135deg, hsl(var(--color-d1-raw)) 0%, hsl(var(--color-d1-light-raw)) 100%);
 
-  --color-d2: #4f46e5;
-  --color-d2-light: #818cf8;
-  --color-d2-gradient: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+  --color-d2-raw: 243 75% 59%;
+  --color-d2: hsl(var(--color-d2-raw));
+  /* #4f46e5 */
+  --color-d2-light-raw: 239 84% 67%;
+  --color-d2-light: hsl(var(--color-d2-light-raw));
+  /* #6366f1 */
+  --color-d2-gradient: linear-gradient(135deg, hsl(var(--color-d2-raw)) 0%, hsl(var(--color-d2-light-raw)) 100%);
 
-  --color-d3: #10b981;
-  --color-d3-light: #34d399;
-  --color-d3-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --color-d3-raw: 160 84% 39%;
+  --color-d3: hsl(var(--color-d3-raw));
+  /* #10b981 */
+  --color-d3-light-raw: 158 64% 52%;
+  --color-d3-light: hsl(var(--color-d3-light-raw));
+  /* #34d399 */
+  --color-d3-gradient: linear-gradient(135deg, hsl(var(--color-d3-raw)) 0%, hsl(var(--color-d3-light-raw)) 100%);
 
-  --color-d4: #f59e0b;
-  --color-d4-light: #fbbf24;
-  --color-d4-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --color-d4-raw: 38 92% 50%;
+  --color-d4: hsl(var(--color-d4-raw));
+  /* #f59e0b */
+  --color-d4-light-raw: 43 96% 56%;
+  --color-d4-light: hsl(var(--color-d4-light-raw));
+  /* #fbbf24 */
+  --color-d4-gradient: linear-gradient(135deg, hsl(var(--color-d4-raw)) 0%, hsl(var(--color-d4-light-raw)) 100%);
 
-  --color-d5: #f43f5e;
-  --color-d5-light: #fb7185;
-  --color-d5-gradient: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+  --color-d5-raw: 350 89% 60%;
+  --color-d5: hsl(var(--color-d5-raw));
+  /* #f43f5e */
+  --color-d5-light-raw: 351 95% 71%;
+  --color-d5-light: hsl(var(--color-d5-light-raw));
+  /* #fb7185 */
+  --color-d5-gradient: linear-gradient(135deg, hsl(var(--color-d5-raw)) 0%, hsl(var(--color-d5-light-raw)) 100%);
 
   /* Enhanced Primary Colors */
-  --color-primary: #2563eb;
-  --color-primary-light: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --color-primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%);
-  --color-primary-soft: rgba(37, 99, 235, 0.1);
+  --color-primary-raw: 221 83% 53%;
+  --color-primary: hsl(var(--color-primary-raw));
+  /* #2563eb */
+  --color-primary-light-raw: 217 91% 60%;
+  --color-primary-light: hsl(var(--color-primary-light-raw));
+  /* #3b82f6 */
+  --color-primary-dark-raw: 224 76% 48%;
+  --color-primary-dark: hsl(var(--color-primary-dark-raw));
+  /* #1d4ed8 */
+  --color-primary-gradient: linear-gradient(135deg, hsl(var(--color-primary-raw)) 0%, hsl(var(--color-primary-light-raw)) 50%, hsl(var(--color-primary-dark-raw)) 100%);
+  --color-primary-soft: hsl(var(--color-primary-raw)/ 0.1);
 
   /* Success Colors */
-  --color-success: #22c55e;
-  --color-success-light: #4ade80;
-  --color-success-dark: #16a34a;
-  --color-success-gradient: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
-  --color-success-soft: rgba(34, 197, 94, 0.1);
+  --color-success-raw: 142 71% 45%;
+  --color-success: hsl(var(--color-success-raw));
+  /* #22c55e */
+  --color-success-light-raw: 134 74% 55%;
+  --color-success-light: hsl(var(--color-success-light-raw));
+  /* #4ade80 */
+  --color-success-dark-raw: 141 79% 36%;
+  --color-success-dark: hsl(var(--color-success-dark-raw));
+  /* #16a34a */
+  --color-success-gradient: linear-gradient(135deg, hsl(var(--color-success-raw)) 0%, hsl(var(--color-success-light-raw)) 100%);
+  --color-success-soft: hsl(var(--color-success-raw)/ 0.1);
 
   /* Warning Colors */
-  --color-warning: #f59e0b;
-  --color-warning-light: #fbbf24;
-  --color-warning-dark: #d97706;
-  --color-warning-gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  --color-warning-soft: rgba(245, 158, 11, 0.1);
+  --color-warning-raw: 38 92% 50%;
+  --color-warning: hsl(var(--color-warning-raw));
+  /* #f59e0b */
+  --color-warning-light-raw: 43 96% 56%;
+  --color-warning-light: hsl(var(--color-warning-light-raw));
+  /* #fbbf24 */
+  --color-warning-dark-raw: 32 95% 44%;
+  --color-warning-dark: hsl(var(--color-warning-dark-raw));
+  /* #d97706 */
+  --color-warning-gradient: linear-gradient(135deg, hsl(var(--color-warning-raw)) 0%, hsl(var(--color-warning-light-raw)) 100%);
+  --color-warning-soft: hsl(var(--color-warning-raw)/ 0.1);
 
   /* Error Colors */
-  --color-error: #ef4444;
-  --color-error-light: #f87171;
-  --color-error-dark: #dc2626;
-  --color-error-gradient: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-  --color-error-soft: rgba(239, 68, 68, 0.1);
+  --color-error-raw: 0 84% 60%;
+  --color-error: hsl(var(--color-error-raw));
+  /* #ef4444 */
+  --color-error-light-raw: 0 91% 71%;
+  --color-error-light: hsl(var(--color-error-light-raw));
+  /* #f87171 */
+  --color-error-dark-raw: 0 72% 51%;
+  --color-error-dark: hsl(var(--color-error-dark-raw));
+  /* #dc2626 */
+  --color-error-gradient: linear-gradient(135deg, hsl(var(--color-error-raw)) 0%, hsl(var(--color-error-light-raw)) 100%);
+  --color-error-soft: hsl(var(--color-error-raw)/ 0.1);
 
   /* Info Colors */
-  --color-info: #0ea5e9;
-  --color-info-light: #38bdf8;
-  --color-info-dark: #0284c7;
-  --color-info-gradient: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
-  --color-info-soft: rgba(14, 165, 233, 0.1);
+  --color-info-raw: 199 89% 48%;
+  --color-info: hsl(var(--color-info-raw));
+  /* #0ea5e9 */
+  --color-info-light-raw: 199 92% 56%;
+  --color-info-light: hsl(var(--color-info-light-raw));
+  /* #38bdf8 */
+  --color-info-dark-raw: 200 98% 39%;
+  --color-info-dark: hsl(var(--color-info-dark-raw));
+  /* #0284c7 */
+  --color-info-gradient: linear-gradient(135deg, hsl(var(--color-info-raw)) 0%, hsl(var(--color-info-light-raw)) 100%);
+  --color-info-soft: hsl(var(--color-info-raw)/ 0.1);
 
-  /* Enhanced Gray Palette */
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
-  --color-gray-900: #0f172a;
+  /* Enhanced Gray Palette (Slate) */
+  --color-gray-50-raw: 210 40% 98%;
+  --color-gray-50: hsl(var(--color-gray-50-raw));
+  --color-gray-100-raw: 210 40% 96%;
+  --color-gray-100: hsl(var(--color-gray-100-raw));
+  --color-gray-200-raw: 214 32% 91%;
+  --color-gray-200: hsl(var(--color-gray-200-raw));
+  --color-gray-300-raw: 213 27% 84%;
+  --color-gray-300: hsl(var(--color-gray-300-raw));
+  --color-gray-400-raw: 215 16% 47%;
+  --color-gray-400: hsl(var(--color-gray-400-raw));
+  --color-gray-500-raw: 215 20% 65%;
+  --color-gray-500: hsl(var(--color-gray-500-raw));
+  --color-gray-600-raw: 214 20% 32%;
+  --color-gray-600: hsl(var(--color-gray-600-raw));
+  --color-gray-700-raw: 215 25% 27%;
+  --color-gray-700: hsl(var(--color-gray-700-raw));
+  --color-gray-800-raw: 217 33% 17%;
+  --color-gray-800: hsl(var(--color-gray-800-raw));
+  --color-gray-900-raw: 222 47% 11%;
+  --color-gray-900: hsl(var(--color-gray-900-raw));
 
   /* Typography */
   --font-english: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-dhivehi: 'Faruma', 'MV Waheed', sans-serif;
-  --font-size-base: 16px;
-  --font-size-dhivehi: 18px;
+  --font-size-base: clamp(14px, 1vw + 10px, 16px);
+  --font-size-dhivehi: clamp(16px, 1vw + 12px, 20px);
   /* Slightly larger for Faruma */
   --line-height-dhivehi: 2.2;
   /* Faruma needs more line height */
@@ -133,47 +193,89 @@
 /* Dark Theme Variables */
 [data-theme="dark"] {
   /* Dark mode grays - refined */
-  --color-gray-50: #0f172a;
-  --color-gray-100: #1e293b;
-  --color-gray-200: #334155;
-  --color-gray-300: #475569;
-  --color-gray-400: #64748b;
-  --color-gray-500: #94a3b8;
-  --color-gray-600: #cbd5e1;
-  --color-gray-700: #e2e8f0;
-  --color-gray-800: #f1f5f9;
-  --color-gray-900: #f8fafc;
+  --color-gray-50-raw: 222 47% 11%;
+  --color-gray-50: hsl(var(--color-gray-50-raw));
+  /* #0f172a */
+  --color-gray-100-raw: 217 33% 17%;
+  --color-gray-100: hsl(var(--color-gray-100-raw));
+  /* #1e293b */
+  --color-gray-200-raw: 215 25% 27%;
+  --color-gray-200: hsl(var(--color-gray-200-raw));
+  /* #334155 */
+  --color-gray-300-raw: 214 20% 32%;
+  --color-gray-300: hsl(var(--color-gray-300-raw));
+  /* #475569 */
+  --color-gray-400-raw: 215 20% 65%;
+  --color-gray-400: hsl(var(--color-gray-400-raw));
+  /* #64748b */
+  --color-gray-500-raw: 215 16% 47%;
+  --color-gray-500: hsl(var(--color-gray-500-raw));
+  /* #94a3b8 */
+  --color-gray-600-raw: 213 27% 84%;
+  --color-gray-600: hsl(var(--color-gray-600-raw));
+  /* #cbd5e1 */
+  --color-gray-700-raw: 214 32% 91%;
+  --color-gray-700: hsl(var(--color-gray-700-raw));
+  /* #e2e8f0 */
+  --color-gray-800-raw: 210 40% 96%;
+  --color-gray-800: hsl(var(--color-gray-800-raw));
+  /* #f1f5f9 */
+  --color-gray-900-raw: 210 40% 98%;
+  --color-gray-900: hsl(var(--color-gray-900-raw));
+  /* #f8fafc */
 
   /* Dark mode accents */
-  --color-primary: #3b82f6;
-  --color-primary-light: #60a5fa;
-  --color-primary-dark: #2563eb;
-  --color-primary-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-  --color-primary-soft: rgba(59, 130, 246, 0.15);
+  --color-primary-raw: 217 91% 60%;
+  --color-primary: hsl(var(--color-primary-raw));
+  /* #3b82f6 */
+  --color-primary-light-raw: 214 97% 59%;
+  --color-primary-light: hsl(var(--color-primary-light-raw));
+  /* #60a5fa */
+  --color-primary-dark-raw: 221 83% 53%;
+  --color-primary-dark: hsl(var(--color-primary-dark-raw));
+  /* #2563eb */
+  --color-primary-gradient: linear-gradient(135deg, hsl(var(--color-primary-raw)) 0%, hsl(var(--color-primary-light-raw)) 100%);
+  --color-primary-soft: hsl(var(--color-primary-raw)/ 0.15);
 
-  --color-success: #34d399;
-  --color-success-light: #6ee7b7;
-  --color-success-soft: rgba(52, 211, 153, 0.15);
+  --color-success-raw: 160 64% 52%;
+  --color-success: hsl(var(--color-success-raw));
+  /* #34d399 */
+  --color-success-light-raw: 156 73% 66%;
+  --color-success-light: hsl(var(--color-success-light-raw));
+  /* #6ee7b7 */
+  --color-success-soft: hsl(var(--color-success-raw)/ 0.15);
 
-  --color-warning: #fbbf24;
-  --color-warning-light: #fcd34d;
-  --color-warning-soft: rgba(251, 191, 36, 0.15);
+  --color-warning-raw: 43 96% 56%;
+  --color-warning: hsl(var(--color-warning-raw));
+  /* #fbbf24 */
+  --color-warning-light-raw: 45 93% 64%;
+  --color-warning-light: hsl(var(--color-warning-light-raw));
+  /* #fcd34d */
+  --color-warning-soft: hsl(var(--color-warning-raw)/ 0.15);
 
-  --color-error: #f87171;
-  --color-error-light: #fca5a5;
-  --color-error-soft: rgba(248, 113, 113, 0.15);
+  --color-error-raw: 0 91% 71%;
+  --color-error: hsl(var(--color-error-raw));
+  /* #f87171 */
+  --color-error-light-raw: 0 97% 82%;
+  --color-error-light: hsl(var(--color-error-light-raw));
+  /* #fca5a5 */
+  --color-error-soft: hsl(var(--color-error-raw)/ 0.15);
 
-  --color-info: #38bdf8;
-  --color-info-light: #7dd3fc;
-  --color-info-soft: rgba(56, 189, 248, 0.15);
+  --color-info-raw: 199 92% 56%;
+  --color-info: hsl(var(--color-info-raw));
+  /* #38bdf8 */
+  --color-info-light-raw: 200 97% 73%;
+  --color-info-light: hsl(var(--color-info-light-raw));
+  /* #7dd3fc */
+  --color-info-soft: hsl(var(--color-info-raw)/ 0.15);
 
   /* Dark mode backgrounds */
-  --color-bg-primary: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-card: #1e293b;
-  --color-bg-elevated: #334155;
-  --color-border: #334155;
-  --color-border-light: #1e293b;
+  --color-bg-primary: hsl(var(--color-gray-50-raw));
+  --color-bg-secondary: hsl(var(--color-gray-100-raw));
+  --color-bg-card: hsl(var(--color-gray-100-raw));
+  --color-bg-elevated: hsl(var(--color-gray-200-raw));
+  --color-border: hsl(var(--color-gray-200-raw));
+  --color-border-light: hsl(var(--color-gray-100-raw));
 
   /* Dark mode shadows */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
@@ -182,7 +284,7 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.5);
-  --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.2);
+  --shadow-glow: 0 0 30px hsl(var(--color-primary-raw)/ 0.2);
 }
 
 /* Base Reset */
@@ -518,26 +620,35 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* Form Input Styles */
+/* Form Input Styles (Intentional Minimalism) */
 .form-input,
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.75rem 0.875rem;
   font-size: 0.875rem;
   color: var(--color-gray-900);
-  background: var(--color-bg-primary);
-  border: 1.5px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.02);
+  border: none;
+  border-bottom: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   transition: all var(--transition-fast);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-soft);
+  background: var(--color-bg-primary);
+  border-bottom-color: hsl(var(--color-primary-raw));
+  box-shadow: 0 4px 15px -3px hsl(var(--color-primary-raw)/ 0.15), 0 -2px 10px -2px rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
 }
 
 .form-input::placeholder,

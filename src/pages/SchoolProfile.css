@@ -90,6 +90,23 @@
 }
 
 /* Tab Rows */
+.tab-row-container {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: white;
+    padding-top: 1rem;
+    padding-bottom: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* Adds a shadow when it sticks */
+}
+
+[data-theme="dark"] .tab-row-container {
+    background: var(--bg-primary);
+    /* Ensure it has a solid bg in dark mode instead of transparent so content doesn't bleed through */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
 .tab-row {
     display: flex;
     flex-wrap: wrap;
@@ -114,51 +131,82 @@
 }
 
 /* Tab Button */
+.table-textarea {
+    width: 100%;
+    min-width: 200px;
+    /* Ensure it stays readable */
+    height: 100px;
+    resize: vertical;
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    background: rgba(0, 0, 0, 0.02);
+    border: none;
+    border-bottom: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: all 0.2s;
+}
+
+.table-textarea:focus {
+    outline: none;
+    background: var(--color-bg-primary);
+    border-bottom-color: hsl(var(--color-primary));
+    box-shadow: 0 4px 15px -3px hsl(var(--color-primary) / 0.15);
+}
+
+.sp-matrix input {
+    border: none;
+    border-bottom: 2px solid var(--color-gray-200);
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    padding: 0.5rem;
+    font-size: 0.8125rem;
+    transition: all 0.2s;
+}
+
+.sp-matrix input:focus {
+    outline: none;
+    background: var(--color-bg-primary);
+    border-bottom-color: hsl(var(--color-primary));
+    box-shadow: 0 4px 15px -3px hsl(var(--color-primary) / 0.15);
+}
+
 .tab-btn {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    background: white;
-    border: 1.5px solid var(--color-gray-200);
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    border: none;
     border-radius: var(--radius-md);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--color-gray-600);
+    color: var(--color-gray-500);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
     white-space: nowrap;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     position: relative;
 }
 
-.tab-btn .tab-icon {
-    color: var(--color-gray-400);
-    transition: color 0.2s ease;
+.tab-btn .tab-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .tab-btn:hover {
-    background: white;
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-}
-
-.tab-btn:hover .tab-icon {
-    color: var(--color-primary);
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
 }
 
 .tab-btn.active {
-    background: linear-gradient(135deg, var(--color-primary) 0%, #1d4ed8 100%);
-    border-color: var(--color-primary);
-    color: white;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-    transform: translateY(-1px);
+    background: hsl(var(--color-primary-raw) / 0.08);
+    color: var(--color-primary);
 }
 
-.tab-btn.active .tab-icon {
-    color: white;
+.tab-btn.active .tab-label {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-primary);
 }
 
 .tab-btn.saved {
@@ -172,11 +220,17 @@
 .tab-saved-icon {
     color: #22c55e;
     margin-left: 0.25rem;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: white;
+    border-radius: 50%;
 }
 
 .tab-btn.active .tab-saved-icon {
-    color: white;
+    color: var(--color-primary);
 }
+
 
 /* Profile Content Area */
 .profile-content {
@@ -222,6 +276,25 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    position: sticky;
+    bottom: 1.5rem;
+    z-index: 30;
+    justify-content: flex-end;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-top: auto;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .content-actions {
+    background: rgba(30, 41, 59, 0.9);
+    /* Dark mode tint */
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .saved-badge {
@@ -494,9 +567,7 @@
 }
 
 [data-theme="dark"] .tab-btn {
-    background: var(--color-gray-100);
-    color: #ffffff;
-    border-color: var(--color-gray-200);
+    color: var(--color-gray-500);
 }
 
 [data-theme="dark"] .tab-btn.saved:not(.active) {
@@ -537,10 +608,6 @@
     color: #ffffff;
 }
 
-[data-theme="dark"] .tab-btn .tab-icon {
-    color: #ffffff;
-}
-
 [data-theme="dark"] .content-title h2 {
     color: #ffffff;
 }
@@ -559,7 +626,17 @@
 
 /* Dark Mode Overrides - Hover State Fixes */
 [data-theme="dark"] .tab-btn:hover {
-    background: var(--color-gray-200);
+    background: var(--color-gray-100);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .tab-btn.active {
+    background: hsl(var(--color-primary-raw) / 0.15);
+    color: var(--color-primary-light);
+}
+
+[data-theme="dark"] .tab-btn.active .tab-label {
+    color: var(--color-primary-light);
 }
 
 [data-theme="dark"] .save-section-btn:hover {
@@ -707,16 +784,22 @@
 }
 
 [data-theme="dark"] .tab-btn {
+    background: transparent;
+    color: var(--color-gray-500);
+}
+
+[data-theme="dark"] .tab-btn:hover {
     background: var(--color-gray-100);
     color: #ffffff;
 }
 
-[data-theme="dark"] .tab-btn:hover {
-    background: var(--color-gray-200);
+[data-theme="dark"] .tab-btn.active {
+    background: hsl(var(--color-primary-raw) / 0.15);
+    color: var(--color-primary-light);
 }
 
-[data-theme="dark"] .tab-btn.active {
-    background: var(--color-primary);
+[data-theme="dark"] .tab-btn.active .tab-label {
+    color: var(--color-primary-light);
 }
 
 [data-theme="dark"] .tab-btn.saved:not(.active) {

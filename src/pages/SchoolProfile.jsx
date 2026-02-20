@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
     Building,
     Users,
@@ -447,10 +448,85 @@ const initialFormData = {
     sp_leaver_g12_employed: '',
 };
 
+const SCHOOL_ID = 'SCHOOL_DEMO_001';
+
+// ==========================================
+// Virtualized Staff List Component
+// ==========================================
+const VirtualStaffList = ({ staffList, handleStaffChange, handleRemoveStaff, parentRef }) => {
+    "use no memo";
+    // Set up the virtualizer for the table rows
+    // eslint-disable-next-line
+    const rowVirtualizer = useVirtualizer({
+        count: staffList.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 50, // estimated pixel height per row
+        overscan: 5, // Render 5 rows off-screen for smooth scrolling
+    });
+
+    if (staffList.length === 0) {
+        return (
+            <tr>
+                <td colSpan="9" className="text-center p-4 text-gray-500 border" style={{ fontStyle: 'italic' }}>
+                    No staff added yet. Click "+ Add Staff" to begin.
+                </td>
+            </tr>
+        );
+    }
+
+    return (
+        // We inject the parentRef into a dedicated scrollable tbody wrapper if possible, 
+        // but react-virtual v3 works best wrapping the entire mapping block or placing the ref on the scroll-container
+        <>
+            {/* 
+               In a native HTML table, we apply the total height to a spacer row 
+               or manage the Y-transforms on the TR elements.
+            */}
+            <tr style={{ height: `${rowVirtualizer.getTotalSize()}px`, display: 'block', position: 'relative', width: '100%' }}>
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const index = virtualRow.index;
+                    const staff = staffList[index];
+                    return (
+                        <tr
+                            key={virtualRow.key}
+                            data-index={virtualRow.index}
+                            className={index % 2 !== 0 ? 'bg-gray-50' : ''}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: `${virtualRow.size}px`,
+                                transform: `translateY(${virtualRow.start}px)`,
+                                transition: 'background 0.15s',
+                                display: 'table', // Keep table-row semantics
+                                tableLayout: 'fixed'
+                            }}
+                        >
+                            <td className="p-1 border w-32"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.name || ''} onChange={(e) => handleStaffChange(index, 'name', e.target.value)} /></td>
+                            <td className="p-1 border w-24"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.designation || ''} onChange={(e) => handleStaffChange(index, 'designation', e.target.value)} /></td>
+                            <td className="p-1 border w-24"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.qualification || ''} onChange={(e) => handleStaffChange(index, 'qualification', e.target.value)} /></td>
+                            <td className="p-1 border w-20"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.currentPostDuration || ''} onChange={(e) => handleStaffChange(index, 'currentPostDuration', e.target.value)} /></td>
+                            <td className="p-1 border w-20"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.teacherDuration || ''} onChange={(e) => handleStaffChange(index, 'teacherDuration', e.target.value)} /></td>
+                            <td className="p-1 border w-20"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.educationDuration || ''} onChange={(e) => handleStaffChange(index, 'educationDuration', e.target.value)} /></td>
+                            <td className="p-1 border w-24"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.certificate || ''} onChange={(e) => handleStaffChange(index, 'certificate', e.target.value)} placeholder="..." /></td>
+                            <td className="p-1 border w-24"><input type="tel" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.mobile || ''} onChange={(e) => handleStaffChange(index, 'mobile', e.target.value)} /></td>
+                            <td className="p-1 border text-center w-10">
+                                <button onClick={() => handleRemoveStaff(index)} style={{ color: '#dc2626', fontWeight: 700, cursor: 'pointer', fontSize: '1rem', background: 'none', border: 'none' }}>✗</button>
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tr>
+        </>
+    );
+};
+
 function SchoolProfile() {
     const [formData, setFormData] = useState(initialFormData);
     const [activeTab, setActiveTab] = useState('basic');
     const contentRef = useRef(null);
+    const staffListParentRef = useRef(null); // Ref for the scrollable container of the staff list
     const [savedSections, setSavedSections] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -751,7 +827,7 @@ function SchoolProfile() {
             if (gradeMatch) {
                 const grade = gradeMatch[1];
                 const grPrefix = `sp_se_gr${grade}_`;
-                const afterPrefix = field.slice(grPrefix.length); // e.g. "islam_taken"
+                const afterPrefix = field.slice(grPrefix.length); // e.e.g. "islam_taken"
 
                 // Get subject list for this grade
                 let subjectIds;
@@ -1258,7 +1334,6 @@ function SchoolProfile() {
                                     {/* 2021-2022 */}
                                     <td className="p-1 border">{renderMatrixInput(`sp_al_tr_2021_2022_${sub.id}_taken`)}</td>
                                     <td className="p-1 border">{renderMatrixInput(`sp_al_tr_2021_2022_${sub.id}_part`)}</td>
-                                    <td className="p-1 border">{renderMatrixInput(`sp_al_tr_2021_2022_${sub.id}_pass_count`)}</td>
                                     <td className="p-1 border" style={{ background: 'rgba(37,99,235,0.06)' }}>{renderMatrixInput(`sp_al_tr_2021_2022_${sub.id}_pass_pct`, true, 'bg-transparent')}</td>
                                 </tr>
                             ))}
@@ -1459,9 +1534,10 @@ function SchoolProfile() {
                         + Add Staff
                     </button>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="matrix-grid font-dhivehi text-center text-xs" dir="rtl" style={{ fontSize: '0.8rem' }}>
-                        <thead>
+
+                <div ref={staffListParentRef} className="matrix-scroll-container" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                    <table className="matrix-grid font-dhivehi text-center text-xs w-full" dir="rtl" style={{ fontSize: '0.8rem', tableLayout: 'fixed' }}>
+                        <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                             <tr className="bg-gray-100">
                                 <th className="p-2 border font-bold text-gray-700 w-32" style={{ verticalAlign: 'middle' }}>ނަން</th>
                                 <th className="p-2 border font-bold text-gray-700 w-24" style={{ verticalAlign: 'middle' }}>މަޤާމް</th>
@@ -1475,26 +1551,12 @@ function SchoolProfile() {
                             </tr>
                         </thead>
                         <tbody>
-                            {(formData.sp_mgmt_staffList || []).map((staff, index) => (
-                                <tr key={index} className={index % 2 !== 0 ? 'bg-gray-50' : ''} style={{ transition: 'background 0.15s' }}>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.name} onChange={(e) => handleStaffChange(index, 'name', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.designation} onChange={(e) => handleStaffChange(index, 'designation', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.qualification} onChange={(e) => handleStaffChange(index, 'qualification', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.currentPostDuration} onChange={(e) => handleStaffChange(index, 'currentPostDuration', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.teacherDuration} onChange={(e) => handleStaffChange(index, 'teacherDuration', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.educationDuration} onChange={(e) => handleStaffChange(index, 'educationDuration', e.target.value)} /></td>
-                                    <td className="p-1 border"><input type="text" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.certificate} onChange={(e) => handleStaffChange(index, 'certificate', e.target.value)} placeholder="..." /></td>
-                                    <td className="p-1 border"><input type="tel" className="form-input w-full text-xs rounded-md shadow-sm border-gray-300" value={staff.mobile} onChange={(e) => handleStaffChange(index, 'mobile', e.target.value)} /></td>
-                                    <td className="p-1 border text-center">
-                                        <button onClick={() => handleRemoveStaff(index)} style={{ color: '#dc2626', fontWeight: 700, cursor: 'pointer', fontSize: '1rem', background: 'none', border: 'none' }}>✗</button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {(formData.sp_mgmt_staffList || []).length === 0 && (
-                                <tr>
-                                    <td colSpan="9" className="text-center p-4 text-gray-500 border" style={{ fontStyle: 'italic' }}>No staff added yet. Click "+ Add Staff" to begin.</td>
-                                </tr>
-                            )}
+                            <VirtualStaffList
+                                staffList={formData.sp_mgmt_staffList || []}
+                                handleStaffChange={handleStaffChange}
+                                handleRemoveStaff={handleRemoveStaff}
+                                parentRef={staffListParentRef}
+                            />
                         </tbody>
                     </table>
                 </div>
@@ -1768,7 +1830,7 @@ function SchoolProfile() {
                 <div className="p-4 bg-gray-50 border-b border-gray-200" dir="rtl">
                     <h3 className="font-dhivehi font-bold text-lg">މުދައްރިސުންގެ ތަފާސްހިސާބު</h3>
                 </div>
-                <div className="overflow-x-auto p-4">
+                <div className="matrix-scroll-container p-4">
                     <table className="matrix-grid font-dhivehi text-center text-xs" dir="rtl">
                         <thead className="bg-gray-100">
                             <tr>
@@ -1874,7 +1936,7 @@ function SchoolProfile() {
                 <div className="p-4 bg-gray-50 border-b border-gray-200" dir="rtl">
                     <h3 className="font-dhivehi font-bold text-lg">ދަރިވަރުންގެ އަދަދު (SCLP ދަރިވަރުން ހިމަނައިގެން)</h3>
                 </div>
-                <div className="overflow-x-auto p-4">
+                <div className="matrix-scroll-container p-4">
                     <table className="matrix-grid font-dhivehi text-center text-xs" dir="rtl" style={{ fontSize: '17px' }}>
                         <thead className="bg-gray-100">
                             <tr>
@@ -1975,7 +2037,7 @@ function SchoolProfile() {
                 <div className="p-4 bg-gray-50 border-b border-gray-200" dir="rtl">
                     <h3 className="font-dhivehi font-bold text-lg">{title}</h3>
                 </div>
-                <div className="overflow-x-auto p-4">
+                <div className="matrix-scroll-container p-4">
                     <table className="matrix-grid font-dhivehi text-center text-xs" dir="rtl" style={{ fontSize: '17px' }}>
                         <thead className="bg-gray-100">
                             <tr className="text-xs">
@@ -2089,7 +2151,7 @@ function SchoolProfile() {
                     <div className="p-4 bg-gray-50 border-b border-gray-200" dir="rtl">
                         <h3 className="font-dhivehi font-bold text-lg">{title}</h3>
                     </div>
-                    <div className="overflow-x-auto p-4">
+                    <div className="matrix-scroll-container p-4">
                         <table className="matrix-grid font-dhivehi text-center text-xs" dir="rtl">
                             <thead className="bg-gray-100">
                                 <tr className="text-xs">
@@ -2722,6 +2784,17 @@ function SchoolProfile() {
         }
     };
 
+    const renderSecondaryTabs = () => {
+        if (secondaryTabs.length === 0) return null;
+        return (
+            <div className="tab-row secondary-tabs">
+                {secondaryTabs.map(tab => (
+                    <button key={tab.id} className="tab-btn">{tab.label}</button>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <div className="school-profile">
             {/* Header */}
@@ -2748,44 +2821,26 @@ function SchoolProfile() {
                 </div>
             </header>
 
-            {/* Primary Tabs Row */}
-            <div className="tab-row primary-tabs">
-                {primaryTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isSaved = savedSections.includes(tab.id);
-                    return (
-                        <button
-                            key={tab.id}
-                            className={`tab-btn ${activeTab === tab.id ? 'active' : ''} ${isSaved ? 'saved' : ''}`}
-                            onClick={() => handleTabClick(tab.id)}
-                        >
+            {/* Primary Navigation Tabs */}
+            <div className="tab-row-container">
+                <div className="tab-row primary-tabs">
+                    {primaryTabs.map(tab => {
+                        const isSaved = savedSections.includes(tab.id);
+                        return (
+                            <button
+                                key={tab.id}
+                                className={`tab-btn ${activeTab === tab.id ? 'active' : ''} ${isSaved ? 'saved' : ''}`}
+                                onClick={() => handleTabClick(tab.id)}
+                            >
+                                <span className="tab-label font-dhivehi" dir="rtl">{tab.labelDv}</span>
+                                {isSaved && <CheckCircle size={14} className="tab-saved-icon" />}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                            {tab.label && <span className="tab-label">{tab.label}</span>}
-                            <span className="tab-label font-dhivehi">{tab.labelDv}</span>
-                            {isSaved && <CheckCircle size={14} className="tab-saved-icon" />}
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Secondary Tabs Row */}
-            <div className="tab-row secondary-tabs">
-                {secondaryTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isSaved = savedSections.includes(tab.id);
-                    return (
-                        <button
-                            key={tab.id}
-                            className={`tab-btn ${activeTab === tab.id ? 'active' : ''} ${isSaved ? 'saved' : ''}`}
-                            onClick={() => handleTabClick(tab.id)}
-                        >
-
-                            <span className="tab-label">{tab.label}</span>
-                            {tab.labelDv && <span className="tab-label font-dhivehi">{tab.labelDv}</span>}
-                            {isSaved && <CheckCircle size={14} className="tab-saved-icon" />}
-                        </button>
-                    );
-                })}
+                {/* Secondary Tabs Row */}
+                {renderSecondaryTabs()}
             </div>
 
             {/* Content Area */}
@@ -2830,6 +2885,6 @@ function SchoolProfile() {
             </div>
         </div>
     );
-}
+};
 
 export default SchoolProfile;

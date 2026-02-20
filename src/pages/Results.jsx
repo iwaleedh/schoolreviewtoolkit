@@ -56,7 +56,7 @@ function Results() {
         DIMENSIONS.forEach(dim => {
             const backendData = backendDimensions[dim.id];
             const fallbackData = fallbackDimensionResults[dim.id];
-            
+
             if (backendData?.hasData) {
                 merged[dim.id] = {
                     score: backendData.score,
@@ -94,9 +94,9 @@ function Results() {
 
     const renderGradeBadge = (grade) => {
         const color = GRADE_COLORS[grade] || GRADE_COLORS.NR;
-        
+
         return (
-            <span 
+            <span
                 className="results-grade-badge"
                 style={{ backgroundColor: color.bg, color: color.text }}
             >
@@ -121,24 +121,21 @@ function Results() {
                         onClick={() => setActiveView('summary')}
                         aria-pressed={activeView === 'summary'}
                     >
-                        <BarChart3 size={16} aria-hidden="true" />
-                        Summary
+                        <span className="tab-label font-dhivehi" dir="rtl">ޚުލާޞާ</span>
                     </button>
                     <button
                         className={`view-btn ${activeView === 'backend' ? 'active' : ''}`}
                         onClick={() => setActiveView('backend')}
                         aria-pressed={activeView === 'backend'}
                     >
-                        <Database size={16} aria-hidden="true" />
-                        Backend
+                        <span className="tab-label font-dhivehi" dir="rtl">ބެކްއެންޑް</span>
                     </button>
                     <button
                         className={`view-btn ${activeView === 'report' ? 'active' : ''}`}
                         onClick={() => setActiveView('report')}
                         aria-pressed={activeView === 'report'}
                     >
-                        <FileText size={16} aria-hidden="true" />
-                        Generate Report
+                        <span className="tab-label font-dhivehi" dir="rtl">ރިޕޯޓް ހައްދަވާ</span>
                     </button>
                 </div>
             </header>
@@ -189,7 +186,7 @@ function Results() {
                         <div className="dimension-cards">
                             {DIMENSIONS.map((dim) => {
                                 const dimData = mergedDimensionData[dim.id];
-                                
+
                                 return (
                                     <DimensionResultCard
                                         key={dim.id}
@@ -214,9 +211,9 @@ function Results() {
                             {Object.entries(GRADE_COLORS).map(([code]) => {
                                 const threshold = code === 'FA' ? SCORING_THRESHOLDS.FULLY_ACHIEVED :
                                     code === 'MA' ? SCORING_THRESHOLDS.MOSTLY_ACHIEVED :
-                                    code === 'A' ? SCORING_THRESHOLDS.ACHIEVED :
-                                    code === 'NS' ? SCORING_THRESHOLDS.NOT_SUFFICIENT : null;
-                                
+                                        code === 'A' ? SCORING_THRESHOLDS.ACHIEVED :
+                                            code === 'NS' ? SCORING_THRESHOLDS.NOT_SUFFICIENT : null;
+
                                 return (
                                     <div key={code} className="grade-item" role="listitem">
                                         {renderGradeBadge(code)}
@@ -233,7 +230,7 @@ function Results() {
             )}
 
             {activeView === 'report' && (
-                <ReportGenerator 
+                <ReportGenerator
                     schoolName="Sample School"
                     schoolId="SCH-001"
                 />
