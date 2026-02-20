@@ -390,7 +390,6 @@ function SSEToolkit() {
             <header className="toolkit-header">
                 <div className="header-left">
                     <h1 className="page-title">
-                        <span className="title-en">School Review Toolkit</span>
                         <span className="title-dv font-dhivehi" dir="rtl">ސްކޫލް ރިވިއު ޓޫލްކިޓް</span>
                     </h1>
                 </div>
