@@ -2,6 +2,15 @@
    School Review Toolkit - Enhanced Base Styles
    ======================================== */
 
+/* Faruma Dhivehi Font */
+@font-face {
+  font-family: 'Faruma';
+  src: url('./fonts/Faruma.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* CSS Variables (Enhanced Design Tokens) */
 :root {
   /* Dimension Themes - Enhanced with gradients */

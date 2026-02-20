@@ -61,7 +61,7 @@ function Sidebar({ collapsed, onToggle }) {
     const location = useLocation();
 
     return (
-        <aside 
+        <aside
             className={`sidebar ${collapsed ? 'collapsed' : ''}`}
             role="navigation"
             aria-label="Main navigation"
@@ -74,9 +74,9 @@ function Sidebar({ collapsed, onToggle }) {
                         <span className="brand-text">ސްކޫލް ރިވިއު</span>
                     </div>
                 )}
-                <button 
-                    className="toggle-btn" 
-                    onClick={onToggle} 
+                <button
+                    className="toggle-btn"
+                    onClick={onToggle}
                     aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     aria-expanded={!collapsed}
                 >
@@ -97,17 +97,14 @@ function Sidebar({ collapsed, onToggle }) {
                             key={item.id}
                             to={item.path}
                             className={`nav-item ${isActive ? 'active' : ''}`}
-                            title={collapsed ? item.labelEn : undefined}
+                            title={collapsed ? item.labelDv : undefined}
                             role="menuitem"
                             aria-current={isActive ? 'page' : undefined}
                             aria-label={item.labelEn}
                         >
                             <Icon size={22} className="nav-icon" aria-hidden="true" />
                             {!collapsed && (
-                                <div className="nav-labels">
-                                    <span className="label-dv font-dhivehi" dir="rtl">{item.labelDv}</span>
-                                    <span className="label-en">{item.labelEn}</span>
-                                </div>
+                                <span className="label-dv font-dhivehi" dir="rtl">{item.labelDv}</span>
                             )}
                         </NavLink>
                     );
@@ -120,7 +117,7 @@ function Sidebar({ collapsed, onToggle }) {
                 <div className="theme-toggle-container">
                     <ThemeToggle showLabel={!collapsed} size={collapsed ? 'small' : 'medium'} />
                 </div>
-                
+
                 {!collapsed && (
                     <div className="version-info" aria-label="Application version">
                         <span>Academic Year 2026</span>
