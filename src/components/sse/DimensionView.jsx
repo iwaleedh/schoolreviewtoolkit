@@ -177,7 +177,7 @@ function DimensionView({ dimensionNumber, csvFileName, title, titleDv }) {
                                                                             <tr>
                                                                                 <th className="col-code">#</th>
                                                                                 <th className="col-indicator font-dhivehi" dir="rtl">
-                                                                                    މައުލޫމާތު (Indicator)
+                                                                                    ބަލާނެ ކަންކަން
                                                                                 </th>
                                                                                 <th className="col-score">Score</th>
                                                                             </tr>

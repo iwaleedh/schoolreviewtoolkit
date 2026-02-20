@@ -190,7 +190,7 @@ function Dimension1() {
                                                                         <tr>
                                                                             <th className="col-code">#</th>
                                                                             <th className="col-indicator font-dhivehi" dir="rtl">
-                                                                                މައުލޫމާތު (Indicator)
+                                                                                ބަލާނެ ކަންކަން
                                                                             </th>
                                                                             <th className="col-score">Score</th>
                                                                         </tr>
@@ -210,8 +210,8 @@ function Dimension1() {
                                                                                                 <button
                                                                                                     key={score.value}
                                                                                                     className={`score-btn indicator-score-btn ${score.color} ${indicatorScores[indicator.code] === score.value
-                                                                                                            ? 'selected'
-                                                                                                            : ''
+                                                                                                        ? 'selected'
+                                                                                                        : ''
                                                                                                         }`}
                                                                                                     onClick={() =>
                                                                                                         handleIndicatorScore(indicator.code, score.value)

@@ -96,8 +96,8 @@ function MobileOutcomeCard({ outcome, visibleLTGroups, getLPScore, handleLPScore
                                 {visibleLTGroups.map(lt => (
                                     <div key={lt} className="lp-mobile-lt-group">
                                         <div className="lp-mobile-lt-label">
-                                            {columnConfig?.groupPrefix === 'T' 
-                                                ? lt.replace('T', 'T ') 
+                                            {columnConfig?.groupPrefix === 'T'
+                                                ? lt.replace('T', 'T ')
                                                 : lt.replace('LT', 'LT ')}
                                         </div>
                                         <div className="lp-mobile-lp-row">
@@ -135,10 +135,10 @@ function MobileOutcomeCard({ outcome, visibleLTGroups, getLPScore, handleLPScore
  * Includes Comment column and 1/0/NR average
  */
 export default function LessonPlanChecklist({ csvFileName, title, titleDv, source }) {
-    const { 
-        getIndicatorLTScore, 
-        setIndicatorLTScore, 
-        setIndicatorComment, 
+    const {
+        getIndicatorLTScore,
+        setIndicatorLTScore,
+        setIndicatorComment,
         getIndicatorComment,
         savePendingLTScores,
         hasPendingChanges,
@@ -180,10 +180,10 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
     useEffect(() => {
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
-        
+
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
-        
+
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
@@ -223,13 +223,13 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                 // Parse header to detect structure (LT-based or T-based)
                 const columnHeaderLine = lines[1]; // Second row has column names like "1,2,1,2..."
                 const dataStartRow = 2;
-                
+
                 // Check if this is Lesson Observation (T-columns) or Lesson Plan (LT-columns)
                 // by looking at the first header row
                 const titleRow = lines[0];
                 const isObservation = titleRow.includes('Observation') || titleRow.includes('Obervation') || titleRow.includes('އޮބްސަވޭޝަން');
                 const _isTeacherBased = columnHeaderLine.includes('T1') || isObservation;
-                
+
                 // Determine columns per group
                 const colsPerGroup = isObservation ? 2 : 5;
                 const groupPrefix = isObservation ? 'T' : 'LT';
@@ -272,6 +272,9 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                             const outcomeNo = (row[2] || '').trim();
                             const outcome = (row[3] || '').trim();
                             const indicator = (row[4] || '').trim();
+
+                            // Skip header row if it happens to fall into data lines
+                            if (indicatorCode.toLowerCase() === 'indicatorcode') return;
 
                             if (outcomeNo) currentOutcomeNo = outcomeNo;
                             if (outcome) currentOutcome = outcome;
@@ -472,7 +475,7 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                     <span className="title-en">{title}</span>
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
-                
+
                 {/* Save Status & Button */}
                 <div className="lt-header-actions">
                     {/* Online/Offline Status */}
@@ -480,23 +483,23 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                         {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
                         <span>{isOnline ? 'Online' : 'Offline'}</span>
                     </div>
-                    
+
                     {/* Pending Changes Badge */}
                     {hasChanges && (
                         <div className="pending-badge">
                             <span>{totalPendingCount} unsaved</span>
                         </div>
                     )}
-                    
+
                     {/* Last Sync Time */}
                     {lastSyncTime && (
                         <div className="last-sync">
                             <span>Last saved: {new Date(lastSyncTime).toLocaleTimeString()}</span>
                         </div>
                     )}
-                    
+
                     {/* Save Button */}
-                    <button 
+                    <button
                         className={`save-all-btn ${saveStatus === 'success' ? 'success' : ''} ${saveStatus === 'error' ? 'error' : ''}`}
                         onClick={handleSaveAll}
                         disabled={isSyncing || !hasChanges}
@@ -526,8 +529,8 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                         <option value="all">Master Sheet (All)</option>
                         {ltGroups.map(lt => (
                             <option key={lt} value={lt}>
-                                {columnConfig.groupPrefix === 'T' 
-                                    ? lt.replace('T', 'Teacher ') 
+                                {columnConfig.groupPrefix === 'T'
+                                    ? lt.replace('T', 'Teacher ')
                                     : lt.replace('LT', 'Leading Teacher ')}
                             </option>
                         ))}
@@ -552,8 +555,8 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
             <div className="editable-badge">
                 <span>✏️ {columnConfig.groupPrefix === 'T' ? 'Lesson Observation' : 'Lesson Plan'} Data Entry {isOnline ? '(Online)' : '(Offline Mode)'}</span>
                 <span className="badge-hint">
-                    {isOnline 
-                        ? 'Click cells to cycle: ✓ → ✗ → NR • Click Save when done' 
+                    {isOnline
+                        ? 'Click cells to cycle: ✓ → ✗ → NR • Click Save when done'
                         : 'Working offline - data is saved locally • Will sync when you come back online'}
                 </span>
             </div>
@@ -579,15 +582,15 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                         {expandedOutcomes[outcome.id] && (
                             !isMobile ? (
                                 <DraggableTableWrapper>
-                                    <table className="lt-indicators-table">
+                                    <table className={`lt-indicators-table ${selectedView === 'all' ? 'view-all' : 'view-single'}`}>
                                         <thead>
                                             <tr>
                                                 <th className="col-comment">💬</th>
                                                 <th className="col-avg">Avg</th>
                                                 {visibleLTGroups.map(lt => (
                                                     <th key={lt} className="col-lt-group-header" colSpan={columnConfig.colsPerGroup}>
-                                                        {columnConfig.groupPrefix === 'T' 
-                                                            ? lt.replace('T', 'T - ') 
+                                                        {columnConfig.groupPrefix === 'T'
+                                                            ? lt.replace('T', 'T - ')
                                                             : lt.replace('LT', 'LT - ')}
                                                     </th>
                                                 ))}

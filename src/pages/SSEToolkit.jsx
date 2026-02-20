@@ -253,13 +253,13 @@ function SSEToolkit() {
 
         // Data input tabs (Editable - single score column)
         const editableConfig = {
-            'sen-lt': { title: 'SEN Leading Teacher', titleDv: 'ސެން ލީޑިން ޓީޗަރ', csv: 'SEN.csv', source: 'SEN-LT' },
+            'sen-lt': { title: 'SEN Leading Teacher', titleDv: 'ސެން ލީޑިން ޓީޗަރ', csv: 'SEN.csv', source: 'SEN-LT', hideObservations: true },
 
 
-            principal: { title: 'Principal Checklist', titleDv: 'ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'Principal', rowRange: { start: 3, end: 39 } },
-            'deputy-principal': { title: 'Deputy Principal Checklist', titleDv: 'ޑެޕިއުޓީ ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'DeputyPrincipal', rowRange: { start: 40, end: 84 } },
+            principal: { title: 'Principal Checklist', titleDv: 'ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'Principal', rowRange: { start: 3, end: 39 }, hideObservations: true },
+            'deputy-principal': { title: 'Deputy Principal Checklist', titleDv: 'ޑެޕިއުޓީ ޕްރިންސިޕަލް ޗެކްލިސްޓް', csv: 'Principal.csv', source: 'DeputyPrincipal', rowRange: { start: 40, end: 84 }, hideObservations: true },
             'admin-administrator': { title: 'Admin Checklist - Administrator', titleDv: 'އެޑްމިން ޗެކްލިސްޓް - އެޑްމިނިސްޓްރޭޓަރ', csv: 'Administrator.csv', source: 'Admin-Administrator' },
-            'admin-hr': { title: 'Admin Checklist - HR', titleDv: 'އެޑްމިން ޗެކްލިސްޓް - އެޗްއާރް', csv: 'HR.csv', source: 'Admin-HR' },
+            'admin-hr': { title: 'Admin Checklist - HR', titleDv: 'އެޑްމިން ޗެކްލިސްޓް - އެޗްއާރް', csv: 'HR.csv', source: 'Admin-HR', hideObservations: true },
             budget: { title: 'Budget Checklist', titleDv: 'ބަޖެޓް ޗެކްލިސްޓް', csv: 'Budget.csv', source: 'Budget' },
             'literacy-ambassador': { title: 'Literacy Ambassador Checklist', titleDv: 'ލިޓަރަސީ އެމްބެސަޑަރ ޗެކްލިސްޓް', csv: 'Literacy.csv', source: 'Literacy-Ambassador', hideObservations: true },
             'pd-cordinator': { title: 'PD Cordinator Checklist', titleDv: 'ޕީޑީ ކޯޑިނޭޓަރ ޗެކްލިސްޓް', csv: 'PD.csv', source: 'PD-Cordinator', hideObservations: true },

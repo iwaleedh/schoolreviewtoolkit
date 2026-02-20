@@ -4,23 +4,18 @@ import { useSSEData } from '../../context/SSEDataContext';
 import { useChecklistData } from '../../hooks/useChecklistData';
 import './Dimension.css';
 
-// Score options for indicators (editable)
-const INDICATOR_SCORES = [
-    { value: 'yes', label: '✓', icon: Check, color: 'green' },
-    { value: 'no', label: '✗', icon: X, color: 'red' },
-    { value: 'nr', label: 'NR', icon: Minus, color: 'gray' },
-];
+// Score definitions for EditableChecklist matched to LT style UX
 
 /**
  * EditableChecklist - Data input checklist component
- * Used for: LT1, LT2, Principal, Admin, Budget, etc.
+    * Used for: LT1, LT2, Principal, Admin, Budget, etc.
  * Scores entered here flow to Dimension tabs via SSEDataContext
- * 
- * @param {string} csvFileName - Name of CSV file in /Checklist/
- * @param {string} title - English title
- * @param {string} titleDv - Dhivehi title
- * @param {string} source - Identifier for this checklist (e.g., 'LT1', 'Principal')
- */
+    * 
+ * @param { string } csvFileName - Name of CSV file in /Checklist/
+    * @param { string } title - English title
+        * @param { string } titleDv - Dhivehi title
+            * @param { string } source - Identifier for this checklist(e.g., 'LT1', 'Principal')
+                */
 function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filterColumn, filterValue, hideObservations = false, showAllColumns = false }) {
     const { data, loading, error, grouped: rawGrouped, titleRows } = useChecklistData(csvFileName, rowRange);
     const { getIndicatorScore, setIndicatorScore, getIndicatorStats, setIndicatorComment, getIndicatorComment } = useSSEData();
@@ -28,7 +23,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
     // Filter grouped data by column value if filterColumn and filterValue are provided
     const grouped = (() => {
         if (!rawGrouped || !filterColumn || !filterValue) return rawGrouped;
-        
+
         return rawGrouped.map(strand => ({
             ...strand,
             substrands: strand.substrands.map(substrand => ({
@@ -69,7 +64,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
         }
         setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
     };
-    
+
     // Save comment and close
     const saveComment = (indicatorCode) => {
         const draftComment = commentDrafts[indicatorCode] || '';
@@ -81,7 +76,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
             return newDrafts;
         });
     };
-    
+
     // Update comment draft locally (no database call)
     const updateCommentDraft = (indicatorCode, value) => {
         setCommentDrafts(prev => ({ ...prev, [indicatorCode]: value }));
@@ -101,24 +96,32 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
         setIndicatorScore(indicatorCode, nextScore, source);
     };
 
-    // Get display for current score
+    // Get display class based on score for matching LT Checklist UX
+    const getScoreButtonClass = (score) => {
+        if (score === 'yes') return 'lt-score-btn score-one';
+        if (score === 'no') return 'lt-score-btn score-zero';
+        if (score === 'nr') return 'lt-score-btn score-na';
+        return 'lt-score-btn score-empty';
+    };
+
+    // Get display text for current score
     const getScoreDisplay = (score) => {
-        if (score === 'yes') return { icon: Check, color: 'green', label: '✓' };
-        if (score === 'no') return { icon: X, color: 'red', label: '✗' };
-        if (score === 'nr') return { icon: Minus, color: 'gray', label: 'NR' };
-        return { icon: null, color: 'empty', label: '-' };
+        if (score === 'yes') return '1';
+        if (score === 'no') return '0';
+        if (score === 'nr') return 'NR';
+        return '—';
     };
 
     // Calculate stats for this checklist
     const checklistStats = (() => {
         if (!data || data.length === 0) return { yes: 0, no: 0, nr: 0, unscored: 0, total: 0 };
-        
+
         // Filter data by column value if filter is specified
         let filteredData = data;
         if (filterColumn && filterValue) {
             filteredData = data.filter(row => row[filterColumn] === filterValue);
         }
-        
+
         const indicatorCodes = filteredData.map(row => row['indicatorCode'] || row['IndicatorCode']).filter(Boolean);
         return getIndicatorStats(indicatorCodes);
     })();
@@ -257,22 +260,14 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
                                                                         <tr>
                                                                             <th className="col-comment">💬</th>
                                                                             <th className="col-score">Score</th>
-                                                                            {showAllColumns && (
-                                                                                <th className="col-informant font-dhivehi" dir="rtl">
-                                                                                    ސުވާލުކުރާނެ ފަރާތް
-                                                                                </th>
-                                                                            )}
-                                                                            {showAllColumns && (
-                                                                                <th className="col-how-to-check font-dhivehi" dir="rtl">
-                                                                                    ހޯދާބެލުން
-                                                                                </th>
-                                                                            )}
+
+
                                                                             <th className="col-evidence font-dhivehi" dir="rtl">
-                                                                                ބަލާނެ ލިޔެކިޔުން (Evidence)
+                                                                                ބަލާނެ ލިޔެކިޔުން
                                                                             </th>
                                                                             {!hideObservations && !showAllColumns && (
                                                                                 <th className="col-observation font-dhivehi" dir="rtl">
-                                                                                    ޖެނެރަލް އޮބްސަވޭޝަން (General Observation)
+                                                                                    ޖެނެރަލް އޮބްސަވޭޝަން
                                                                                 </th>
                                                                             )}
                                                                             {showAllColumns && (
@@ -281,7 +276,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
                                                                                 </th>
                                                                             )}
                                                                             <th className="col-indicator font-dhivehi" dir="rtl">
-                                                                                މައުލޫމާތު (Indicator)
+                                                                                ބަލާނެ ކަންކަން
                                                                             </th>
                                                                         </tr>
                                                                     </thead>
@@ -290,8 +285,6 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
                                                                             const currentScore = getIndicatorScore(indicator.code);
                                                                             const currentComment = getIndicatorComment ? getIndicatorComment(indicator.code) : '';
                                                                             const isCommentOpen = expandedComments[indicator.code];
-                                                                            const scoreDisplay = getScoreDisplay(currentScore);
-                                                                            const ScoreIcon = scoreDisplay.icon;
 
                                                                             const commentDraft = commentDrafts[indicator.code] || '';
 
@@ -351,27 +344,17 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
                                                                                     {/* Score Column - Second (Single Cycling Button) */}
                                                                                     <td className="col-score">
                                                                                         <button
-                                                                                            className={`score-cycle-btn ${scoreDisplay.color}`}
+                                                                                            className={getScoreButtonClass(currentScore)}
                                                                                             onClick={() => handleScoreCycle(indicator.code)}
                                                                                             title="Click to cycle: ✓ → ✗ → NR"
                                                                                         >
-                                                                                            {ScoreIcon ? <ScoreIcon size={16} /> : <span className="score-empty">-</span>}
+                                                                                            {getScoreDisplay(currentScore)}
                                                                                         </button>
                                                                                     </td>
 
-                                                                                    {/* Informant Column - showAllColumns only */}
-                                                                                    {showAllColumns && (
-                                                                                        <td className="col-informant font-dhivehi" dir="rtl">
-                                                                                            {indicator.informant || '-'}
-                                                                                        </td>
-                                                                                    )}
 
-                                                                                    {/* How to Check Column - Foundation only */}
-                                                                                    {showAllColumns && (
-                                                                                        <td className="col-how-to-check font-dhivehi" dir="rtl">
-                                                                                            {indicator.howToCheck || '-'}
-                                                                                        </td>
-                                                                                    )}
+
+
 
                                                                                     {/* Evidence Column */}
                                                                                     <td className="col-evidence font-dhivehi" dir="rtl">
@@ -381,7 +364,7 @@ function EditableChecklist({ csvFileName, title, titleDv, source, rowRange, filt
                                                                                     {/* General Observation Column - Fourth (conditional) */}
                                                                                     {!hideObservations && !showAllColumns && (
                                                                                         <td className="col-observation font-dhivehi" dir="rtl">
-                                                                                            {indicator.observations || '-'}
+                                                                                            {indicator.generalObservation || '-'}
                                                                                         </td>
                                                                                     )}
 

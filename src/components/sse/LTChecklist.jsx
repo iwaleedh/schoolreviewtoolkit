@@ -65,10 +65,10 @@ function DraggableTableWrapper({ children }) {
  */
 function LTChecklist({ csvFileName, title, titleDv, source }) {
     const { loading, error, grouped, titleRows } = useChecklistData(csvFileName);
-    const { 
-        getIndicatorLTScore, 
-        setIndicatorLTScore, 
-        setIndicatorComment, 
+    const {
+        getIndicatorLTScore,
+        setIndicatorLTScore,
+        setIndicatorComment,
         getIndicatorComment,
         savePendingLTScores,
         hasPendingChanges,
@@ -91,10 +91,10 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
     useEffect(() => {
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
-        
+
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
-        
+
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
@@ -128,7 +128,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         }
         setExpandedComments(prev => ({ ...prev, [indicatorCode]: !prev[indicatorCode] }));
     };
-    
+
     // Save comment and close
     const saveComment = (indicatorCode) => {
         const draftComment = commentDrafts[indicatorCode] || '';
@@ -140,7 +140,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
             return newDrafts;
         });
     };
-    
+
     // Update comment draft locally (no database call)
     const updateCommentDraft = (indicatorCode, value) => {
         setCommentDrafts(prev => ({ ...prev, [indicatorCode]: value }));
@@ -202,7 +202,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         let yes = 0;
         let no = 0;
         let naExplicit = 0;
-        
+
         // Count total indicators across all outcomes
         let totalIndicators = 0;
         grouped?.forEach(strand => {
@@ -212,7 +212,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                 });
             });
         });
-        
+
         const total = totalIndicators * visibleLTColumns.length;
 
         grouped?.forEach(strand => {
@@ -289,7 +289,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                     <span className="title-en">{title}</span>
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
-                
+
                 {/* Save Status & Button */}
                 <div className="lt-header-actions">
                     {/* Online/Offline Status */}
@@ -297,23 +297,23 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                         {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
                         <span>{isOnline ? 'Online' : 'Offline'}</span>
                     </div>
-                    
+
                     {/* Pending Changes Badge */}
                     {hasChanges && (
                         <div className="pending-badge">
                             <span>{totalPendingCount} unsaved</span>
                         </div>
                     )}
-                    
+
                     {/* Last Sync Time */}
                     {lastSyncTime && (
                         <div className="last-sync">
                             <span>Last saved: {new Date(lastSyncTime).toLocaleTimeString()}</span>
                         </div>
                     )}
-                    
+
                     {/* Save Button */}
-                    <button 
+                    <button
                         className={`save-all-btn ${saveStatus === 'success' ? 'success' : ''} ${saveStatus === 'error' ? 'error' : ''}`}
                         onClick={handleSaveAll}
                         disabled={isSyncing || !hasChanges}
@@ -365,7 +365,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
             <div className="editable-badge">
                 <span>✏️ Multi-LT Data Entry {isOnline ? '(Online)' : '(Offline Mode)'}</span>
                 <span className="badge-hint">
-                    {selectedView === 'all' 
+                    {selectedView === 'all'
                         ? (isOnline ? 'Viewing all LTs • Click cells to enter data' : 'Working offline - all LTs view')
                         : (isOnline ? `Viewing ${selectedView} only • Click cells to enter data` : `Working offline - ${selectedView} view`)}
                 </span>
@@ -436,7 +436,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                         {/* Outcome Content - LT Grid Table */}
                                                         {expandedOutcomes[outcome.id] && (
                                                             <DraggableTableWrapper>
-                                                                <table className="lt-indicators-table">
+                                                                <table className={`lt-indicators-table ${selectedView === 'all' ? 'view-all' : 'view-single'}`}>
                                                                     <thead>
                                                                         <tr>
                                                                             <th className="col-comment">💬</th>
@@ -445,7 +445,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                                                                                 <th key={lt} className="col-lt">{lt}</th>
                                                                             ))}
                                                                             <th className="col-evidence font-dhivehi" dir="rtl">ބަލާނެ ލިޔެކިޔުން</th>
-                                                                            <th className="col-indicator font-dhivehi" dir="rtl">މައުލޫމާތު</th>
+                                                                            <th className="col-indicator font-dhivehi" dir="rtl">ބަލާނެ ކަންކަން</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>

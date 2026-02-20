@@ -468,7 +468,7 @@ span.outcome-title[dir="rtl"] {
 }
 
 .col-score {
-  width: 120px;
+  width: 60px;
   text-align: center;
 }
 
@@ -822,7 +822,7 @@ span.outcome-title[dir="rtl"] {
 
 /* Evidence Column - Enhanced */
 .col-evidence {
-  width: 200px;
+  width: 130px;
   padding: 0.625rem;
   font-size: 0.875rem;
   line-height: 1.7;
@@ -830,7 +830,7 @@ span.outcome-title[dir="rtl"] {
 }
 
 .col-observation {
-  width: 200px;
+  width: 130px;
   padding: 0.625rem;
   font-size: 0.875rem;
   line-height: 1.7;
@@ -1163,8 +1163,24 @@ span.outcome-title[dir="rtl"] {
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.875rem;
+}
+
+/* Base minimum width when viewing all columns to prevent squishing */
+.lt-indicators-table.view-all {
   min-width: 1200px;
 }
+
+/* Allow table to gracefully fit device screen when viewing single group */
+.lt-indicators-table.view-single {
+  min-width: 100%;
+}
+
+.lt-indicators-table.view-single .col-indicator,
+.lt-indicators-table.view-single .col-evidence {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
 
 .lt-indicators-table th,
 .lt-indicators-table td {
