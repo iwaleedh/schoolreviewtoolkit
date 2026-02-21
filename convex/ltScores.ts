@@ -1,11 +1,14 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Get all LT scores
+// Get all LT scores for a school
 export const getAll = query({
-    args: {},
-    handler: async (ctx) => {
-        const scores = await ctx.db.query("ltScores").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const scores = await ctx.db
+            .query("ltScores")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         // Transform to { [indicatorCode]: { [ltColumn]: value } } format
         const result: Record<string, Record<string, number | string | null>> = {};
 
@@ -27,13 +30,18 @@ export const set = mutation({
         ltColumn: v.string(),
         value: v.union(v.number(), v.literal("NA"), v.literal("NR"), v.null()),
         source: v.string(),
+        schoolId: v.string(),
     },
     handler: async (ctx, args) => {
-        // Check if score already exists
+        // Check if score already exists for this school
         const existing = await ctx.db
             .query("ltScores")
-            .withIndex("by_indicatorCode_ltColumn", (q) =>
-                q.eq("indicatorCode", args.indicatorCode).eq("ltColumn", args.ltColumn)
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field("indicatorCode"), args.indicatorCode),
+                    q.eq(q.field("ltColumn"), args.ltColumn)
+                )
             )
             .first();
 
@@ -48,6 +56,7 @@ export const set = mutation({
                 ltColumn: args.ltColumn,
                 value: args.value,
                 source: args.source,
+                schoolId: args.schoolId,
             });
         }
     },
@@ -62,14 +71,19 @@ export const setMultiple = mutation({
             value: v.union(v.number(), v.literal("NA"), v.literal("NR"), v.null()),
         })),
         source: v.string(),
+        schoolId: v.string(),
     },
     handler: async (ctx, args) => {
         for (const score of args.scores) {
-            // Check if score already exists
+            // Check if score already exists for this school
             const existing = await ctx.db
                 .query("ltScores")
-                .withIndex("by_indicatorCode_ltColumn", (q) =>
-                    q.eq("indicatorCode", score.indicatorCode).eq("ltColumn", score.ltColumn)
+                .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+                .filter((q) =>
+                    q.and(
+                        q.eq(q.field("indicatorCode"), score.indicatorCode),
+                        q.eq(q.field("ltColumn"), score.ltColumn)
+                    )
                 )
                 .first();
 
@@ -84,6 +98,7 @@ export const setMultiple = mutation({
                     ltColumn: score.ltColumn,
                     value: score.value,
                     source: args.source,
+                    schoolId: args.schoolId,
                 });
             }
         }
@@ -91,11 +106,14 @@ export const setMultiple = mutation({
     },
 });
 
-// Clear all LT scores
+// Clear all LT scores for a school
 export const clearAll = mutation({
-    args: {},
-    handler: async (ctx) => {
-        const allScores = await ctx.db.query("ltScores").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const allScores = await ctx.db
+            .query("ltScores")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         for (const score of allScores) {
             await ctx.db.delete(score._id);
         }

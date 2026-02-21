@@ -1,17 +1,18 @@
 import { createContext, useContext, useCallback, useMemo, useState, useEffect, useReducer } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { 
-    STORAGE_KEYS, 
-    ERROR_MESSAGES, 
+import { useAuth } from './AuthContext';
+import {
+    STORAGE_KEYS,
+    ERROR_MESSAGES,
     UI_CONFIG,
-    SCORING_THRESHOLDS 
+    SCORING_THRESHOLDS
 } from '../utils/constants';
-import { 
-    sanitizeComment, 
-    sanitizeIndicatorCode, 
+import {
+    sanitizeComment,
+    sanitizeIndicatorCode,
     validateScore,
-    validateLTScore 
+    validateLTScore
 } from '../utils/sanitizers';
 
 /**
@@ -160,10 +161,47 @@ const createInitialState = () => ({
 });
 
 export function SSEDataProvider({ children }) {
+    const { user } = useAuth();
+
+    // Initial school ID from user
+    const [currentSchoolId, setCurrentSchoolId] = useState(user?.schoolId || null);
+
+    // Fetch schools for default selection (Admin/Analyst)
+    const schoolsQueryResult = useQuery(api.schools.listSchools);
+    const schools = useMemo(() => schoolsQueryResult || [], [schoolsQueryResult]);
+
+    // Set default school if none is set
+    useEffect(() => {
+        if (user) {
+            if (user.schoolId && !currentSchoolId) {
+                // Principal: Always use their school
+                setCurrentSchoolId(user.schoolId);
+            } else if (!currentSchoolId && schools.length > 0) {
+                // Admin/Analyst: Use first accessible school
+                if (user.role === 'ADMIN') {
+                    setCurrentSchoolId(schools[0].schoolId);
+                } else if (user.role === 'ANALYST' && user.assignedSchools?.length > 0) {
+                    const firstAssigned = schools.find(s => user.assignedSchools.includes(s.schoolId));
+                    if (firstAssigned) {
+                        setCurrentSchoolId(firstAssigned.schoolId);
+                    }
+                }
+            }
+        }
+    }, [user, currentSchoolId, schools]);
+
     // Convex queries - real-time data from database
-    const indicatorData = useQuery(api.indicatorScores.getAll) ?? { scores: {}, sources: {} };
-    const ltScoresData = useQuery(api.ltScores.getAll) ?? {};
-    const commentsData = useQuery(api.comments.getAll) ?? {};
+    const indicatorData = useQuery(api.indicatorScores.getAll,
+        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+    ) ?? { scores: {}, sources: {} };
+
+    const ltScoresData = useQuery(api.ltScores.getAll,
+        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+    ) ?? {};
+
+    const commentsData = useQuery(api.comments.getAll,
+        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+    ) ?? {};
 
     // Convex mutations
     const setIndicatorScoreMutation = useMutation(api.indicatorScores.set);
@@ -206,6 +244,11 @@ export function SSEDataProvider({ children }) {
     const ltScores = ltScoresData;
     const indicatorComments = commentsData;
 
+    // Find current school info
+    const currentSchool = useMemo(() => {
+        return schools?.find(s => s.schoolId === currentSchoolId);
+    }, [schools, currentSchoolId]);
+
     /**
      * Store checklist data from CSV for a source (local only)
      */
@@ -229,24 +272,25 @@ export function SSEDataProvider({ children }) {
     const setIndicatorScore = useCallback(async (indicatorCode, value, source = 'unknown') => {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const validatedScore = validateScore(value);
-        
+
         if (!sanitizedCode) {
             console.warn('Invalid indicator code:', indicatorCode);
             return;
         }
-        
+
         try {
             await setIndicatorScoreMutation({
                 indicatorCode: sanitizedCode,
                 value: validatedScore,
                 source,
+                schoolId: currentSchoolId,
             });
             dispatch({ type: ACTIONS.CLEAR_ERROR });
         } catch (err) {
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             throw err;
         }
-    }, [setIndicatorScoreMutation]);
+    }, [setIndicatorScoreMutation, currentSchoolId]);
 
     /**
      * Set scores for multiple indicators at once
@@ -259,20 +303,21 @@ export function SSEDataProvider({ children }) {
                 return sanitizedCode ? { indicatorCode: sanitizedCode, value: validatedScore } : null;
             })
             .filter(Boolean);
-        
+
         if (scoresArray.length === 0) return;
-        
+
         try {
             await setMultipleScoresMutation({
                 scores: scoresArray,
                 source,
+                schoolId: currentSchoolId,
             });
             dispatch({ type: ACTIONS.CLEAR_ERROR });
         } catch (err) {
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             throw err;
         }
-    }, [setMultipleScoresMutation]);
+    }, [setMultipleScoresMutation, currentSchoolId]);
 
     /**
      * Calculate outcome score based on indicator scores
@@ -345,15 +390,15 @@ export function SSEDataProvider({ children }) {
     const setIndicatorComment = useCallback((indicatorCode, comment) => {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const sanitizedComment = sanitizeComment(comment);
-        
+
         if (!sanitizedCode) {
             console.warn('Invalid indicator code for comment:', indicatorCode);
             return;
         }
-        
-        dispatch({ 
-            type: ACTIONS.SET_PENDING_COMMENT, 
-            payload: { indicatorCode: sanitizedCode, comment: sanitizedComment } 
+
+        dispatch({
+            type: ACTIONS.SET_PENDING_COMMENT,
+            payload: { indicatorCode: sanitizedCode, comment: sanitizedComment }
         });
     }, []);
 
@@ -381,6 +426,7 @@ export function SSEDataProvider({ children }) {
                     setCommentMutation({
                         indicatorCode,
                         comment: data.comment,
+                        schoolId: currentSchoolId,
                     })
                 )
             );
@@ -393,7 +439,7 @@ export function SSEDataProvider({ children }) {
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             return { success: false, error, count: pending.length };
         }
-    }, [pendingComments, setCommentMutation]);
+    }, [pendingComments, setCommentMutation, currentSchoolId]);
 
     /**
      * Set LT score locally (offline-first - doesn't sync immediately)
@@ -401,12 +447,12 @@ export function SSEDataProvider({ children }) {
     const setIndicatorLTScore = useCallback((indicatorCode, ltColumn, value, source = 'unknown') => {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const validatedValue = validateLTScore(value);
-        
+
         if (!sanitizedCode) {
             console.warn('Invalid indicator code:', indicatorCode);
             return;
         }
-        
+
         dispatch({
             type: ACTIONS.SET_PENDING_LT_SCORE,
             payload: { indicatorCode: sanitizedCode, ltColumn, value: validatedValue, source },
@@ -449,7 +495,7 @@ export function SSEDataProvider({ children }) {
      * Check if there are pending changes for a source
      */
     const hasPendingChanges = useCallback((source) => {
-        return Object.values(pendingLTScores).some(columns => 
+        return Object.values(pendingLTScores).some(columns =>
             Object.values(columns).some(data => data.source === source)
         );
     }, [pendingLTScores]);
@@ -472,6 +518,7 @@ export function SSEDataProvider({ children }) {
                     await setMultipleLtScoresMutation({
                         scores: pending,
                         source,
+                        schoolId: currentSchoolId,
                     });
                 } else {
                     // Fallback: save individually
@@ -482,6 +529,7 @@ export function SSEDataProvider({ children }) {
                                 ltColumn,
                                 value,
                                 source,
+                                schoolId: currentSchoolId,
                             })
                         )
                     );
@@ -509,7 +557,7 @@ export function SSEDataProvider({ children }) {
         } finally {
             dispatch({ type: ACTIONS.SET_SYNCING, payload: false });
         }
-    }, [getPendingLTScoresForSource, setLtScoreMutation, setMultipleLtScoresMutation, pendingComments, savePendingComments]);
+    }, [getPendingLTScoresForSource, setLtScoreMutation, setMultipleLtScoresMutation, pendingComments, savePendingComments, currentSchoolId]);
 
     /**
      * Discard pending changes for a source
@@ -531,9 +579,9 @@ export function SSEDataProvider({ children }) {
     const clearAllScores = useCallback(async () => {
         try {
             await Promise.all([
-                clearIndicatorScoresMutation(),
-                clearLtScoresMutation(),
-                clearCommentsMutation(),
+                clearIndicatorScoresMutation({ schoolId: currentSchoolId }),
+                clearLtScoresMutation({ schoolId: currentSchoolId }),
+                clearCommentsMutation({ schoolId: currentSchoolId }),
             ]);
             setOutcomeScores({});
             dispatch({ type: ACTIONS.CLEAR_ALL_PENDING });
@@ -544,7 +592,7 @@ export function SSEDataProvider({ children }) {
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             throw err;
         }
-    }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation]);
+    }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation, currentSchoolId]);
 
     const value = useMemo(() => ({
         // State
@@ -554,15 +602,19 @@ export function SSEDataProvider({ children }) {
         indicatorComments,
         ltScores,
         allData: checklistData,
-        
+
         // Offline-first state
         pendingLTScores,
         pendingComments,
         isSyncing,
         lastSyncTime,
         error,
+        currentSchoolId,
+        schools,
+        currentSchool,
 
         // Actions
+        setCurrentSchoolId,
         setIndicatorScore,
         setMultipleIndicatorScores,
         calculateOutcomeScore,
@@ -573,17 +625,15 @@ export function SSEDataProvider({ children }) {
         getIndicatorComment,
         setIndicatorLTScore,
         getIndicatorLTScore,
-        clearAllScores,
-        storeChecklistData,
-        getChecklistData,
-        
-        // Offline-first actions
         savePendingLTScores,
         savePendingComments,
         hasPendingChanges,
         getPendingCount,
         discardPendingLTScores,
         getPendingLTScoresForSource,
+        clearAllScores,
+        storeChecklistData,
+        getChecklistData,
     }), [
         indicatorScores,
         outcomeScores,
@@ -596,6 +646,8 @@ export function SSEDataProvider({ children }) {
         isSyncing,
         lastSyncTime,
         error,
+        currentSchoolId,
+        setCurrentSchoolId,
         setIndicatorScore,
         setMultipleIndicatorScores,
         calculateOutcomeScore,
@@ -606,15 +658,17 @@ export function SSEDataProvider({ children }) {
         getIndicatorComment,
         setIndicatorLTScore,
         getIndicatorLTScore,
-        clearAllScores,
-        storeChecklistData,
-        getChecklistData,
         savePendingLTScores,
         savePendingComments,
         hasPendingChanges,
         getPendingCount,
         discardPendingLTScores,
         getPendingLTScoresForSource,
+        schools,
+        currentSchool,
+        clearAllScores,
+        storeChecklistData,
+        getChecklistData,
     ]);
 
     return (

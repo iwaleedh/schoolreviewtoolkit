@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Check, ChevronDown, ChevronUp, Send } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import { Check, ChevronDown, ChevronUp, Send, XCircle } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { useChecklistData } from '../hooks/useChecklistData';
@@ -14,6 +14,14 @@ const RATINGS = [
 
 function TeacherSurvey() {
     const { teacherId: routeTeacherId } = useParams();
+    const location = useLocation();
+
+    // Extract schoolId from query params
+    const schoolId = useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        return params.get('schoolId') || params.get('s');
+    }, [location.search]);
+
     const { data, loading, error, grouped } = useChecklistData('Teachers_data.csv');
 
     // If no ID in route, we are in start mode
@@ -24,6 +32,9 @@ function TeacherSurvey() {
         isStartMode ? "skip" : { teacherId: routeTeacherId }
     );
 
+    const teacherSurveyEnabled = useQuery(api.teacherSurvey.getSetting,
+        schoolId ? { key: "teacherSurveyEnabled", schoolId } : { key: "teacherSurveyEnabled" }
+    );
     const submitSurvey = useMutation(api.teacherSurvey.submitOnlineSurvey);
     const createTeacherMutation = useMutation(api.teacherSurvey.createTeacher);
 
@@ -61,15 +72,29 @@ function TeacherSurvey() {
             return;
         }
 
+        if (!schoolId) {
+            alert('Error: School ID is missing. Please use the link provided by your school.');
+            return;
+        }
+
         setIsSubmittingData(true);
         try {
             let finalId = routeTeacherId;
             if (isStartMode) {
-                finalId = await createTeacherMutation({ name: "Anonymous Teacher", subject: "Anonymous" });
+                finalId = await createTeacherMutation({
+                    name: "Anonymous Teacher",
+                    subject: "Anonymous",
+                    schoolId
+                });
                 setGeneratedId(finalId);
             }
 
-            await submitSurvey({ teacherId: finalId, responses: responseArray, comment });
+            await submitSurvey({
+                teacherId: finalId,
+                responses: responseArray,
+                comment,
+                schoolId
+            });
             setSubmitted(true);
         } catch (err) {
             alert('Error submitting survey. Please try again.');
@@ -78,6 +103,34 @@ function TeacherSurvey() {
             setIsSubmittingData(false);
         }
     };
+
+    // Check directly for enabled status
+    if (teacherSurveyEnabled === false) {
+        return (
+            <div className="survey-closed-container">
+                <div className="closed-icon">
+                    <XCircle size={48} />
+                </div>
+                <h2>Survey Closed</h2>
+                <p>The teacher survey is currently not accepting responses.</p>
+                <p>Please contact the school administration for more information.</p>
+            </div>
+        );
+    }
+
+    // Check for schoolId
+    if (!schoolId && !loading && !routeTeacherId) {
+        return (
+            <div className="survey-error">
+                <div className="closed-icon">
+                    <XCircle size={48} />
+                </div>
+                <h2>School ID Missing</h2>
+                <p>This survey link is invalid because it is missing a School ID.</p>
+                <p>Please use the specific link provided by your school.</p>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

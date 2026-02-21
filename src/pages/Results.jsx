@@ -29,7 +29,7 @@ import './Results.css';
 
 function Results() {
     const [activeView, setActiveView] = useState('summary');
-    const { allData } = useSSEData();
+    const { allData, currentSchoolId, currentSchool } = useSSEData();
     const { dimensions: backendDimensions, loading: backendLoading } = useAllDimensionsData();
 
     // Process dimension data from SSEDataContext (fallback)
@@ -231,8 +231,8 @@ function Results() {
 
             {activeView === 'report' && (
                 <ReportGenerator
-                    schoolName="Sample School"
-                    schoolId="SCH-001"
+                    schoolName={currentSchool?.nameDv || currentSchool?.name || "Sample School"}
+                    schoolId={currentSchoolId || "SCH-001"}
                 />
             )}
 

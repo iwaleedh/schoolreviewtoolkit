@@ -1,28 +1,34 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-// Create a new student entry
+// Create a new student entry for a school
 export const createStudent = mutation({
     args: {
         name: v.string(),
         grade: v.optional(v.string()),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { name, grade }) => {
+    handler: async (ctx, { name, grade, schoolId }) => {
         const studentId = `S-${Date.now()}`;
         await ctx.db.insert("students", {
             studentId,
             studentName: name,
             grade: grade || "",
+            schoolId,
             created: Date.now(),
         });
         return studentId;
     },
 });
 
-// Get all student survey responses
+// Get all student survey responses for a school
 export const getAll = query({
-    handler: async (ctx) => {
-        const responses = await ctx.db.query("studentSurveyResponses").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const responses = await ctx.db
+            .query("studentSurveyResponses")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         // Group by studentId
         const grouped = new Map();
@@ -61,8 +67,9 @@ export const setRating = mutation({
         studentId: v.string(),
         indicatorCode: v.string(),
         rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { studentId, indicatorCode, rating }) => {
+    handler: async (ctx, { studentId, indicatorCode, rating, schoolId }) => {
         // Check if response already exists
         const existing = await ctx.db
             .query("studentSurveyResponses")
@@ -83,6 +90,7 @@ export const setRating = mutation({
                 studentId,
                 indicatorCode,
                 rating,
+                schoolId,
                 submittedAt: Date.now(),
                 isOnline: false,
             });
@@ -96,6 +104,7 @@ export const setRating = mutation({
 export const submitOnlineSurvey = mutation({
     args: {
         studentId: v.string(),
+        schoolId: v.string(),
         responses: v.array(
             v.object({
                 indicatorCode: v.string(),
@@ -104,7 +113,7 @@ export const submitOnlineSurvey = mutation({
         ),
         comment: v.optional(v.string()),
     },
-    handler: async (ctx, { studentId, responses, comment }) => {
+    handler: async (ctx, { studentId, schoolId, responses, comment }) => {
         for (const r of responses) {
             const existing = await ctx.db
                 .query("studentSurveyResponses")
@@ -124,6 +133,7 @@ export const submitOnlineSurvey = mutation({
                     studentId,
                     indicatorCode: r.indicatorCode,
                     rating: r.rating,
+                    schoolId,
                     submittedAt: Date.now(),
                     isOnline: true,
                 });
@@ -163,10 +173,14 @@ export const deleteStudent = mutation({
     },
 });
 
-// Get all students with their comments
+// Get all students with their comments for a school
 export const getAllWithComments = query({
-    handler: async (ctx) => {
-        const students = await ctx.db.query("students").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const students = await ctx.db
+            .query("students")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         // Filter only students with comments and sort by creation date
         const studentsWithComments = students
@@ -184,10 +198,14 @@ export const getAllWithComments = query({
     },
 });
 
-// Get statistics for all responses
+// Get statistics for all responses for a school
 export const getStats = query({
-    handler: async (ctx) => {
-        const responses = await ctx.db.query("studentSurveyResponses").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const responses = await ctx.db
+            .query("studentSurveyResponses")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         const stats = {
             totalStudents: new Set(responses.map((r) => r.studentId)).size,
@@ -196,6 +214,7 @@ export const getStats = query({
         };
 
         responses.forEach((r) => {
+            // @ts-ignore
             stats.byRating[r.rating]++;
         });
 
@@ -213,8 +232,9 @@ export const saveManualResponses = mutation({
                 rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
             })
         ),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { updates }) => {
+    handler: async (ctx, { updates, schoolId }) => {
         let count = 0;
         for (const update of updates) {
             const existing = await ctx.db
@@ -236,6 +256,7 @@ export const saveManualResponses = mutation({
                     studentId: update.studentId,
                     indicatorCode: update.indicatorCode,
                     rating: update.rating,
+                    schoolId,
                     submittedAt: Date.now(),
                     isOnline: false,
                 });

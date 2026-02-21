@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 import {
     LayoutDashboard,
     ClipboardList,
@@ -8,7 +9,13 @@ import {
     HelpCircle,
     ChevronLeft,
     ChevronRight,
+    Users,
+    Building2,
 } from 'lucide-react';
+import useAuth from '../../hooks/useAuth';
+import { useSSEData } from '../../context/SSEDataContext';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
 
@@ -55,10 +62,46 @@ const menuItems = [
         labelDv: 'ދެހީ',
         labelEn: 'Support',
     },
+    {
+        id: 'users',
+        path: '/admin/users',
+        icon: Users,
+        labelDv: 'ޔޫޒަރުން',
+        labelEn: 'Users',
+        adminOnly: true,
+    },
+    {
+        id: 'schools',
+        path: '/admin/schools',
+        icon: Building2,
+        labelDv: 'ސްކޫލްތައް',
+        labelEn: 'Schools',
+        adminOnly: true,
+    },
 ];
 
 function Sidebar({ collapsed, onToggle }) {
     const location = useLocation();
+    const { user } = useAuth();
+    const { currentSchoolId, setCurrentSchoolId } = useSSEData();
+
+    // Fetch all schools
+    const schoolsQueryResult = useQuery(api.schools.listSchools);
+    const schools = useMemo(() => schoolsQueryResult || [], [schoolsQueryResult]);
+
+    // Filter schools based on role
+    const accessibleSchools = useMemo(() => {
+        const schoolsList = schools || [];
+        if (!user) return [];
+        if (user.role === 'ADMIN') return schoolsList;
+        if (user.role === 'ANALYST') {
+            return schoolsList.filter(s => user.assignedSchools?.includes(s.schoolId));
+        }
+        if (user.role === 'PRINCIPAL') {
+            return schoolsList.filter(s => s.schoolId === user.schoolId);
+        }
+        return [];
+    }, [schools, user]);
 
     return (
         <aside
@@ -84,9 +127,37 @@ function Sidebar({ collapsed, onToggle }) {
                 </button>
             </div>
 
+            {/* School Selector */}
+            {!collapsed && accessibleSchools.length > 1 && (
+                <div className="sidebar-school-selector">
+                    <label className="selector-label font-dhivehi" dir="rtl">ސްކޫލް އިޚްތިޔާރު ކުރައްވާ:</label>
+                    <select
+                        className="school-select font-dhivehi"
+                        dir="rtl"
+                        value={currentSchoolId || ''}
+                        onChange={(e) => setCurrentSchoolId(e.target.value)}
+                    >
+                        {accessibleSchools.map(school => (
+                            <option key={school.schoolId} value={school.schoolId}>
+                                {school.nameDv || school.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+            {!collapsed && accessibleSchools.length === 1 && (
+                <div className="sidebar-school-display">
+                    <span className="school-name-badge font-dhivehi" dir="rtl">
+                        {accessibleSchools[0].nameDv || accessibleSchools[0].name}
+                    </span>
+                </div>
+            )}
+
             {/* Navigation */}
             <nav className="sidebar-nav" role="menubar">
                 {menuItems.map((item) => {
+                    if (item.adminOnly && user?.role !== 'ADMIN') return null;
+
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path ||
                         (item.path === '/toolkit' && location.pathname.startsWith('/toolkit')) ||

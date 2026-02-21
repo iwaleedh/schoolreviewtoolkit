@@ -25,19 +25,37 @@ import {
     BarChart3,
     ArrowUpRight,
     ArrowDownRight,
+    Shield,
+    School,
+    UserCog,
+    LogOut,
 } from 'lucide-react';
 import { useSSEData } from '../context/SSEDataContext';
-import { 
-    processChecklistData, 
+import { useAuth } from '../hooks/useAuth';
+import {
+    processChecklistData,
     calculateOverallScore,
     calculateCompletionRate,
-    OUTCOME_GRADES 
+    OUTCOME_GRADES
 } from '../utils/scoringEngine';
 import { DIMENSIONS, getProgressColor } from '../utils/constants';
 import './Dashboard.css';
 
 function Dashboard() {
-    const { allData, indicatorScores } = useSSEData();
+    const { allData, indicatorScores, currentSchoolId, currentSchool } = useSSEData();
+    const { user, logout } = useAuth();
+
+    // Get user info for display
+    const displayName = user?.name || 'User';
+    const userRole = user?.role || 'Guest';
+    const userSchool = currentSchool?.name || user?.schoolId || 'All Schools';
+
+    // Role display text
+    const roleDisplay = {
+        'ADMIN': 'Administrator',
+        'ANALYST': 'Analyst',
+        'PRINCIPAL': 'Principal',
+    }[userRole] || userRole;
 
     // Calculate real dimension scores from context
     const dimensionResults = useMemo(() => {
@@ -63,7 +81,7 @@ function Dashboard() {
 
     // Calculate overall score
     const overallScore = useMemo(() => {
-        const dimensionScores = DIMENSIONS.map(d => 
+        const dimensionScores = DIMENSIONS.map(d =>
             dimensionResults[d.id]?.dimension || { score: 0 }
         );
         return calculateOverallScore(dimensionScores);
@@ -112,14 +130,14 @@ function Dashboard() {
         };
     }, [indicatorScores, dimensionResults]);
 
-    // School info (could be from context in future)
+    // School info from current context
     const schoolInfo = useMemo(() => ({
-        name: 'Majeedhiyya School',
-        nameDv: 'މަޖީދިއްޔާ ސްކޫލް',
-        id: 'SCH-001',
-        location: 'Male\', Maldives',
+        name: currentSchool?.name || 'School Profile',
+        nameDv: currentSchool?.nameDv || 'ސްކޫލް ޕްރޮފައިލް',
+        id: currentSchoolId || 'N/A',
+        location: currentSchool ? `${currentSchool.island}, ${currentSchool.atoll}` : 'Not Specified',
         academicYear: '2026',
-    }), []);
+    }), [currentSchool, currentSchoolId]);
 
     // Review progress calculation
     const reviewProgress = useMemo(() => ({
@@ -134,33 +152,33 @@ function Dashboard() {
 
     // Quick stats
     const quickStats = useMemo(() => [
-        { 
-            label: 'Total Indicators', 
-            value: stats.total.toString(), 
-            icon: ClipboardList, 
-            color: 'blue', 
-            change: null 
+        {
+            label: 'Total Indicators',
+            value: stats.total.toString(),
+            icon: ClipboardList,
+            color: 'blue',
+            change: null
         },
-        { 
-            label: 'Completed', 
-            value: stats.completed.toString(), 
-            icon: CheckCircle, 
-            color: 'green', 
-            change: stats.yes > 0 ? `+${stats.yes} yes` : null 
+        {
+            label: 'Completed',
+            value: stats.completed.toString(),
+            icon: CheckCircle,
+            color: 'green',
+            change: stats.yes > 0 ? `+${stats.yes} yes` : null
         },
-        { 
-            label: 'In Progress', 
-            value: stats.pending.toString(), 
-            icon: Clock, 
-            color: 'amber', 
-            change: null 
+        {
+            label: 'In Progress',
+            value: stats.pending.toString(),
+            icon: Clock,
+            color: 'amber',
+            change: null
         },
-        { 
-            label: 'Reviewed', 
-            value: `${Math.round((stats.completed / Math.max(stats.total, 1)) * 100)}%`, 
-            icon: BarChart3, 
-            color: 'purple', 
-            change: null 
+        {
+            label: 'Reviewed',
+            value: `${Math.round((stats.completed / Math.max(stats.total, 1)) * 100)}%`,
+            icon: BarChart3,
+            color: 'purple',
+            change: null
         },
     ], [stats]);
 
@@ -185,25 +203,32 @@ function Dashboard() {
             <header className="dashboard-header">
                 <div className="welcome-section">
                     <div className="welcome-icon">
-                        <LayoutDashboard size={28} />
+                        {userRole === 'ADMIN' ? <Shield size={28} /> :
+                            userRole === 'ANALYST' ? <BarChart3 size={28} /> :
+                                userRole === 'PRINCIPAL' ? <School size={28} /> :
+                                    <LayoutDashboard size={28} />}
                     </div>
                     <div className="welcome-text">
                         <h1>
-                            <span className="greeting">Welcome back!</span>
-                            <span className="greeting-dv font-dhivehi" dir="rtl">މަރުހަބާ!</span>
+                            <span className="greeting">Welcome back, {displayName}!</span>
                         </h1>
-                        <p className="school-name">{schoolInfo.name}</p>
+                        <p className="school-name">{roleDisplay}</p>
+                        <p className="school-name">{userSchool}</p>
                     </div>
                 </div>
                 <div className="header-meta">
+                    <div className="meta-item user-role-badge">
+                        <UserCog size={16} />
+                        <span>{roleDisplay}</span>
+                    </div>
                     <div className="meta-item">
                         <Calendar size={16} />
                         <span>Academic Year {schoolInfo.academicYear}</span>
                     </div>
-                    <div className="meta-item">
-                        <Building size={16} />
-                        <span>{schoolInfo.location}</span>
-                    </div>
+                    <button className="logout-btn" onClick={logout}>
+                        <LogOut size={16} />
+                        <span>Logout</span>
+                    </button>
                 </div>
             </header>
 
@@ -283,7 +308,7 @@ function Dashboard() {
                                     </div>
                                     <div className="dimension-bar-container">
                                         <div className="dimension-bar">
-                                            <div 
+                                            <div
                                                 className="dimension-bar-fill"
                                                 style={{ width: `${dim.progress}%`, backgroundColor: dim.color }}
                                             />
@@ -310,9 +335,9 @@ function Dashboard() {
                             {quickActions.map((action, idx) => {
                                 const Icon = action.icon;
                                 return (
-                                    <Link 
-                                        key={idx} 
-                                        to={action.path} 
+                                    <Link
+                                        key={idx}
+                                        to={action.path}
                                         className={`quick-action-btn ${action.color}`}
                                     >
                                         <div className="action-icon">
@@ -400,9 +425,9 @@ function Dashboard() {
                                 <div className="info-content">
                                     <span className="info-label">Review Status</span>
                                     <span className="info-value">
-                                        <span 
+                                        <span
                                             className={`status-badge ${overallScore.grade === 'NR' ? 'pending' : 'complete'}`}
-                                            style={{ 
+                                            style={{
                                                 backgroundColor: OUTCOME_GRADES[overallScore.grade]?.color || '#6b7280',
                                                 color: 'white',
                                                 padding: '0.25rem 0.5rem',

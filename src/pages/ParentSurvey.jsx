@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { Check, ChevronDown, ChevronUp, Send, XCircle } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -14,6 +14,14 @@ const RATINGS = [
 
 function ParentSurvey() {
     const { parentId: routeParentId } = useParams();
+    const location = useLocation();
+
+    // Extract schoolId from query params
+    const schoolId = useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        return params.get('schoolId') || params.get('s'); // Support 's' as well
+    }, [location.search]);
+
     const { data, loading, error, grouped } = useChecklistData('Parents_data.csv');
 
     // If no ID in route, we are in start mode
@@ -24,7 +32,9 @@ function ParentSurvey() {
         isStartMode ? "skip" : { parentId: routeParentId }
     );
 
-    const parentSurveyEnabled = useQuery(api.parentSurvey.getSetting, { key: "parentSurveyEnabled" });
+    const parentSurveyEnabled = useQuery(api.parentSurvey.getSetting,
+        schoolId ? { key: "parentSurveyEnabled", schoolId } : { key: "parentSurveyEnabled" }
+    );
     const submitSurvey = useMutation(api.parentSurvey.submitOnlineSurvey);
     const createParentMutation = useMutation(api.parentSurvey.createParent);
 
@@ -56,18 +66,28 @@ function ParentSurvey() {
             return;
         }
 
+        if (!schoolId) {
+            alert('Error: School ID is missing. Please use the link provided by your school.');
+            return;
+        }
+
         setIsSubmittingData(true);
         try {
             let finalId = routeParentId;
             if (isStartMode) {
-                finalId = await createParentMutation({ studentName: "Anonymous Student", grade: "Anonymous" });
+                finalId = await createParentMutation({
+                    studentName: "Anonymous Student",
+                    grade: "Anonymous",
+                    schoolId
+                });
                 setGeneratedId(finalId);
             }
 
             await submitSurvey({
                 parentId: finalId,
                 responses: responseArray,
-                comment
+                comment,
+                schoolId
             });
             setSubmitted(true);
         } catch (err) {
@@ -88,6 +108,20 @@ function ParentSurvey() {
                 <h2>Survey Closed</h2>
                 <p>The parent survey is currently not accepting responses.</p>
                 <p>Please contact the school administration for more information.</p>
+            </div>
+        );
+    }
+
+    // Check for schoolId
+    if (!schoolId && !loading && !routeParentId) {
+        return (
+            <div className="survey-error">
+                <div className="closed-icon">
+                    <XCircle size={48} />
+                </div>
+                <h2>School ID Missing</h2>
+                <p>This survey link is invalid because it is missing a School ID.</p>
+                <p>Please use the specific link provided by your child's school.</p>
             </div>
         );
     }

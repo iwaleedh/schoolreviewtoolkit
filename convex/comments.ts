@@ -1,11 +1,14 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Get all comments
+// Get all comments for a school
 export const getAll = query({
-    args: {},
-    handler: async (ctx) => {
-        const comments = await ctx.db.query("indicatorComments").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const comments = await ctx.db
+            .query("indicatorComments")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         // Transform to { [indicatorCode]: comment } format
         const result: Record<string, string> = {};
 
@@ -22,11 +25,13 @@ export const set = mutation({
     args: {
         indicatorCode: v.string(),
         comment: v.string(),
+        schoolId: v.string(),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("indicatorComments")
-            .withIndex("by_indicatorCode", (q) => q.eq("indicatorCode", args.indicatorCode))
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .filter((q) => q.eq(q.field("indicatorCode"), args.indicatorCode))
             .first();
 
         if (existing) {
@@ -40,16 +45,20 @@ export const set = mutation({
             await ctx.db.insert("indicatorComments", {
                 indicatorCode: args.indicatorCode,
                 comment: args.comment,
+                schoolId: args.schoolId,
             });
         }
     },
 });
 
-// Clear all comments
+// Clear all comments for a school
 export const clearAll = mutation({
-    args: {},
-    handler: async (ctx) => {
-        const allComments = await ctx.db.query("indicatorComments").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const allComments = await ctx.db
+            .query("indicatorComments")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         for (const comment of allComments) {
             await ctx.db.delete(comment._id);
         }

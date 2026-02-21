@@ -1,10 +1,14 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-// Get all parent survey responses
+// Get all parent survey responses for a school
 export const getAll = query({
-    handler: async (ctx) => {
-        const responses = await ctx.db.query("parentSurveyResponses").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const responses = await ctx.db
+            .query("parentSurveyResponses")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         // Group by parentId
         const grouped = new Map<string, Record<string, number>>();
@@ -49,8 +53,9 @@ export const setRating = mutation({
         parentId: v.string(),
         indicatorCode: v.string(),
         rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { parentId, indicatorCode, rating }) => {
+    handler: async (ctx, { parentId, indicatorCode, rating, schoolId }) => {
         // Check if response already exists
         const existing = await ctx.db
             .query("parentSurveyResponses")
@@ -71,6 +76,7 @@ export const setRating = mutation({
                 parentId,
                 indicatorCode,
                 rating,
+                schoolId,
                 submittedAt: Date.now(),
                 isOnline: false,
             });
@@ -84,6 +90,7 @@ export const setRating = mutation({
 export const submitOnlineSurvey = mutation({
     args: {
         parentId: v.string(),
+        schoolId: v.string(),
         responses: v.array(
             v.object({
                 indicatorCode: v.string(),
@@ -92,7 +99,7 @@ export const submitOnlineSurvey = mutation({
         ),
         comment: v.optional(v.string()),
     },
-    handler: async (ctx, { parentId, responses, comment }) => {
+    handler: async (ctx, { parentId, schoolId, responses, comment }) => {
         for (const r of responses) {
             const existing = await ctx.db
                 .query("parentSurveyResponses")
@@ -112,6 +119,7 @@ export const submitOnlineSurvey = mutation({
                     parentId,
                     indicatorCode: r.indicatorCode,
                     rating: r.rating,
+                    schoolId,
                     submittedAt: Date.now(),
                     isOnline: true,
                 });
@@ -151,10 +159,14 @@ export const deleteParent = mutation({
     },
 });
 
-// Get all parents with their comments
+// Get all parents with their comments for a school
 export const getAllWithComments = query({
-    handler: async (ctx) => {
-        const parents = await ctx.db.query("parents").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const parents = await ctx.db
+            .query("parents")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         // Filter only parents with comments and sort by creation date
         const parentsWithComments = parents
@@ -171,10 +183,14 @@ export const getAllWithComments = query({
     },
 });
 
-// Get statistics for all responses
+// Get statistics for all responses for a school
 export const getStats = query({
-    handler: async (ctx) => {
-        const responses = await ctx.db.query("parentSurveyResponses").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const responses = await ctx.db
+            .query("parentSurveyResponses")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
 
         const stats = {
             totalParents: new Set(responses.map((r) => r.parentId)).size,
@@ -183,6 +199,7 @@ export const getStats = query({
         };
 
         responses.forEach((r) => {
+            // @ts-ignore
             stats.byRating[r.rating]++;
         });
 
@@ -223,8 +240,9 @@ export const saveManualResponses = mutation({
                 rating: v.union(v.literal(1), v.literal(2), v.literal(3)),
             })
         ),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { updates }) => {
+    handler: async (ctx, { updates, schoolId }) => {
         let count = 0;
         for (const update of updates) {
             const existing = await ctx.db
@@ -235,9 +253,7 @@ export const saveManualResponses = mutation({
                 .first();
 
             if (existing) {
-                // Update existing - preserve isOnline status or force to false?
-                // For manual entry, we probably want to keep it as is or mark as manual?
-                // Let's preserve isOnline status to respect source.
+                // Update existing
                 await ctx.db.patch(existing._id, {
                     rating: update.rating,
                     submittedAt: Date.now(),
@@ -248,6 +264,7 @@ export const saveManualResponses = mutation({
                     parentId: update.parentId,
                     indicatorCode: update.indicatorCode,
                     rating: update.rating,
+                    schoolId,
                     submittedAt: Date.now(),
                     isOnline: false,
                 });
@@ -258,9 +275,12 @@ export const saveManualResponses = mutation({
     },
 });
 
-// Get a setting value
+// Get a setting value for a school
 export const getSetting = query({
-    args: { key: v.string() },
+    args: {
+        key: v.string(),
+        schoolId: v.optional(v.string()) // Optional for now to support global transition
+    },
     handler: async (ctx, { key }) => {
         const setting = await ctx.db
             .query("settings")
@@ -291,13 +311,14 @@ export const updateSetting = mutation({
     },
 });
 
-// Create a new parent record
+// Create a new parent record for a school
 export const createParent = mutation({
     args: {
         studentName: v.string(),
         grade: v.optional(v.string()),
+        schoolId: v.string(),
     },
-    handler: async (ctx, { studentName, grade }) => {
+    handler: async (ctx, { studentName, grade, schoolId }) => {
         // Generate a random ID part
         const randomPart = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
         const timestamp = Date.now();
@@ -309,6 +330,7 @@ export const createParent = mutation({
             parentId,
             studentName,
             grade,
+            schoolId,
             created: timestamp,
         });
 
@@ -316,9 +338,13 @@ export const createParent = mutation({
     },
 });
 
-// Get all parents for admin view
+// Get all parents for admin view (filtered by school)
 export const getParents = query({
-    handler: async (ctx) => {
-        return await ctx.db.query("parents").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("parents")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
     },
 });

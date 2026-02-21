@@ -1,11 +1,14 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Get all indicator scores
+// Get all indicator scores for a school
 export const getAll = query({
-    args: {},
-    handler: async (ctx) => {
-        const scores = await ctx.db.query("indicatorScores").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const scores = await ctx.db
+            .query("indicatorScores")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         // Transform to { [indicatorCode]: value } format for frontend compatibility
         const result: Record<string, string | null> = {};
         const sources: Record<string, string> = {};
@@ -25,12 +28,14 @@ export const set = mutation({
         indicatorCode: v.string(),
         value: v.union(v.literal("yes"), v.literal("no"), v.literal("nr"), v.null()),
         source: v.string(),
+        schoolId: v.string(),
     },
     handler: async (ctx, args) => {
-        // Check if score already exists
+        // Check if score already exists for this school
         const existing = await ctx.db
             .query("indicatorScores")
-            .withIndex("by_indicatorCode", (q) => q.eq("indicatorCode", args.indicatorCode))
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .filter((q) => q.eq(q.field("indicatorCode"), args.indicatorCode))
             .first();
 
         if (existing) {
@@ -45,6 +50,7 @@ export const set = mutation({
                 indicatorCode: args.indicatorCode,
                 value: args.value,
                 source: args.source,
+                schoolId: args.schoolId,
             });
         }
     },
@@ -60,12 +66,14 @@ export const setMultiple = mutation({
             })
         ),
         source: v.string(),
+        schoolId: v.string(),
     },
     handler: async (ctx, args) => {
         for (const score of args.scores) {
             const existing = await ctx.db
                 .query("indicatorScores")
-                .withIndex("by_indicatorCode", (q) => q.eq("indicatorCode", score.indicatorCode))
+                .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+                .filter((q) => q.eq(q.field("indicatorCode"), score.indicatorCode))
                 .first();
 
             if (existing) {
@@ -78,17 +86,21 @@ export const setMultiple = mutation({
                     indicatorCode: score.indicatorCode,
                     value: score.value,
                     source: args.source,
+                    schoolId: args.schoolId,
                 });
             }
         }
     },
 });
 
-// Clear all indicator scores
+// Clear all indicator scores for a school
 export const clearAll = mutation({
-    args: {},
-    handler: async (ctx) => {
-        const allScores = await ctx.db.query("indicatorScores").collect();
+    args: { schoolId: v.string() },
+    handler: async (ctx, args) => {
+        const allScores = await ctx.db
+            .query("indicatorScores")
+            .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
+            .collect();
         for (const score of allScores) {
             await ctx.db.delete(score._id);
         }

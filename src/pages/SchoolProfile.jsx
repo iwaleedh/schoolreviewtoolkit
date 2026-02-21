@@ -33,6 +33,7 @@ import {
     Box,
     Trophy
 } from 'lucide-react';
+import { useSSEData } from '../context/SSEDataContext';
 import './SchoolProfile.css';
 
 // Tab configuration - organized into rows
@@ -448,7 +449,7 @@ const initialFormData = {
     sp_leaver_g12_employed: '',
 };
 
-const SCHOOL_ID = 'SCHOOL_DEMO_001';
+// Removed hardcoded SCHOOL_ID
 
 // ==========================================
 // Virtualized Staff List Component
@@ -523,6 +524,7 @@ const VirtualStaffList = ({ staffList, handleStaffChange, handleRemoveStaff, par
 };
 
 function SchoolProfile() {
+    const { currentSchoolId, currentSchool } = useSSEData();
     const [formData, setFormData] = useState(initialFormData);
     const [activeTab, setActiveTab] = useState('basic');
     const contentRef = useRef(null);
@@ -2799,11 +2801,9 @@ function SchoolProfile() {
         <div className="school-profile">
             {/* Header */}
             <header className="profile-header">
-                <div className="profile-title">
-                    <h1>
-                        <span className="title-en">School Profile</span>
-                        <span className="title-dv font-dhivehi" dir="rtl">ސްކޫލް ޕްރޮފައިލް</span>
-                    </h1>
+                <div className="profile-school-name">
+                    <span className="title-en">{currentSchool?.name || "School Profile"}</span>
+                    <span className="title-dv font-dhivehi" dir="rtl">{currentSchool?.nameDv || "ސްކޫލް ޕްރޮފައިލް"}</span>
                 </div>
                 <div className="header-actions">
                     <div className="progress-indicator">
