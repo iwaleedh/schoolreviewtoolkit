@@ -153,7 +153,7 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
 
     // Generate general survey URL
     const getSurveyUrl = () => {
-        return `${baseUrl}/school-review-toolkit/survey/teacher`;
+        return `${baseUrl}/survey/teacher`;
     };
 
     // Generate and display URL

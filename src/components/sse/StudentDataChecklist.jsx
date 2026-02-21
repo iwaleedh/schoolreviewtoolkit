@@ -155,7 +155,7 @@ function StudentDataChecklist({ csvFileName, title, titleDv }) {
 
     // Generate general survey URL (students will enter their info on the form)
     const getSurveyUrl = () => {
-        return `${baseUrl}/school-review-toolkit/survey/student`;
+        return `${baseUrl}/survey/student`;
     };
 
     // Generate and display URL

@@ -218,7 +218,7 @@ function ParentDataChecklist({ csvFileName, title, titleDv }) {
 
     // Generate and display URL
     const handleGenerateUrl = () => {
-        const url = `${baseUrl}/school-review-toolkit/survey/parent`;
+        const url = `${baseUrl}/survey/parent`;
         setGeneratedUrl(url);
     };
 
