@@ -1,6 +1,4 @@
-import { useState, useCallback } from 'react';
-import { Database, Trash2 } from 'lucide-react';
-import { useSSEData } from '../context/SSEDataContext';
+import { useState } from 'react';
 import EditableChecklist from '../components/sse/EditableChecklist';
 import LTChecklist from '../components/sse/LTChecklist';
 import LessonPlanChecklist from '../components/sse/LessonPlanChecklist';
@@ -9,99 +7,6 @@ import StudentDataChecklist from '../components/sse/StudentDataChecklist';
 import TeacherDataChecklist from '../components/sse/TeacherDataChecklist';
 import CommentsTable from '../components/sse/CommentsTable';
 import './SSEToolkit.css';
-
-// LT columns
-const LT_COLUMNS = ['LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'LT7', 'LT8', 'LT9', 'LT10'];
-
-// Generate dummy data for all checklists
-const generateDummyData = () => {
-    const data = {
-        // LT1 and LT2 - indicators from D1.csv (Dimension 1)
-        LT1: {},
-        LT2: {},
-        // Other sources
-        'SEN-LT': {},
-        Principal: {},
-        'Deputy-Principal': {},
-        Administrator: {},
-        HR: {},
-        Budget: {},
-    };
-
-    // Generate random value (yes/no/nr)
-    const randomValue = () => {
-        const rand = Math.random();
-        if (rand < 0.6) return 'yes';
-        if (rand < 0.9) return 'no';
-        return 'nr';
-    };
-
-    // LT1 indicators (from D1.csv - indicators 1-50 and some from other ranges)
-    const lt1Indicators = [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
-        731, 732, 733
-    ];
-
-    // Populate LT1
-    lt1Indicators.forEach(code => {
-        // Randomly decide how many LT columns to fill (1-5)
-        const numCols = Math.floor(Math.random() * 5) + 1;
-        for (let i = 0; i < numCols; i++) {
-            const col = LT_COLUMNS[i];
-            if (!data.LT1[col]) data.LT1[col] = {};
-            data.LT1[col][String(code)] = randomValue();
-        }
-    });
-
-    // Populate LT2 (similar indicators but different values)
-    lt1Indicators.forEach(code => {
-        const numCols = Math.floor(Math.random() * 3) + 1;
-        for (let i = 0; i < numCols; i++) {
-            const col = LT_COLUMNS[i];
-            if (!data.LT2[col]) data.LT2[col] = {};
-            data.LT2[col][String(code)] = randomValue();
-        }
-    });
-
-    // SEN-LT indicators
-    const senIndicators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-    senIndicators.forEach(code => {
-        data['SEN-LT'][String(code)] = randomValue();
-    });
-
-    // Principal indicators
-    const principalIndicators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-    principalIndicators.forEach(code => {
-        data.Principal[String(code)] = randomValue();
-    });
-
-    // Deputy Principal indicators
-    const dpIndicators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    dpIndicators.forEach(code => {
-        data['Deputy-Principal'][String(code)] = randomValue();
-    });
-
-    // Administrator indicators
-    const adminIndicators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    adminIndicators.forEach(code => {
-        data.Administrator[String(code)] = randomValue();
-    });
-
-    // HR indicators
-    const hrIndicators = [1, 2, 3, 4, 5, 6, 7, 8];
-    hrIndicators.forEach(code => {
-        data.HR[String(code)] = randomValue();
-    });
-
-    // Budget indicators
-    const budgetIndicators = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    budgetIndicators.forEach(code => {
-        data.Budget[String(code)] = randomValue();
-    });
-
-    return data;
-};
 
 // Tab configuration for Review Toolkit
 const primaryTabs = [
@@ -150,72 +55,6 @@ const secondaryTabsMap = {
 function SSEToolkit() {
     const [activePrimaryTab, setActivePrimaryTab] = useState('lt');
     const [activeSecondaryTab, setActiveSecondaryTab] = useState('lt1');
-    const [dummyDataLoaded, setDummyDataLoaded] = useState(false);
-
-    // Get SSEData context functions
-    const { setIndicatorLTScore, setIndicatorScore, clearAllScores, discardPendingLTScores } = useSSEData();
-
-    // Load dummy data into all checklists
-    const handleLoadDummyData = useCallback(() => {
-        const dummyData = generateDummyData();
-
-        // Load LT1 data (uses pending state - can be cleared)
-        Object.entries(dummyData.LT1).forEach(([col, indicators]) => {
-            Object.entries(indicators).forEach(([indicatorCode, value]) => {
-                setIndicatorLTScore(indicatorCode, col, value, 'LT1');
-            });
-        });
-
-        // Load LT2 data (uses pending state - can be cleared)
-        Object.entries(dummyData.LT2).forEach(([col, indicators]) => {
-            Object.entries(indicators).forEach(([indicatorCode, value]) => {
-                setIndicatorLTScore(indicatorCode, col, value, 'LT2');
-            });
-        });
-
-        // Load non-LT data (syncs to backend immediately)
-        // These will require clearAllScores() to clear
-        Object.entries(dummyData['SEN-LT']).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'SEN-LT');
-        });
-
-        Object.entries(dummyData.Principal).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'Principal');
-        });
-
-        Object.entries(dummyData['Deputy-Principal']).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'Deputy-Principal');
-        });
-
-        Object.entries(dummyData.Administrator).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'Administrator');
-        });
-
-        Object.entries(dummyData.HR).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'HR');
-        });
-
-        Object.entries(dummyData.Budget).forEach(([indicatorCode, value]) => {
-            setIndicatorScore(indicatorCode, value, 'Budget');
-        });
-
-        setDummyDataLoaded(true);
-    }, [setIndicatorLTScore, setIndicatorScore]);
-
-    // Clear all dummy data
-    const handleClearDummyData = useCallback(async () => {
-        try {
-            // Clear all scores including backend-synced indicator scores
-            await clearAllScores();
-            // Clear pending LT scores
-            ['LT1', 'LT2'].forEach(source => {
-                discardPendingLTScores(source);
-            });
-            setDummyDataLoaded(false);
-        } catch (err) {
-            console.error('Failed to clear dummy data:', err);
-        }
-    }, [clearAllScores, discardPendingLTScores]);
 
     const handlePrimaryTabClick = (tabId) => {
         setActivePrimaryTab(tabId);
@@ -392,31 +231,6 @@ function SSEToolkit() {
                     <h1 className="page-title">
                         <span className="title-dv font-dhivehi" dir="rtl">ސްކޫލް ރިވިއު ޓޫލްކިޓް</span>
                     </h1>
-                </div>
-                <div className="header-actions">
-                    <button
-                        className="dummy-data-btn load"
-                        onClick={handleLoadDummyData}
-                        disabled={dummyDataLoaded}
-                        aria-label="Load dummy test data into all checklists"
-                        title="Fill all checklists with test data"
-                    >
-                        <Database size={16} aria-hidden="true" />
-                        Load Dummy Data
-                    </button>
-                    <button
-                        className="dummy-data-btn clear"
-                        onClick={handleClearDummyData}
-                        disabled={!dummyDataLoaded}
-                        aria-label="Clear all test data"
-                        title="Clear all test data"
-                    >
-                        <Trash2 size={16} aria-hidden="true" />
-                        Clear Data
-                    </button>
-                    {dummyDataLoaded && (
-                        <span className="data-status" role="status" aria-live="polite">✓ Test data loaded - check Backend tab in Reports</span>
-                    )}
                 </div>
             </header>
 

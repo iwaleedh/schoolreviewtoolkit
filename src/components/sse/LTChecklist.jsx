@@ -78,8 +78,6 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         pendingComments,
     } = useSSEData();
 
-    const [expandedStrands, setExpandedStrands] = useState({});
-    const [expandedSubstrands, setExpandedSubstrands] = useState({});
     const [expandedOutcomes, setExpandedOutcomes] = useState({});
     const [expandedComments, setExpandedComments] = useState({});
     const [commentDrafts, setCommentDrafts] = useState({}); // Local state for comment drafts
@@ -110,8 +108,6 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
     }, [saveStatus]);
 
     // Toggle functions
-    const toggleStrand = (id) => setExpandedStrands(prev => ({ ...prev, [id]: !prev[id] }));
-    const toggleSubstrand = (id) => setExpandedSubstrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleOutcome = (id) => setExpandedOutcomes(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleComment = (indicatorCode) => {
         // If closing the comment popup, clear the draft
@@ -387,169 +383,157 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                 {grouped.map((strand) => (
                     <div key={strand.id} className="strand-block">
                         {/* Strand Header */}
-                        <button
-                            className={`strand-header editable ${expandedStrands[strand.id] ? 'expanded' : ''}`}
-                            onClick={() => toggleStrand(strand.id)}
-                        >
+                        <div className="strand-header editable expanded">
                             <div className="strand-info">
                                 <span className="strand-title font-dhivehi" dir="rtl">
                                     {strand.title}
                                 </span>
                             </div>
-                            {expandedStrands[strand.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                        </button>
+                        </div>
 
                         {/* Strand Content */}
-                        {expandedStrands[strand.id] && (
-                            <div className="strand-content">
-                                {strand.substrands.map((substrand) => (
-                                    <div key={substrand.id} className="substrand-block">
-                                        {/* Substrand Header */}
-                                        <button
-                                            className={`substrand-header ${expandedSubstrands[substrand.id] ? 'expanded' : ''}`}
-                                            onClick={() => toggleSubstrand(substrand.id)}
-                                        >
-                                            <div className="substrand-info">
-                                                <span className="substrand-id">{substrand.id}</span>
-                                                <span className="substrand-title font-dhivehi" dir="rtl">{substrand.title}</span>
-                                            </div>
-                                            {expandedSubstrands[substrand.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                        </button>
-
-                                        {/* Substrand Content */}
-                                        {expandedSubstrands[substrand.id] && (
-                                            <div className="substrand-content">
-                                                {substrand.outcomes.map((outcome) => (
-                                                    <div key={outcome.id} className="outcome-block">
-                                                        {/* Outcome Header */}
-                                                        <button
-                                                            className={`outcome-header ${expandedOutcomes[outcome.id] ? 'expanded' : ''}`}
-                                                            onClick={() => toggleOutcome(outcome.id)}
-                                                        >
-                                                            <div className="outcome-info">
-                                                                <span className="outcome-id">{outcome.id}</span>
-                                                                <span className="outcome-title font-dhivehi" dir="rtl">{outcome.title}</span>
-                                                            </div>
-                                                            {expandedOutcomes[outcome.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                                        </button>
-
-                                                        {/* Outcome Content - LT Grid Table */}
-                                                        {expandedOutcomes[outcome.id] && (
-                                                            <DraggableTableWrapper>
-                                                                <table className={`lt-indicators-table ${selectedView === 'all' ? 'view-all' : 'view-single'}`}>
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th className="col-comment">💬</th>
-                                                                            <th className="col-avg">Avg</th>
-                                                                            {visibleLTColumns.map(lt => (
-                                                                                <th key={lt} className="col-lt">{lt}</th>
-                                                                            ))}
-                                                                            <th className="col-evidence font-dhivehi" dir="rtl">ބަލާނެ ލިޔެކިޔުން</th>
-                                                                            <th className="col-indicator font-dhivehi" dir="rtl">ބަލާނެ ކަންކަން</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {outcome.indicators.map((indicator, idx) => {
-                                                                            const currentComment = getIndicatorComment ? getIndicatorComment(indicator.code) : '';
-                                                                            const isCommentOpen = expandedComments[indicator.code];
-                                                                            const avgScore = calculateAverage(indicator.code);
-
-                                                                            const commentDraft = commentDrafts[indicator.code] || '';
-
-                                                                            return (
-                                                                                <tr key={indicator.code || idx}>
-                                                                                    {/* Comment Column */}
-                                                                                    <td className="col-comment">
-                                                                                        <button
-                                                                                            className={`comment-btn ${currentComment ? 'has-comment' : ''}`}
-                                                                                            onClick={() => toggleComment(indicator.code)}
-                                                                                            title={currentComment ? 'View/Edit comment' : 'Add comment'}
-                                                                                        >
-                                                                                            <MessageSquarePlus size={16} />
-                                                                                        </button>
-
-                                                                                        {/* Comment Popup Modal */}
-                                                                                        {isCommentOpen && (
-                                                                                            <div className="comment-popup-overlay" onClick={() => saveComment(indicator.code)}>
-                                                                                                <div className="comment-popup-modal" onClick={e => e.stopPropagation()}>
-                                                                                                    <div className="comment-popup-header">
-                                                                                                        <span className="font-dhivehi" dir="rtl">ކޮމެންޓް</span>
-                                                                                                        <button
-                                                                                                            className="comment-popup-close"
-                                                                                                            onClick={() => saveComment(indicator.code)}
-                                                                                                        >
-                                                                                                            ×
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                    <div className="comment-popup-body">
-                                                                                                        <textarea
-                                                                                                            className="comment-textarea font-dhivehi"
-                                                                                                            dir="rtl"
-                                                                                                            placeholder="ކޮމެންޓް ލިޔުއްވާ..."
-                                                                                                            value={commentDraft}
-                                                                                                            onChange={(e) => updateCommentDraft(indicator.code, e.target.value)}
-                                                                                                            rows={4}
-                                                                                                            autoFocus
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                    <div className="comment-popup-footer">
-                                                                                                        <button
-                                                                                                            className="comment-save-btn"
-                                                                                                            onClick={() => saveComment(indicator.code)}
-                                                                                                        >
-                                                                                                            Save
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </td>
-
-                                                                                    {/* Average Column */}
-                                                                                    <td className={`col-avg ${avgScore === 1 ? 'avg-one' : avgScore === 0 ? 'avg-zero' : 'avg-na'}`}>
-                                                                                        <span className="avg-display">{avgScore}</span>
-                                                                                    </td>
-
-                                                                                    {/* LT Columns */}
-                                                                                    {visibleLTColumns.map(lt => {
-                                                                                        const ltScore = getIndicatorLTScore(indicator.code, lt);
-                                                                                        return (
-                                                                                            <td key={lt} className="col-lt">
-                                                                                                <button
-                                                                                                    className={getScoreButtonClass(ltScore)}
-                                                                                                    onClick={() => handleLTScoreCycle(indicator.code, lt)}
-                                                                                                    title={`${lt}: Click to cycle 1→0→NA`}
-                                                                                                >
-                                                                                                    {getScoreDisplay(ltScore)}
-                                                                                                </button>
-                                                                                            </td>
-                                                                                        );
-                                                                                    })}
-
-                                                                                    {/* Evidence Column */}
-                                                                                    <td className="col-evidence font-dhivehi" dir="rtl">
-                                                                                        {indicator.evidence || '-'}
-                                                                                    </td>
-
-                                                                                    {/* Indicator Column */}
-                                                                                    <td className="col-indicator font-dhivehi" dir="rtl">
-                                                                                        {indicator.text}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })}
-                                                                    </tbody>
-                                                                </table>
-                                                            </DraggableTableWrapper>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                        <div className="strand-content">
+                            {strand.substrands.map((substrand) => (
+                                <div key={substrand.id} className="substrand-block">
+                                    {/* Substrand Header */}
+                                    <div className="substrand-header expanded">
+                                        <div className="substrand-info">
+                                            <span className="substrand-id">{substrand.id}</span>
+                                            <span className="substrand-title font-dhivehi" dir="rtl">{substrand.title}</span>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+
+                                    {/* Substrand Content */}
+                                    <div className="substrand-content">
+                                        {substrand.outcomes.map((outcome) => (
+                                            <div key={outcome.id} className="outcome-block">
+                                                {/* Outcome Header */}
+                                                <button
+                                                    className={`outcome-header ${expandedOutcomes[outcome.id] ? 'expanded' : ''}`}
+                                                    onClick={() => toggleOutcome(outcome.id)}
+                                                >
+                                                    <div className="outcome-info">
+                                                        <span className="outcome-id">{outcome.id}</span>
+                                                        <span className="outcome-title font-dhivehi" dir="rtl">{outcome.title}</span>
+                                                    </div>
+                                                    {expandedOutcomes[outcome.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                </button>
+
+                                                {/* Outcome Content - LT Grid Table */}
+                                                {expandedOutcomes[outcome.id] && (
+                                                    <DraggableTableWrapper>
+                                                        <table className={`lt-indicators-table ${selectedView === 'all' ? 'view-all' : 'view-single'}`}>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th className="col-comment">💬</th>
+                                                                    <th className="col-avg">Avg</th>
+                                                                    {visibleLTColumns.map(lt => (
+                                                                        <th key={lt} className="col-lt">{lt}</th>
+                                                                    ))}
+                                                                    <th className="col-evidence font-dhivehi" dir="rtl">ބަލާނެ ލިޔެކިޔުން</th>
+                                                                    <th className="col-indicator font-dhivehi" dir="rtl">ބަލާނެ ކަންކަން</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {outcome.indicators.map((indicator, idx) => {
+                                                                    const currentComment = getIndicatorComment ? getIndicatorComment(indicator.code) : '';
+                                                                    const isCommentOpen = expandedComments[indicator.code];
+                                                                    const avgScore = calculateAverage(indicator.code);
+
+                                                                    const commentDraft = commentDrafts[indicator.code] || '';
+
+                                                                    return (
+                                                                        <tr key={indicator.code || idx}>
+                                                                            {/* Comment Column */}
+                                                                            <td className="col-comment">
+                                                                                <button
+                                                                                    className={`comment-btn ${currentComment ? 'has-comment' : ''}`}
+                                                                                    onClick={() => toggleComment(indicator.code)}
+                                                                                    title={currentComment ? 'View/Edit comment' : 'Add comment'}
+                                                                                >
+                                                                                    <MessageSquarePlus size={16} />
+                                                                                </button>
+
+                                                                                {/* Comment Popup Modal */}
+                                                                                {isCommentOpen && (
+                                                                                    <div className="comment-popup-overlay" onClick={() => saveComment(indicator.code)}>
+                                                                                        <div className="comment-popup-modal" onClick={e => e.stopPropagation()}>
+                                                                                            <div className="comment-popup-header">
+                                                                                                <span className="font-dhivehi" dir="rtl">ކޮމެންޓް</span>
+                                                                                                <button
+                                                                                                    className="comment-popup-close"
+                                                                                                    onClick={() => saveComment(indicator.code)}
+                                                                                                >
+                                                                                                    ×
+                                                                                                </button>
+                                                                                            </div>
+                                                                                            <div className="comment-popup-body">
+                                                                                                <textarea
+                                                                                                    className="comment-textarea font-dhivehi"
+                                                                                                    dir="rtl"
+                                                                                                    placeholder="ކޮމެންޓް ލިޔުއްވާ..."
+                                                                                                    value={commentDraft}
+                                                                                                    onChange={(e) => updateCommentDraft(indicator.code, e.target.value)}
+                                                                                                    rows={4}
+                                                                                                    autoFocus
+                                                                                                />
+                                                                                            </div>
+                                                                                            <div className="comment-popup-footer">
+                                                                                                <button
+                                                                                                    className="comment-save-btn"
+                                                                                                    onClick={() => saveComment(indicator.code)}
+                                                                                                >
+                                                                                                    Save
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </td>
+
+                                                                            {/* Average Column */}
+                                                                            <td className={`col-avg ${avgScore === 1 ? 'avg-one' : avgScore === 0 ? 'avg-zero' : 'avg-na'}`}>
+                                                                                <span className="avg-display">{avgScore}</span>
+                                                                            </td>
+
+                                                                            {/* LT Columns */}
+                                                                            {visibleLTColumns.map(lt => {
+                                                                                const ltScore = getIndicatorLTScore(indicator.code, lt);
+                                                                                return (
+                                                                                    <td key={lt} className="col-lt">
+                                                                                        <button
+                                                                                            className={getScoreButtonClass(ltScore)}
+                                                                                            onClick={() => handleLTScoreCycle(indicator.code, lt)}
+                                                                                            title={`${lt}: Click to cycle 1→0→NA`}
+                                                                                        >
+                                                                                            {getScoreDisplay(ltScore)}
+                                                                                        </button>
+                                                                                    </td>
+                                                                                );
+                                                                            })}
+
+                                                                            {/* Evidence Column */}
+                                                                            <td className="col-evidence font-dhivehi" dir="rtl">
+                                                                                {indicator.evidence || '-'}
+                                                                            </td>
+
+                                                                            {/* Indicator Column */}
+                                                                            <td className="col-indicator font-dhivehi" dir="rtl">
+                                                                                {indicator.text}
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </DraggableTableWrapper>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 ))}
             </div>

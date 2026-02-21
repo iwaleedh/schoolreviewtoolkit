@@ -30,13 +30,9 @@ function DimensionView({ dimensionNumber, csvFileName, title, titleDv }) {
     const { data, loading, error, grouped } = useChecklistData(csvFileName);
     const { getIndicatorScore, calculateOutcomeScore, getIndicatorStats } = useSSEData();
 
-    const [expandedStrands, setExpandedStrands] = useState({});
-    const [expandedSubstrands, setExpandedSubstrands] = useState({});
     const [expandedOutcomes, setExpandedOutcomes] = useState({});
 
     // Toggle functions
-    const toggleStrand = (id) => setExpandedStrands(prev => ({ ...prev, [id]: !prev[id] }));
-    const toggleSubstrand = (id) => setExpandedSubstrands(prev => ({ ...prev, [id]: !prev[id] }));
     const toggleOutcome = (id) => setExpandedOutcomes(prev => ({ ...prev, [id]: !prev[id] }));
 
     // Calculate overall dimension stats
@@ -109,112 +105,100 @@ function DimensionView({ dimensionNumber, csvFileName, title, titleDv }) {
                 {grouped.map((strand) => (
                     <div key={strand.id} className="strand-block">
                         {/* Strand Header */}
-                        <button
-                            className={`strand-header ${expandedStrands[strand.id] ? 'expanded' : ''}`}
-                            onClick={() => toggleStrand(strand.id)}
-                        >
+                        <div className="strand-header expanded">
                             <div className="strand-info">
                                 <span className="strand-title font-dhivehi" dir="rtl">
                                     {strand.title}
                                 </span>
                             </div>
-                            {expandedStrands[strand.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                        </button>
+                        </div>
 
                         {/* Strand Content */}
-                        {expandedStrands[strand.id] && (
-                            <div className="strand-content">
-                                {strand.substrands.map((substrand) => (
-                                    <div key={substrand.id} className="substrand-block">
-                                        {/* Substrand Header */}
-                                        <button
-                                            className={`substrand-header ${expandedSubstrands[substrand.id] ? 'expanded' : ''}`}
-                                            onClick={() => toggleSubstrand(substrand.id)}
-                                        >
-                                            <div className="substrand-info">
-                                                <span className="substrand-id">{substrand.id}</span>
-                                                <span className="substrand-title font-dhivehi" dir="rtl">
-                                                    {substrand.title}
-                                                </span>
-                                            </div>
-                                            {expandedSubstrands[substrand.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                        </button>
-
-                                        {/* Substrand Content */}
-                                        {expandedSubstrands[substrand.id] && (
-                                            <div className="substrand-content">
-                                                {substrand.outcomes.map((outcome) => {
-                                                    const outcomeGrade = getOutcomeGrade(outcome);
-
-                                                    return (
-                                                        <div key={outcome.id} className="outcome-block">
-                                                            {/* Outcome Header */}
-                                                            <div className="outcome-header">
-                                                                <button
-                                                                    className="outcome-toggle"
-                                                                    onClick={() => toggleOutcome(outcome.id)}
-                                                                >
-                                                                    <span className="outcome-id">{outcome.id}</span>
-                                                                    <span className="outcome-title font-dhivehi" dir="rtl">
-                                                                        {outcome.title}
-                                                                    </span>
-                                                                    {expandedOutcomes[outcome.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                                                </button>
-
-                                                                {/* Outcome Grade (View-Only) */}
-                                                                <div className="outcome-grade">
-                                                                    <span className={`grade-badge ${OUTCOME_COLORS[outcomeGrade]}`}>
-                                                                        {outcomeGrade}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Indicators Table (View-Only) */}
-                                                            {expandedOutcomes[outcome.id] && (
-                                                                <div className="indicators-table view-only">
-                                                                    <table>
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th className="col-code">#</th>
-                                                                                <th className="col-indicator font-dhivehi" dir="rtl">
-                                                                                    ބަލާނެ ކަންކަން
-                                                                                </th>
-                                                                                <th className="col-score">Score</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {outcome.indicators.map((indicator, idx) => {
-                                                                                const score = getIndicatorScore(indicator.code);
-                                                                                const display = INDICATOR_DISPLAY[score] || INDICATOR_DISPLAY.null;
-                                                                                const Icon = display.icon;
-
-                                                                                return (
-                                                                                    <tr key={indicator.code || idx}>
-                                                                                        <td className="col-code">{indicator.code}</td>
-                                                                                        <td className="col-indicator font-dhivehi" dir="rtl">
-                                                                                            {indicator.text}
-                                                                                        </td>
-                                                                                        <td className="col-score">
-                                                                                            <div className={`score-display ${display.color}`}>
-                                                                                                <Icon size={18} />
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                );
-                                                                            })}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
+                        <div className="strand-content">
+                            {strand.substrands.map((substrand) => (
+                                <div key={substrand.id} className="substrand-block">
+                                    {/* Substrand Header */}
+                                    <div className="substrand-header expanded">
+                                        <div className="substrand-info">
+                                            <span className="substrand-id">{substrand.id}</span>
+                                            <span className="substrand-title font-dhivehi" dir="rtl">
+                                                {substrand.title}
+                                            </span>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+
+                                    {/* Substrand Content */}
+                                    <div className="substrand-content">
+                                        {substrand.outcomes.map((outcome) => {
+                                            const outcomeGrade = getOutcomeGrade(outcome);
+
+                                            return (
+                                                <div key={outcome.id} className="outcome-block">
+                                                    {/* Outcome Header */}
+                                                    <div className="outcome-header">
+                                                        <button
+                                                            className="outcome-toggle"
+                                                            onClick={() => toggleOutcome(outcome.id)}
+                                                        >
+                                                            <span className="outcome-id">{outcome.id}</span>
+                                                            <span className="outcome-title font-dhivehi" dir="rtl">
+                                                                {outcome.title}
+                                                            </span>
+                                                            {expandedOutcomes[outcome.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                        </button>
+
+                                                        {/* Outcome Grade (View-Only) */}
+                                                        <div className="outcome-grade">
+                                                            <span className={`grade-badge ${OUTCOME_COLORS[outcomeGrade]}`}>
+                                                                {outcomeGrade}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Indicators Table (View-Only) */}
+                                                    {expandedOutcomes[outcome.id] && (
+                                                        <div className="indicators-table view-only">
+                                                            <table>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th className="col-code">#</th>
+                                                                        <th className="col-indicator font-dhivehi" dir="rtl">
+                                                                            ބަލާނެ ކަންކަން
+                                                                        </th>
+                                                                        <th className="col-score">Score</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {outcome.indicators.map((indicator, idx) => {
+                                                                        const score = getIndicatorScore(indicator.code);
+                                                                        const display = INDICATOR_DISPLAY[score] || INDICATOR_DISPLAY.null;
+                                                                        const Icon = display.icon;
+
+                                                                        return (
+                                                                            <tr key={indicator.code || idx}>
+                                                                                <td className="col-code">{indicator.code}</td>
+                                                                                <td className="col-indicator font-dhivehi" dir="rtl">
+                                                                                    {indicator.text}
+                                                                                </td>
+                                                                                <td className="col-score">
+                                                                                    <div className={`score-display ${display.color}`}>
+                                                                                        <Icon size={18} />
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 ))}
             </div>
