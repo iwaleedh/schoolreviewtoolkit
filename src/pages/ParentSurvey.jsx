@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Check, ChevronDown, ChevronUp, Send, XCircle } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -12,60 +12,8 @@ const RATINGS = [
     { value: 3, label: '3 - Very Good', description: 'Very Good', color: 'green' },
 ];
 
-// Start Survey Form Component
-function StartSurveyForm({ onStart }) {
-    const [name, setName] = useState('');
-    const [grade, setGrade] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        setIsSubmitting(true);
-        await onStart(name, grade);
-        setIsSubmitting(false);
-    };
-
-    return (
-        <div className="start-survey-container">
-            <div className="start-card">
-                <h1 className="font-dhivehi" dir="rtl">ބެލެނިވެރިންގެ ސުވާލުފޯމް</h1>
-                <h2>Parent Questionnaire</h2>
-                <p className="start-desc">
-                    Please enter your child's name and grade to start the survey.
-                </p>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Student Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="e.g. Ahmed Ali"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Grade / Class (Optional)</label>
-                        <input
-                            type="text"
-                            value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
-                            placeholder="e.g. Grade 1A"
-                        />
-                    </div>
-                    <button type="submit" disabled={isSubmitting} className="start-btn">
-                        {isSubmitting ? 'Starting...' : 'Start Survey'}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
-
 function ParentSurvey() {
     const { parentId: routeParentId } = useParams();
-    const navigate = useNavigate();
     const { data, loading, error, grouped } = useChecklistData('Parents_data.csv');
 
     // If no ID in route, we are in start mode
@@ -81,24 +29,15 @@ function ParentSurvey() {
     const createParentMutation = useMutation(api.parentSurvey.createParent);
 
     // Initialize responses from existing data if available
-    const initialResponses = (!isStartMode && existingResponsesResult?.ratings) 
-        ? existingResponsesResult.ratings 
+    const initialResponses = (!isStartMode && existingResponsesResult?.ratings)
+        ? existingResponsesResult.ratings
         : {};
     const [responses, setResponses] = useState(initialResponses);
     const [submitted, setSubmitted] = useState(false);
     const [comment, setComment] = useState('');
 
-    // Handle create parent
-    const handleStartSurvey = async (studentName, grade) => {
-        try {
-            const newId = await createParentMutation({ studentName, grade });
-            // Navigate to the specific URL for this parent
-            navigate(`/survey/parent/${newId}`, { replace: true });
-        } catch (err) {
-            console.error("Failed to crate parent:", err);
-            alert("Error starting survey. Please try again.");
-        }
-    };
+    const [generatedId, setGeneratedId] = useState(routeParentId || '');
+    const [isSubmittingData, setIsSubmittingData] = useState(false);
 
     // Set rating for an indicator
     const handleSetRating = (indicatorCode, rating) => {
@@ -117,9 +56,16 @@ function ParentSurvey() {
             return;
         }
 
+        setIsSubmittingData(true);
         try {
+            let finalId = routeParentId;
+            if (isStartMode) {
+                finalId = await createParentMutation({ studentName: "Anonymous Student", grade: "Anonymous" });
+                setGeneratedId(finalId);
+            }
+
             await submitSurvey({
-                parentId: routeParentId,
+                parentId: finalId,
                 responses: responseArray,
                 comment
             });
@@ -127,6 +73,8 @@ function ParentSurvey() {
         } catch (err) {
             alert('Error submitting survey. Please try again.');
             console.error(err);
+        } finally {
+            setIsSubmittingData(false);
         }
     };
 
@@ -142,11 +90,6 @@ function ParentSurvey() {
                 <p>Please contact the school administration for more information.</p>
             </div>
         );
-    }
-
-    // Render Start Screen if no ID
-    if (isStartMode) {
-        return <StartSurveyForm onStart={handleStartSurvey} />;
     }
 
     if (loading) {
@@ -175,7 +118,7 @@ function ParentSurvey() {
                 </div>
                 <h2>Thank You!</h2>
                 <p>Your feedback has been submitted successfully.</p>
-                <p className="parent-id">Parent ID: {routeParentId}</p>
+                <p className="parent-id">Parent ID: {generatedId}</p>
             </div>
         );
     }
@@ -193,7 +136,7 @@ function ParentSurvey() {
                     ބެލެނިވެރިންގެ ސުވާލުފޯމް
                 </h1>
                 <h2>Parent Questionnaire</h2>
-                <div className="parent-id-badge">ID: {routeParentId}</div>
+                {!isStartMode && <div className="parent-id-badge">ID: {routeParentId}</div>}
             </header>
 
             {/* Progress Bar */}
@@ -278,15 +221,14 @@ function ParentSurvey() {
                 />
             </div>
 
-            {/* Submit Button */}
             <div className="survey-footer">
                 <button
                     className="submit-btn"
                     onClick={handleSubmit}
-                    disabled={answeredCount === 0}
+                    disabled={answeredCount === 0 || isSubmittingData}
                 >
                     <Send size={18} />
-                    <span>Submit Survey</span>
+                    <span>{isSubmittingData ? 'Submitting...' : 'Submit Survey'}</span>
                 </button>
                 <p className="submit-note">
                     You can update your responses after submitting.

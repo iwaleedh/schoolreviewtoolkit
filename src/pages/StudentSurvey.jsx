@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Check, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -12,57 +12,8 @@ const RATINGS = [
     { value: 3, label: '3 - Very Good', description: 'Very Good', color: 'green' },
 ];
 
-// Start Survey Form Component
-function StartSurveyForm({ onStart }) {
-    const [name, setName] = useState('');
-    const [grade, setGrade] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        setIsSubmitting(true);
-        await onStart(name, grade);
-        setIsSubmitting(false);
-    };
-
-    return (
-        <div className="start-survey-container">
-            <div className="start-survey-box">
-                <h2>Student Survey</h2>
-                <p>Please enter your details to start the survey</p>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Enter your name"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Grade/Class (Optional)</label>
-                        <input
-                            type="text"
-                            value={grade}
-                            onChange={(e) => setGrade(e.target.value)}
-                            placeholder="e.g., Grade 5"
-                        />
-                    </div>
-                    <button type="submit" className="start-btn" disabled={isSubmitting}>
-                        {isSubmitting ? 'Starting...' : 'Start Survey'}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
-
 function StudentSurvey() {
     const { studentId: routeStudentId } = useParams();
-    const navigate = useNavigate();
     const { data, loading, error, grouped } = useChecklistData('Students_data.csv');
 
     // If no ID in route, we are in start mode
@@ -77,25 +28,16 @@ function StudentSurvey() {
     const createStudentMutation = useMutation(api.studentSurvey.createStudent);
 
     // Initialize responses from existing data if available
-    const initialResponses = (!isStartMode && existingResponsesResult?.ratings) 
-        ? existingResponsesResult.ratings 
+    const initialResponses = (!isStartMode && existingResponsesResult?.ratings)
+        ? existingResponsesResult.ratings
         : {};
     const [responses, setResponses] = useState(initialResponses);
     const [submitted, setSubmitted] = useState(false);
     const [expandedStrands, setExpandedStrands] = useState({});
     const [comment, setComment] = useState('');
 
-    // Handle create student
-    const handleStartSurvey = async (name, grade) => {
-        try {
-            const newId = await createStudentMutation({ name, grade });
-            // Navigate to the specific URL for this student
-            navigate(`/survey/student/${newId}`, { replace: true });
-        } catch (err) {
-            console.error("Failed to create student:", err);
-            alert("Error starting survey. Please try again.");
-        }
-    };
+    const [generatedId, setGeneratedId] = useState(routeStudentId || '');
+    const [isSubmittingData, setIsSubmittingData] = useState(false);
 
     // Toggle strand expansion
     const toggleStrand = (strandId) => {
@@ -119,12 +61,21 @@ function StudentSurvey() {
             return;
         }
 
+        setIsSubmittingData(true);
         try {
-            await submitSurvey({ studentId: routeStudentId, responses: responseArray, comment });
+            let finalId = routeStudentId;
+            if (isStartMode) {
+                finalId = await createStudentMutation({ name: "Anonymous Student", grade: "Anonymous" });
+                setGeneratedId(finalId);
+            }
+
+            await submitSurvey({ studentId: finalId, responses: responseArray, comment });
             setSubmitted(true);
         } catch (err) {
             alert('Error submitting survey. Please try again.');
             console.error(err);
+        } finally {
+            setIsSubmittingData(false);
         }
     };
 
@@ -146,11 +97,6 @@ function StudentSurvey() {
         );
     }
 
-    // Show start form if no student ID
-    if (isStartMode) {
-        return <StartSurveyForm onStart={handleStartSurvey} />;
-    }
-
     if (submitted) {
         return (
             <div className="survey-success">
@@ -159,7 +105,7 @@ function StudentSurvey() {
                 </div>
                 <h2>Thank You!</h2>
                 <p>Your feedback has been submitted successfully.</p>
-                <p className="parent-id">Student ID: {routeStudentId}</p>
+                <p className="parent-id">Student ID: {generatedId}</p>
             </div>
         );
     }
@@ -177,7 +123,7 @@ function StudentSurvey() {
                     ދަރިވަރުންގެ ސުވާލުފޯމް
                 </h1>
                 <h2>Student Questionnaire</h2>
-                <div className="parent-id-badge">Student ID: {routeStudentId}</div>
+                {!isStartMode && <div className="parent-id-badge">Student ID: {routeStudentId}</div>}
             </header>
 
             {/* Progress Bar */}
@@ -231,11 +177,10 @@ function StudentSurvey() {
                                                                 {RATINGS.map((r) => (
                                                                     <button
                                                                         key={r.value}
-                                                                        className={`rating-option ${r.color} ${
-                                                                            responses[indicator.code] === r.value
+                                                                        className={`rating-option ${r.color} ${responses[indicator.code] === r.value
                                                                                 ? 'selected'
                                                                                 : ''
-                                                                        }`}
+                                                                            }`}
                                                                         onClick={() =>
                                                                             handleSetRating(indicator.code, r.value)
                                                                         }
@@ -270,15 +215,14 @@ function StudentSurvey() {
                 />
             </div>
 
-            {/* Submit Button */}
             <div className="survey-footer">
                 <button
                     className="submit-btn"
                     onClick={handleSubmit}
-                    disabled={answeredCount === 0}
+                    disabled={answeredCount === 0 || isSubmittingData}
                 >
                     <Send size={18} />
-                    <span>Submit Survey</span>
+                    <span>{isSubmittingData ? 'Submitting...' : 'Submit Survey'}</span>
                 </button>
                 <p className="submit-note">
                     You can update your responses after submitting.
