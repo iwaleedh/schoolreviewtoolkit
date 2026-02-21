@@ -19,7 +19,7 @@ function App() {
   return (
     <ThemeProvider>
       <SSEDataProvider>
-        <Router basename={import.meta.env.DEV ? '/' : '/school-review-toolkit'}>
+        <Router basename={import.meta.env.VITE_ROUTER_BASENAME || '/'}>
           <ErrorBoundary>
             <Routes>
               {/* Home redirects to toolkit */}
