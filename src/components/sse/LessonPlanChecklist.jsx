@@ -580,7 +580,7 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
 
                         {/* Outcome Content - LP Grid Table */}
                         {expandedOutcomes[outcome.id] && (
-                            !isMobile ? (
+                            (!isMobile || columnConfig.groupPrefix === 'T') ? (
                                 <DraggableTableWrapper>
                                     <table className={`lt-indicators-table ${selectedView === 'all' ? 'view-all' : 'view-single'}`}>
                                         <thead>
