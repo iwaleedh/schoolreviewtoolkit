@@ -1,21 +1,23 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import { useSSEData } from '../../context/SSEDataContext';
 import './Dimension.css';
 import CommentSummary from './CommentSummary';
 
 function CommentsTable({ title, titleDv }) {
+    const { currentSchoolId } = useSSEData();
     const [showSummary, setShowSummary] = useState(true);
-    
+
     // Fetch comments from all three sources
-    const parentsDataRawResult = useQuery(api.parentSurvey.getAllWithComments);
-    const studentsDataRawResult = useQuery(api.studentSurvey.getAllWithComments);
-    const teachersDataRawResult = useQuery(api.teacherSurvey.getAllWithComments);
-    
+    const parentsDataRawResult = useQuery(api.parentSurvey.getAllWithComments, currentSchoolId ? { schoolId: currentSchoolId } : "skip");
+    const studentsDataRawResult = useQuery(api.studentSurvey.getAllWithComments, currentSchoolId ? { schoolId: currentSchoolId } : "skip");
+    const teachersDataRawResult = useQuery(api.teacherSurvey.getAllWithComments, currentSchoolId ? { schoolId: currentSchoolId } : "skip");
+
     const parentsDataRaw = useMemo(() => parentsDataRawResult ?? { parents: [] }, [parentsDataRawResult]);
     const studentsDataRaw = useMemo(() => studentsDataRawResult ?? { students: [] }, [studentsDataRawResult]);
     const teachersDataRaw = useMemo(() => teachersDataRawResult ?? { teachers: [] }, [teachersDataRawResult]);
-    
+
     // Normalize data for summary component
     const parentsData = useMemo(() => {
         const data = parentsDataRaw.parents || parentsDataRaw || [];
@@ -27,7 +29,7 @@ function CommentsTable({ title, titleDv }) {
             type: 'parent'
         })).filter(p => p.comment);
     }, [parentsDataRaw]);
-    
+
     const studentsData = useMemo(() => {
         const data = studentsDataRaw.students || studentsDataRaw || [];
         return data.map(s => ({
@@ -38,7 +40,7 @@ function CommentsTable({ title, titleDv }) {
             type: 'student'
         })).filter(s => s.comment);
     }, [studentsDataRaw]);
-    
+
     const teachersData = useMemo(() => {
         const data = teachersDataRaw.teachers || teachersDataRaw || [];
         return data.map(t => ({
@@ -94,25 +96,24 @@ function CommentsTable({ title, titleDv }) {
                     <span className="stat-badge purple font-dhivehi">މުދައްރިސުން: {totalTeachers}</span>
                 </div>
             </div>
-            
+
             {/* Summary Section */}
             <div className="mb-6">
                 <div className="flex justify-center mb-6">
                     <button
                         onClick={() => setShowSummary(!showSummary)}
-                        className={`flex items-center gap-3 px-6 py-3 rounded-xl font-dhivehi font-semibold text-sm transition-all shadow-sm ${
-                            showSummary 
-                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200' 
+                        className={`flex items-center gap-3 px-6 py-3 rounded-xl font-dhivehi font-semibold text-sm transition-all shadow-sm ${showSummary
+                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                                 : 'bg-violet-600 text-white hover:bg-violet-700'
-                        }`}
+                            }`}
                     >
                         <span className="text-lg">{showSummary ? '📊' : '📈'}</span>
                         <span>{showSummary ? 'ޚުލާސާ ފޮރުވާ' : 'ޚުލާސާ ދައްކާ'}</span>
                     </button>
                 </div>
-                
+
                 {showSummary && (
-                    <CommentSummary 
+                    <CommentSummary
                         parentsData={parentsData}
                         studentsData={studentsData}
                         teachersData={teachersData}

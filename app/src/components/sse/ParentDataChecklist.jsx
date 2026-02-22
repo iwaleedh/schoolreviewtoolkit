@@ -3,6 +3,7 @@ import { Plus, Trash2, Copy, Check, X, Link, CheckCircle, XCircle, Save, Setting
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useChecklistData } from '../../hooks/useChecklistData';
+import { useSSEData } from '../../context/SSEDataContext';
 import './Dimension.css';
 
 /**
@@ -65,7 +66,8 @@ const RATINGS = [
 
 function ParentDataChecklist({ csvFileName, title, titleDv }) {
     const { loading, error, grouped } = useChecklistData(csvFileName);
-    const responses = useQuery(api.parentSurvey.getAll) ?? { responses: {}, statuses: {} };
+    const { currentSchoolId } = useSSEData();
+    const responses = useQuery(api.parentSurvey.getAll, currentSchoolId ? { schoolId: currentSchoolId } : "skip") ?? { responses: {}, statuses: {} };
     const deleteParentMutation = useMutation(api.parentSurvey.deleteParent);
     const setParentStatusMutation = useMutation(api.parentSurvey.setParentStatus);
     const saveManualResponsesMutation = useMutation(api.parentSurvey.saveManualResponses);
@@ -74,7 +76,7 @@ function ParentDataChecklist({ csvFileName, title, titleDv }) {
 
 
 
-    const parentsList = useQuery(api.parentSurvey.getParents) || [];
+    const parentsList = useQuery(api.parentSurvey.getParents, currentSchoolId ? { schoolId: currentSchoolId } : "skip") || [];
 
     // Map parentId to student name
     const parentNames = {};
@@ -157,7 +159,7 @@ function ParentDataChecklist({ csvFileName, title, titleDv }) {
         if (Object.keys(pendingUpdates).length === 0 || !isOnline) return;
         setIsSaving(true);
         try {
-            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates) });
+            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates), schoolId: currentSchoolId });
             setPendingUpdates({});
         } catch (error) {
             console.error("Failed to save:", error);

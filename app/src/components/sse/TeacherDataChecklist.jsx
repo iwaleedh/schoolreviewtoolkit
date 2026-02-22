@@ -3,6 +3,7 @@ import { Plus, Trash2, Copy, Check, X, Link, Save, ToggleLeft, ToggleRight } fro
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useChecklistData } from '../../hooks/useChecklistData';
+import { useSSEData } from '../../context/SSEDataContext';
 import './Dimension.css';
 
 // Rating options
@@ -14,7 +15,8 @@ const RATINGS = [
 
 function TeacherDataChecklist({ csvFileName, title, titleDv }) {
     const { loading, error, grouped } = useChecklistData(csvFileName);
-    const responses = useQuery(api.teacherSurvey.getAll) ?? { responses: {} };
+    const { currentSchoolId } = useSSEData();
+    const responses = useQuery(api.teacherSurvey.getAll, currentSchoolId ? { schoolId: currentSchoolId } : "skip") ?? { responses: {} };
     const deleteTeacherMutation = useMutation(api.teacherSurvey.deleteTeacher);
     const saveManualResponsesMutation = useMutation(api.teacherSurvey.saveManualResponses);
     const updateSettingMutation = useMutation(api.teacherSurvey.updateSetting);
@@ -110,7 +112,7 @@ function TeacherDataChecklist({ csvFileName, title, titleDv }) {
         if (Object.keys(pendingUpdates).length === 0 || !isOnline) return;
         setIsSaving(true);
         try {
-            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates) });
+            await saveManualResponsesMutation({ updates: Object.values(pendingUpdates), schoolId: currentSchoolId });
             setPendingUpdates({});
         } catch (error) {
             console.error("Failed to save:", error);
