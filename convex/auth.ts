@@ -119,65 +119,76 @@ export const login = mutation({
     },
     handler: async (ctx, args) => {
         const { email, password } = args;
+        try {
+            console.log(`Login attempt initiated for email: ${email}`);
 
-        console.log(`Login attempt for email: ${email}`);
+            // Find user by email
+            const users = await ctx.db
+                .query("users")
+                .withIndex("by_email", (q) => q.eq("email", email))
+                .collect();
 
-        // Find user by email
-        const users = await ctx.db
-            .query("users")
-            .withIndex("by_email", (q) => q.eq("email", email))
-            .collect();
+            console.log(`Matching users found: ${users.length}`);
 
-        console.log(`Found ${users.length} users matching email.`);
-
-        let validUser = null;
-        for (const u of users) {
-            const isValid = await verifyPassword(password, u.passwordHash);
-            if (isValid) {
-                validUser = u;
-                break;
+            let validUser = null;
+            for (const u of users) {
+                try {
+                    const isValid = await verifyPassword(password, u.passwordHash);
+                    if (isValid) {
+                        validUser = u;
+                        break;
+                    }
+                } catch (verifyErr: any) {
+                    console.error(`Password verification error for user ${u._id}:`, verifyErr.message);
+                }
             }
+
+            const user = asUser(validUser);
+
+            if (!user) {
+                console.log(`Authentication failed: Invalid credentials for ${email}`);
+                return { success: false, error: "Invalid email or password" };
+            }
+
+            if (!user.isActive) {
+                console.log(`Authentication failed: Account ${email} is inactive`);
+                return { success: false, error: "Account is deactivated. Contact administrator." };
+            }
+
+            // Create session token
+            const token = generateToken();
+            const expiresAt = Date.now() + TOKEN_EXPIRY;
+
+            // Store session
+            await ctx.db.insert("sessions", {
+                userId: user._id,
+                token,
+                expiresAt,
+                createdAt: Date.now(),
+            });
+
+            // Update last login
+            await ctx.db.patch(user._id as any, {
+                lastLogin: Date.now(),
+            });
+
+            // Return user info and token
+            return {
+                success: true,
+                token,
+                user: {
+                    _id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    schoolId: user.schoolId,
+                    assignedSchools: user.assignedSchools || [],
+                },
+            };
+        } catch (error: any) {
+            console.error(`Fetal login error:`, error.message);
+            return { success: false, error: error.message || "An unexpected server error occurred" };
         }
-
-        const user = asUser(validUser);
-
-        if (!user) {
-            throw new Error("Invalid email or password");
-        }
-
-        if (!user.isActive) {
-            throw new Error("Account is deactivated. Contact administrator.");
-        }
-
-        // Create session token
-        const token = generateToken();
-        const expiresAt = Date.now() + TOKEN_EXPIRY;
-
-        // Store session
-        await ctx.db.insert("sessions", {
-            userId: user._id,
-            token,
-            expiresAt,
-            createdAt: Date.now(),
-        });
-
-        // Update last login
-        await ctx.db.patch(user._id as any, {
-            lastLogin: Date.now(),
-        });
-
-        // Return user info and token
-        return {
-            token,
-            user: {
-                _id: user._id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                schoolId: user.schoolId,
-                assignedSchools: user.assignedSchools || [],
-            },
-        };
     },
 });
 
