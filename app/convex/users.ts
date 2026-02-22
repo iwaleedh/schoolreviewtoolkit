@@ -1,13 +1,16 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { hashPassword } from "./auth"; // Will need to export hashPassword from auth.ts
+import { hashPassword, validateToken } from "./auth"; // Will need to export hashPassword from auth.ts
 
 /**
  * Get all users
  */
 export const listUsers = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role !== "ADMIN") throw new Error("Unauthorized");
+
         // Return all users, omitting password hashes
         const users = await ctx.db.query("users").order("desc").collect();
         return users.map(user => ({
@@ -30,6 +33,7 @@ export const listUsers = query({
  */
 export const updateUser = mutation({
     args: {
+        token: v.string(),
         userId: v.id("users"),
         name: v.string(),
         role: v.union(v.literal("ADMIN"), v.literal("ANALYST"), v.literal("PRINCIPAL")),
@@ -39,6 +43,9 @@ export const updateUser = mutation({
         password: v.optional(v.string()), // Optional new password from admin
     },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role !== "ADMIN") throw new Error("Unauthorized");
+
         const { userId, name, role, schoolId, assignedSchools, isActive, password } = args;
 
         const updateData: any = {
@@ -89,9 +96,13 @@ export const updateUser = mutation({
  */
 export const deleteUser = mutation({
     args: {
+        token: v.string(),
         userId: v.id("users"),
     },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role !== "ADMIN") throw new Error("Unauthorized");
+
         const { userId } = args;
 
         // Delete all sessions for the user

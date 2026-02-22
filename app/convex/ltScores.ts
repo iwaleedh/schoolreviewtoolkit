@@ -1,10 +1,14 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { validateToken } from "./auth";
 
 // Get all LT scores for a school
 export const getAll = query({
-    args: { schoolId: v.string() },
+    args: { token: v.string(), schoolId: v.string() },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role === "PRINCIPAL" && user.schoolId !== args.schoolId) throw new Error("Unauthorized");
+
         const scores = await ctx.db
             .query("ltScores")
             .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))
@@ -26,6 +30,7 @@ export const getAll = query({
 // Set a single LT score
 export const set = mutation({
     args: {
+        token: v.string(),
         indicatorCode: v.string(),
         ltColumn: v.string(),
         value: v.union(v.number(), v.literal("NA"), v.literal("NR"), v.null()),
@@ -33,6 +38,9 @@ export const set = mutation({
         schoolId: v.string(),
     },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role === "PRINCIPAL" && user.schoolId !== args.schoolId) throw new Error("Unauthorized");
+
         // Check if score already exists for this school
         const existing = await ctx.db
             .query("ltScores")
@@ -65,6 +73,7 @@ export const set = mutation({
 // Set multiple LT scores at once (batch save)
 export const setMultiple = mutation({
     args: {
+        token: v.string(),
         scores: v.array(v.object({
             indicatorCode: v.string(),
             ltColumn: v.string(),
@@ -74,6 +83,9 @@ export const setMultiple = mutation({
         schoolId: v.string(),
     },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role === "PRINCIPAL" && user.schoolId !== args.schoolId) throw new Error("Unauthorized");
+
         for (const score of args.scores) {
             // Check if score already exists for this school
             const existing = await ctx.db
@@ -108,8 +120,11 @@ export const setMultiple = mutation({
 
 // Clear all LT scores for a school
 export const clearAll = mutation({
-    args: { schoolId: v.string() },
+    args: { token: v.string(), schoolId: v.string() },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role === "PRINCIPAL" && user.schoolId !== args.schoolId) throw new Error("Unauthorized");
+
         const allScores = await ctx.db
             .query("ltScores")
             .withIndex("by_schoolId", (q) => q.eq("schoolId", args.schoolId))

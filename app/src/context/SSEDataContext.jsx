@@ -161,7 +161,7 @@ const createInitialState = () => ({
 });
 
 export function SSEDataProvider({ children }) {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
 
     // Initial school ID from user
     const [currentSchoolId, setCurrentSchoolId] = useState(user?.schoolId || null);
@@ -196,7 +196,7 @@ export function SSEDataProvider({ children }) {
     ) ?? { scores: {}, sources: {} };
 
     const ltScoresData = useQuery(api.ltScores.getAll,
-        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+        (currentSchoolId && token) ? { token, schoolId: currentSchoolId } : "skip"
     ) ?? {};
 
     const commentsData = useQuery(api.comments.getAll,
@@ -516,6 +516,7 @@ export function SSEDataProvider({ children }) {
                 // Use batch mutation if available, otherwise fall back to individual calls
                 if (setMultipleLtScoresMutation) {
                     await setMultipleLtScoresMutation({
+                        token,
                         scores: pending,
                         source,
                         schoolId: currentSchoolId,
@@ -525,6 +526,7 @@ export function SSEDataProvider({ children }) {
                     await Promise.all(
                         pending.map(({ indicatorCode, ltColumn, value }) =>
                             setLtScoreMutation({
+                                token,
                                 indicatorCode,
                                 ltColumn,
                                 value,
@@ -557,7 +559,7 @@ export function SSEDataProvider({ children }) {
         } finally {
             dispatch({ type: ACTIONS.SET_SYNCING, payload: false });
         }
-    }, [getPendingLTScoresForSource, setLtScoreMutation, setMultipleLtScoresMutation, pendingComments, savePendingComments, currentSchoolId]);
+    }, [getPendingLTScoresForSource, setLtScoreMutation, setMultipleLtScoresMutation, pendingComments, savePendingComments, currentSchoolId, token]);
 
     /**
      * Discard pending changes for a source
@@ -580,7 +582,7 @@ export function SSEDataProvider({ children }) {
         try {
             await Promise.all([
                 clearIndicatorScoresMutation({ schoolId: currentSchoolId }),
-                clearLtScoresMutation({ schoolId: currentSchoolId }),
+                clearLtScoresMutation({ token, schoolId: currentSchoolId }),
                 clearCommentsMutation({ schoolId: currentSchoolId }),
             ]);
             setOutcomeScores({});
@@ -592,7 +594,7 @@ export function SSEDataProvider({ children }) {
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             throw err;
         }
-    }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation, currentSchoolId]);
+    }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation, currentSchoolId, token]);
 
     const value = useMemo(() => ({
         // State

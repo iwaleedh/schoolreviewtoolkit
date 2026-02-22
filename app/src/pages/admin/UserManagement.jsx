@@ -6,10 +6,10 @@ import { Edit, Trash2, UserPlus, Shield, ShieldAlert, CheckCircle2, XCircle } fr
 import './UserManagement.css';
 
 function UserManagement() {
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, token } = useAuth();
 
     // Fetch users
-    const users = useQuery(api.users.listUsers);
+    const users = useQuery(api.users.listUsers, token ? { token } : "skip");
 
     // Mutations
     const registerUser = useMutation(api.auth.register);
@@ -83,6 +83,7 @@ function UserManagement() {
             if (editingUser) {
                 // Update
                 await updateUser({
+                    token,
                     userId: editingUser._id,
                     name: formData.name,
                     role: formData.role,
@@ -97,6 +98,7 @@ function UserManagement() {
                     throw new Error("Email and Password are required for new users.");
                 }
                 await registerUser({
+                    token,
                     email: formData.email.trim(),
                     password: formData.password,
                     name: formData.name,
@@ -117,7 +119,7 @@ function UserManagement() {
     const handleDelete = async (userId) => {
         if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
             try {
-                await deleteUser({ userId });
+                await deleteUser({ token, userId });
             } catch (err) {
                 alert("Failed to delete user: " + err.message);
             }

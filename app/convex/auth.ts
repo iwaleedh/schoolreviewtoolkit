@@ -242,6 +242,7 @@ export const logout = mutation({
  */
 export const register = mutation({
     args: {
+        token: v.string(),
         email: v.string(),
         password: v.string(),
         name: v.string(),
@@ -251,6 +252,9 @@ export const register = mutation({
         createdBy: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const user = await validateToken(ctx, args.token);
+        if (user.role !== "ADMIN") throw new Error("Unauthorized");
+
         const { email, password, name, role, schoolId, assignedSchools, createdBy } = args;
         const passwordHash = await hashPassword(password);
 
@@ -287,6 +291,30 @@ export const register = mutation({
 });
 
 /**
+ * Validate token and return user info
+ */
+export async function validateToken(ctx: any, token: string) {
+    const sessions = await ctx.db
+        .query("sessions")
+        .withIndex("by_token", (q: any) => q.eq("token", token))
+        .collect();
+
+    const session = asSession(sessions.find((s: any) => s.expiresAt > Date.now()));
+
+    if (!session) {
+        throw new Error("Invalid or expired token");
+    }
+
+    const user = asUser(await ctx.db.get(session.userId as any));
+
+    if (!user || !user.isActive) {
+        throw new Error("User not found or inactive");
+    }
+
+    return user;
+}
+
+/**
  * Get current user query - Validate token and return user info
  */
 export const getCurrentUser = query({
@@ -294,26 +322,7 @@ export const getCurrentUser = query({
         token: v.string(),
     },
     handler: async (ctx, args) => {
-        const { token } = args;
-
-        // Find valid session
-        const sessions = await ctx.db
-            .query("sessions")
-            .withIndex("by_token", (q) => q.eq("token", token))
-            .collect();
-
-        const session = asSession(sessions.find(s => s.expiresAt > Date.now()));
-
-        if (!session) {
-            throw new Error("Invalid or expired token");
-        }
-
-        // Get user
-        const user = asUser(await ctx.db.get(session.userId as any));
-
-        if (!user || !user.isActive) {
-            throw new Error("User not found or inactive");
-        }
+        const user = await validateToken(ctx, args.token);
 
         return {
             _id: user._id,
