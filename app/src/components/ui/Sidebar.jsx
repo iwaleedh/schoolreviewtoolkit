@@ -58,7 +58,7 @@ const menuItems = [
         id: 'support',
         path: '/support',
         icon: HelpCircle,
-        labelDv: 'ދެހީ',
+        labelDv: 'އެހީ އަދި ސަޕޯޓް',
         labelEn: 'Support',
     },
     {
