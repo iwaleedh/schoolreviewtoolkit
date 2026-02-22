@@ -122,13 +122,34 @@ export const login = mutation({
         try {
             console.log(`Login attempt initiated for email: ${email}`);
 
-            // Find user by email
-            const users = await ctx.db
+            let users = await ctx.db
                 .query("users")
                 .withIndex("by_email", (q) => q.eq("email", email))
                 .collect();
 
             console.log(`Matching users found: ${users.length}`);
+
+            // SELF-SEEDING: If no users exist at all and this is the admin email, create it.
+            if (users.length === 0 && email === "admin@qad.edu.mv") {
+                const allUsers = await ctx.db.query("users").collect();
+                if (allUsers.length === 0) {
+                    console.log("Empty database detected. Seeding initial admin...");
+                    const seedHash = await hashPassword("adminpass");
+                    await ctx.db.insert("users", {
+                        email: "admin@qad.edu.mv",
+                        passwordHash: seedHash,
+                        name: "System Admin",
+                        role: "ADMIN",
+                        isActive: true,
+                        createdAt: Date.now(),
+                    });
+                    // Re-query after seeding
+                    users = await ctx.db
+                        .query("users")
+                        .withIndex("by_email", (q) => q.eq("email", email))
+                        .collect();
+                }
+            }
 
             let validUser = null;
             for (const u of users) {
