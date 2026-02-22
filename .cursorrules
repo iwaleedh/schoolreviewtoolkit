@@ -41,3 +41,8 @@ When dealing with large data (e.g., School Reports, CSVs):
 *   **Style:** Vanilla CSS (No Tailwind).
 *   **RTL:** All Dhivehi text must be `dir="rtl"` with `font-dhivehi`.
 *   **Context Source:** `Review Toolkit/context/`.
+
+## 5. 📁 DIRECTORY STRUCTURE & DEPLOYMENT
+*   **Source of Truth:** There are currently two copies of the source code (in the root `/` and in `/app`).
+*   **Netlify Deployment:** Configured to deploy from the **root**.
+*   **Local Development:** ALWAYS run your `npm run dev` and `npx convex dev` commands from the **root directory** to ensure local and production behavior remains perfectly synchronized.
