@@ -30,7 +30,7 @@
 
 .results-title .title-dv {
     font-size: 1.25rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .view-toggle {
@@ -55,7 +55,7 @@
     background: transparent;
     border: none;
     border-radius: var(--radius-md);
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     cursor: pointer;
     transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
     position: relative;
@@ -120,12 +120,12 @@
 
 .stat-icon.blue {
     background: rgba(37, 99, 235, 0.1);
-    color: #2563eb;
+    color: #0a0a0a;
 }
 
 .stat-icon.green {
     background: rgba(34, 197, 94, 0.1);
-    color: #22c55e;
+    color: #0a0a0a;
 }
 
 .stat-icon.purple {
@@ -145,7 +145,7 @@
 
 .stat-label {
     font-size: 0.875rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .results-grade-badge {
@@ -206,6 +206,8 @@
     color: white;
     font-size: 0.875rem;
     font-weight: 700;
+    background-color: var(--color-primary);
+    /* added for visibility */
 }
 
 .dimension-info h3 {
@@ -218,7 +220,7 @@
 .dimension-info p {
     margin: 0;
     font-size: 0.8125rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .dimension-card-body {
@@ -263,7 +265,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: 0.8125rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     padding-top: 0.75rem;
     border-top: 1px solid var(--color-gray-100);
 }
@@ -272,14 +274,14 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    color: #16a34a;
+    color: #0a0a0a;
 }
 
 .status-pending {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
 }
 
 /* Grade Legend */
@@ -293,7 +295,7 @@
 .grade-legend-section h3 {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-gray-700);
+    color: var(--color-gray-900);
     margin: 0 0 1rem 0;
 }
 
@@ -308,108 +310,15 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.8125rem;
-    color: var(--color-gray-600);
+    color: var(--color-gray-900);
 }
 
 .grade-threshold {
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
     font-size: 0.75rem;
 }
 
-/* Dark Mode Overrides */
 
-/* 1. Fix white/light backgrounds */
-[data-theme="dark"] .results-stats .stat-card {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .view-btn {
-    background: var(--color-gray-100);
-}
-
-/* 2. Ensure all text is visible (white) */
-[data-theme="dark"] .results-title .title-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .stat-value {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-info h3 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .score-value {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .grade-legend-section h3 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .status-complete {
-    color: #ffffff;
-}
-
-/* 3. Fix gradients and special elements */
-[data-theme="dark"] .score-inner {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .dimension-card-header {
-    background: var(--color-gray-100);
-}
-
-/* Original dark mode rules */
-[data-theme="dark"] .results-title .title-dv {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .view-btn.active {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .stat-label {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-card-header {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .dimension-info p {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-meta {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .status-pending {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .grade-legend-section h3 {
-    color: var(--color-gray-300);
-}
-
-[data-theme="dark"] .grade-item {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .grade-threshold {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .score-inner {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .dimension-card,
-[data-theme="dark"] .grade-legend-section {
-    background: var(--color-gray-100);
-}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -441,57 +350,7 @@
     }
 }
 
-/* Dark Mode - NO WHITE BACKGROUNDS */
-[data-theme="dark"] .results-page {
-    background: transparent;
-}
 
-[data-theme="dark"] .results-stats .stat-card {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .dimension-card {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .dimension-card-header {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .dimension-card-body {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .score-inner {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .grade-legend-section {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .view-btn.active {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .results-title .title-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .stat-value {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-info h3 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .score-value {
-    color: #ffffff;
-}
 
 /* Chart Toggle Button */
 .chart-toggle-btn {
@@ -521,16 +380,7 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="dark"] .chart-toggle-btn {
-    background: var(--color-gray-200);
-    border-color: var(--color-gray-300);
-    color: var(--color-gray-700);
-}
 
-[data-theme="dark"] .chart-toggle-btn:hover {
-    background: var(--color-gray-300);
-    color: var(--color-gray-900);
-}
 
 /* Dimension Chart Section */
 .dimension-chart-section {
@@ -552,10 +402,7 @@
     }
 }
 
-[data-theme="dark"] .dimension-chart-section {
-    border-top-color: var(--color-gray-200);
-    background: var(--color-gray-200);
-}
+
 
 /* Fallback Badge */
 .dimension-fallback-note {
@@ -566,7 +413,7 @@
 
 .fallback-badge {
     font-size: 0.75rem;
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
     background: var(--color-gray-100);
     padding: 0.25rem 0.5rem;
     border-radius: var(--radius-sm);
@@ -581,10 +428,7 @@
     overflow-x: auto;
 }
 
-[data-theme="dark"] .substrand-chart-container {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-300);
-}
+
 
 .chart-header {
     display: flex;
@@ -598,13 +442,11 @@
 .chart-header h4 {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-gray-800);
+    color: var(--color-gray-900);
     margin: 0;
 }
 
-[data-theme="dark"] .chart-header h4 {
-    color: var(--color-gray-800);
-}
+
 
 .chart-legend {
     display: flex;
@@ -617,13 +459,11 @@
     align-items: center;
     gap: 0.25rem;
     font-size: 0.75rem;
-    color: var(--color-gray-600);
+    color: var(--color-gray-900);
     direction: rtl;
 }
 
-[data-theme="dark"] .chart-legend .legend-item {
-    color: var(--color-gray-700);
-}
+
 
 .legend-color {
     width: 12px;
@@ -648,7 +488,7 @@
 
 .y-label {
     font-size: 0.75rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     text-align: right;
     padding-right: 0.25rem;
 }
@@ -729,7 +569,7 @@
 
 .x-label {
     font-size: 15px;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     text-align: center;
     white-space: normal;
     word-wrap: break-word;
@@ -743,22 +583,12 @@
     direction: rtl;
 }
 
-[data-theme="dark"] .x-label {
-    color: var(--color-gray-600);
-}
 
-[data-theme="dark"] .chart-y-axis {
-    border-right-color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .chart-bars-row {
-    border-bottom-color: var(--color-gray-400);
-}
 
 .chart-empty {
     padding: 2rem;
     text-align: center;
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
     font-size: 0.875rem;
 }
 

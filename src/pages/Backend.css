@@ -100,7 +100,7 @@
 
 .test-data-status {
     font-size: 0.75rem;
-    color: #16a34a;
+    color: #0a0a0a;
     font-weight: 500;
 }
 
@@ -180,7 +180,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .error-state {
@@ -331,22 +333,22 @@
 
 .outcome-count.score-3 {
     background: #f3e8ff;
-    color: #6d28d9;
+    color: #0a0a0a;
 }
 
 .outcome-count.score-2 {
     background: #dcfce7;
-    color: #15803d;
+    color: #0a0a0a;
 }
 
 .outcome-count.score-1 {
     background: #fef3c7;
-    color: #b45309;
+    color: #0a0a0a;
 }
 
 .outcome-count.score-0 {
     background: #fee2e2;
-    color: #b91c1c;
+    color: #0a0a0a;
 }
 
 .strand-content {
@@ -415,10 +417,21 @@
     font-size: 0.75rem;
 }
 
-.dist-item.score-3 { color: #6d28d9; }
-.dist-item.score-2 { color: #15803d; }
-.dist-item.score-1 { color: #b45309; }
-.dist-item.score-0 { color: #b91c1c; }
+.dist-item.score-3 {
+    color: #0a0a0a;
+}
+
+.dist-item.score-2 {
+    color: #0a0a0a;
+}
+
+.dist-item.score-1 {
+    color: #0a0a0a;
+}
+
+.dist-item.score-0 {
+    color: #0a0a0a;
+}
 
 .dist-symbol {
     font-size: 0.65rem;
@@ -610,7 +623,7 @@
 }
 
 .ind-score.achieved {
-    color: #16a34a;
+    color: #0a0a0a;
 }
 
 .ind-score.not-achieved {
@@ -618,7 +631,7 @@
 }
 
 .ind-score.na {
-    color: #6b7280;
+    color: #0a0a0a;
 }
 
 /* Indicator Cell Wrapper & Source Details */
@@ -736,12 +749,12 @@
 
 .source-value.value-yes {
     background: #dcfce7;
-    color: #15803d;
+    color: #0a0a0a;
 }
 
 .source-value.value-no {
     background: #fee2e2;
-    color: #b91c1c;
+    color: #0a0a0a;
 }
 
 .source-value.value-nr {
@@ -751,7 +764,7 @@
 
 .source-value.value-na {
     background: #f3f4f6;
-    color: #6b7280;
+    color: #0a0a0a;
 }
 
 .source-summary {
@@ -779,7 +792,7 @@
 }
 
 .summary-value.achieved {
-    color: #16a34a;
+    color: #0a0a0a;
 }
 
 .no-data-message {
@@ -827,19 +840,38 @@
     font-size: 0.9rem;
 }
 
-.score-indicator.achieved { color: #16a34a; }
-.score-indicator.not-achieved { color: #dc2626; }
-.score-indicator.na { color: #6b7280; }
+.score-indicator.achieved {
+    color: #0a0a0a;
+}
+
+.score-indicator.not-achieved {
+    color: #dc2626;
+}
+
+.score-indicator.na {
+    color: #0a0a0a;
+}
 
 .score-outcome {
     font-size: 0.6rem;
     letter-spacing: -0.1em;
 }
 
-.score-outcome.score-3 { color: #6d28d9; }
-.score-outcome.score-2 { color: #15803d; }
-.score-outcome.score-1 { color: #b45309; }
-.score-outcome.score-0 { color: #b91c1c; }
+.score-outcome.score-3 {
+    color: #0a0a0a;
+}
+
+.score-outcome.score-2 {
+    color: #0a0a0a;
+}
+
+.score-outcome.score-1 {
+    color: #0a0a0a;
+}
+
+.score-outcome.score-0 {
+    color: #0a0a0a;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -906,77 +938,4 @@
         gap: 1rem;
         padding: 1rem;
     }
-}
-
-/* Dark Mode */
-[data-theme="dark"] .backend-page {
-    --bg-primary: #1e293b;
-    --bg-secondary: #0f172a;
-    --bg-tertiary: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
-    --border-color: #334155;
-}
-
-[data-theme="dark"] .strand-section,
-[data-theme="dark"] .substrand-card,
-[data-theme="dark"] .outcome-row,
-[data-theme="dark"] .indicator-cell {
-    background: var(--bg-primary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .strand-header:hover,
-[data-theme="dark"] .substrand-header:hover,
-[data-theme="dark"] .outcome-header:hover {
-    background: var(--bg-secondary);
-}
-
-[data-theme="dark"] .indicator-cell-wrapper {
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .sources-trigger {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-    color: var(--text-secondary);
-}
-
-[data-theme="dark"] .sources-trigger:hover {
-    background: var(--bg-secondary);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-[data-theme="dark"] .source-count {
-    color: var(--color-primary);
-}
-
-[data-theme="dark"] .source-details {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .indicator-code-badge {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-    color: var(--text-tertiary);
-}
-
-[data-theme="dark"] .source-item {
-    background: var(--bg-primary);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .source-name {
-    color: var(--text-primary);
-}
-
-[data-theme="dark"] .summary-label {
-    color: var(--text-tertiary);
-}
-
-[data-theme="dark"] .summary-value {
-    color: var(--text-primary);
 }

@@ -16,7 +16,6 @@ import useAuth from '../../hooks/useAuth';
 import { useSSEData } from '../../context/SSEDataContext';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import ThemeToggle from './ThemeToggle';
 import './Sidebar.css';
 
 const menuItems = [
@@ -184,11 +183,6 @@ function Sidebar({ collapsed, onToggle }) {
 
             {/* Footer */}
             <div className="sidebar-footer">
-                {/* Theme Toggle */}
-                <div className="theme-toggle-container">
-                    <ThemeToggle showLabel={!collapsed} size={collapsed ? 'small' : 'medium'} />
-                </div>
-
                 {!collapsed && (
                     <div className="version-info" aria-label="Application version">
                         <span>Academic Year 2026</span>

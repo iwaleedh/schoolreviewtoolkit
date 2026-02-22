@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: center;
     height: 50vh;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
 .spinner {
@@ -113,10 +113,7 @@
     border: 1px solid var(--border-color, #e2e8f0);
 }
 
-[data-theme='dark'] .users-table-container {
-    background: var(--card-bg, #1e293b);
-    border-color: var(--border-color, #334155);
-}
+
 
 .users-table {
     width: 100%;
@@ -130,10 +127,7 @@
     border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
 
-[data-theme='dark'] .users-table th,
-[data-theme='dark'] .users-table td {
-    border-bottom-color: var(--border-color, #334155);
-}
+
 
 .users-table th {
     background: var(--bg-secondary, #f8fafc);
@@ -144,10 +138,7 @@
     letter-spacing: 0.05em;
 }
 
-[data-theme='dark'] .users-table th {
-    background: rgba(0, 0, 0, 0.2);
-    color: #94a3b8;
-}
+
 
 .users-table tbody tr {
     transition: background-color 0.2s ease;
@@ -157,9 +148,7 @@
     background: var(--bg-hover, #f1f5f9);
 }
 
-[data-theme='dark'] .users-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
+
 
 .users-table tbody tr:last-child td {
     border-bottom: none;
@@ -194,12 +183,12 @@
 
 .role-admin {
     background: #fee2e2;
-    color: #b91c1c;
+    color: #0a0a0a;
 }
 
 .role-analyst {
     background: #e0e7ff;
-    color: #4338ca;
+    color: #0a0a0a;
 }
 
 .role-principal {
@@ -207,20 +196,7 @@
     color: #15803d;
 }
 
-[data-theme='dark'] .role-admin {
-    background: rgba(185, 28, 28, 0.2);
-    color: #fca5a5;
-}
 
-[data-theme='dark'] .role-analyst {
-    background: rgba(67, 56, 202, 0.2);
-    color: #a5b4fc;
-}
-
-[data-theme='dark'] .role-principal {
-    background: rgba(21, 128, 61, 0.2);
-    color: #86efac;
-}
 
 
 .status-badge {
@@ -232,22 +208,22 @@
 }
 
 .status-badge.active {
-    color: #10b981;
+    color: #0a0a0a;
 }
 
 .status-badge.inactive {
-    color: #94a3b8;
+    color: #0a0a0a;
 }
 
 .assignment-text {
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
 .empty-state {
     text-align: center;
     padding: 3rem !important;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
     font-style: italic;
 }
 
@@ -263,7 +239,7 @@
     padding: 0.4rem;
     border-radius: 6px;
     cursor: pointer;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -275,9 +251,7 @@
     color: var(--text-color);
 }
 
-[data-theme='dark'] .icon-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-}
+
 
 .icon-btn.edit-btn:hover:not(:disabled) {
     color: var(--primary);
@@ -285,7 +259,7 @@
 }
 
 .icon-btn.delete-btn:hover:not(:disabled) {
-    color: #ef4444;
+    color: #0a0a0a;
     background: rgba(239, 68, 68, 0.1);
 }
 
@@ -321,10 +295,7 @@
     overflow-y: auto;
 }
 
-[data-theme='dark'] .modal-content {
-    background: var(--card-bg, #1e293b);
-    border: 1px solid var(--border-color, #334155);
-}
+
 
 @keyframes slideUp {
     from {
@@ -346,7 +317,7 @@
 
 .modal-error {
     background: #fef2f2;
-    color: #b91c1c;
+    color: #0a0a0a;
     padding: 0.75rem;
     border-radius: 6px;
     margin-bottom: 1.5rem;
@@ -354,11 +325,7 @@
     border: 1px solid #fecaca;
 }
 
-[data-theme='dark'] .modal-error {
-    background: rgba(185, 28, 28, 0.1);
-    border-color: rgba(185, 28, 28, 0.3);
-    color: #fca5a5;
-}
+
 
 .user-form .form-group {
     margin-bottom: 1.25rem;
@@ -387,11 +354,7 @@
     box-sizing: border-box;
 }
 
-[data-theme='dark'] .user-form input,
-[data-theme='dark'] .user-form select {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: var(--border-color, #475569);
-}
+
 
 .user-form input:focus,
 .user-form select:focus {
@@ -409,7 +372,7 @@
 .user-form small {
     display: block;
     margin-top: 0.35rem;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
     font-size: 0.8rem;
 }
 
@@ -434,8 +397,4 @@
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color, #e2e8f0);
-}
-
-[data-theme='dark'] .modal-actions {
-    border-top-color: var(--border-color, #334155);
 }

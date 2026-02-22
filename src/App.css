@@ -23,7 +23,7 @@
 }
 
 .page-container p {
-  color: var(--color-gray-600);
+  color: var(--color-gray-900);
   line-height: 1.7;
   font-size: 1rem;
 }
@@ -70,7 +70,7 @@
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  color: var(--color-gray-500);
+  color: var(--color-gray-900);
 }
 
 .empty-state-icon {
@@ -82,13 +82,13 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1.5rem;
-  color: var(--color-gray-400);
+  color: var(--color-gray-900);
 }
 
 .empty-state h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-gray-700);
+  color: var(--color-gray-900);
   margin-bottom: 0.5rem;
 }
 
@@ -110,9 +110,7 @@
   z-index: 1000;
 }
 
-[data-theme="dark"] .loading-overlay {
-  background: rgba(15, 23, 42, 0.8);
-}
+
 
 /* Toast Notifications */
 .toast {

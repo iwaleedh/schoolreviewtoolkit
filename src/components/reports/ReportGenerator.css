@@ -27,7 +27,7 @@
 }
 
 .report-controls-subtitle {
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     margin-bottom: 1.5rem;
 }
 
@@ -69,7 +69,7 @@
 
 .report-btn.secondary {
     background: var(--color-gray-100);
-    color: var(--color-gray-700);
+    color: var(--color-gray-900);
     border: 1px solid var(--color-gray-200);
 }
 
@@ -84,7 +84,7 @@
     margin-top: 1rem;
     padding: 0.75rem 1rem;
     background: #dcfce7;
-    color: #16a34a;
+    color: #0a0a0a;
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     font-weight: 500;
@@ -95,8 +95,13 @@
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Report Preview / Print Content */
@@ -144,14 +149,14 @@
 
 .report-subtitle {
     font-size: 1rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     margin: 0.25rem 0 0 0;
 }
 
 .report-meta {
     text-align: right;
     font-size: 0.875rem;
-    color: var(--color-gray-600);
+    color: var(--color-gray-900);
 }
 
 .report-date {
@@ -159,7 +164,7 @@
 }
 
 .report-year {
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
 }
 
 /* Report Sections */
@@ -179,7 +184,7 @@
 .subsection-title {
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--color-gray-700);
+    color: var(--color-gray-900);
     margin: 0 0 0.75rem 0;
 }
 
@@ -205,7 +210,7 @@
 .school-info-item label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -217,7 +222,7 @@
 }
 
 .status-complete {
-    color: #16a34a;
+    color: #0a0a0a;
 }
 
 /* Overall Score Section */
@@ -265,7 +270,7 @@
 
 .overall-score-label {
     font-size: 0.875rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 /* Dimension Scores Table */
@@ -284,7 +289,7 @@
 .dimension-scores-table th {
     font-size: 0.7rem;
     font-weight: 600;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     background: var(--color-gray-50);
@@ -310,7 +315,7 @@
 
 .dimension-name-dv {
     font-size: 0.75rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .score-cell {
@@ -361,13 +366,13 @@
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    color: #16a34a;
+    color: #0a0a0a;
     font-size: 0.8125rem;
     font-weight: 500;
 }
 
 .completion-partial {
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     font-size: 0.8125rem;
 }
 
@@ -386,7 +391,7 @@
 }
 
 .grade-legend-label {
-    color: var(--color-gray-600);
+    color: var(--color-gray-900);
 }
 
 /* Report Footer */
@@ -397,7 +402,7 @@
     border-top: 1px solid var(--color-gray-200);
     margin-top: auto;
     font-size: 0.75rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .report-footer p {
@@ -408,256 +413,7 @@
     text-align: right;
 }
 
-/* Dark Mode Overrides - Additional Fixes */
 
-/* 1. Fix white/light backgrounds */
-[data-theme="dark"] .report-controls {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .report-page {
-  background: var(--color-gray-100);
-  color: #ffffff;
-}
-
-[data-theme="dark"] .school-info {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .overall-score-section {
-  background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%);
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .overall-score-inner {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .dimension-scores-table th {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .score-bar-container {
-  background: var(--color-gray-700);
-}
-
-[data-theme="dark"] .grade-legend-grid {
-  background: var(--color-gray-800);
-  border-color: var(--color-gray-700);
-}
-
-/* 2. Ensure all text is visible (white) */
-[data-theme="dark"] .report-controls-title {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .report-title {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .school-info-item span {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .overall-score-value {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-name {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .score-value {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .completion-complete {
-  color: #16a34a;
-}
-
-[data-theme="dark"] .grade-legend-label {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .report-footer {
-  color: #ffffff;
-}
-
-/* 3. Fix gradients and special elements */
-[data-theme="dark"] .grade-badge {
-  color: #ffffff;
-}
-
-/* Existing Dark Mode Overrides */
-[data-theme="dark"] .report-controls {
-    background: var(--color-gray-800);
-    border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .report-controls-subtitle {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .report-btn.secondary {
-    background: var(--color-gray-800);
-    color: #ffffff;
-    border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .report-btn.secondary:hover {
-    background: var(--color-gray-700);
-}
-
-[data-theme="dark"] .report-preview {
-    background: var(--color-gray-900);
-}
-
-[data-theme="dark"] .report-subtitle {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .report-meta {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .report-year {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .school-info {
-    background: var(--color-gray-800);
-}
-
-[data-theme="dark"] .school-info-item label {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .overall-score-section {
-    background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%);
-}
-
-[data-theme="dark"] .overall-score-inner {
-    background: var(--color-gray-800);
-}
-
-[data-theme="dark"] .overall-score-label {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-scores-table th {
-    background: var(--color-gray-800);
-    color: #ffffff;
-}
-
-[data-theme="dark"] .dimension-name-dv {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .score-bar-container {
-    background: var(--color-gray-700);
-}
-
-[data-theme="dark"] .completion-partial {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .grade-legend-label {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .report-footer {
-    color: #ffffff;
-}
-
-/* Print Styles */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-
-    .report-generator {
-        padding: 0;
-    }
-
-    .report-preview {
-        background: none;
-        padding: 0;
-    }
-
-    .report-page {
-        width: 100%;
-        box-shadow: none;
-        padding: 15mm;
-        margin: 0;
-    }
-
-    @page {
-        size: A4;
-        margin: 0;
-    }
-}
-
-/* Dark Mode - NO WHITE BACKGROUNDS - Final Overrides */
-[data-theme="dark"] .report-generator {
-  background: transparent;
-}
-
-[data-theme="dark"] .report-preview {
-  background: var(--color-gray-900);
-}
-
-[data-theme="dark"] .report-header {
-  background: var(--color-gray-800);
-}
-
-[data-theme="dark"] .report-section {
-  background: var(--color-gray-800);
-}
-
-[data-theme="dark"] .section-title {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .subsection-title {
-  color: var(--color-gray-300);
-}
-
-[data-theme="dark"] .dimension-scores-table td {
-  border-color: var(--color-gray-700);
-}
-
-[data-theme="dark"] .report-subtitle {
-  color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .report-meta {
-  color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .report-year {
-  color: var(--color-gray-500);
-}
-
-[data-theme="dark"] .school-info-item label {
-  color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .overall-score-label {
-  color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .completion-partial {
-  color: var(--color-gray-400);
-}
-
-[data-theme="dark"] .report-btn.primary:disabled {
-  opacity: 0.5;
-  background: var(--color-gray-600);
-}
 
 /* Responsive */
 @media (max-width: 768px) {

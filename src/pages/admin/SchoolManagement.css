@@ -43,7 +43,7 @@
     align-items: center;
     justify-content: center;
     height: 50vh;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
 .spinner {
@@ -99,18 +99,13 @@
     transition: all 0.2s ease;
 }
 
-[data-theme='dark'] .secondary-btn {
-    background: transparent;
-    border-color: var(--border-color, #334155);
-}
+
 
 .secondary-btn:hover {
     background: var(--bg-hover, #f8fafc);
 }
 
-[data-theme='dark'] .secondary-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
+
 
 /* Table Styles */
 .schools-table-container {
@@ -122,10 +117,7 @@
     border: 1px solid var(--border-color, #e2e8f0);
 }
 
-[data-theme='dark'] .schools-table-container {
-    background: var(--card-bg, #1e293b);
-    border-color: var(--border-color, #334155);
-}
+
 
 .schools-table {
     width: 100%;
@@ -139,10 +131,7 @@
     border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
 
-[data-theme='dark'] .schools-table th,
-[data-theme='dark'] .schools-table td {
-    border-bottom-color: var(--border-color, #334155);
-}
+
 
 .schools-table th {
     background: var(--bg-secondary, #f8fafc);
@@ -153,10 +142,7 @@
     letter-spacing: 0.05em;
 }
 
-[data-theme='dark'] .schools-table th {
-    background: rgba(0, 0, 0, 0.2);
-    color: #94a3b8;
-}
+
 
 .schools-table tbody tr {
     transition: background-color 0.2s ease;
@@ -166,9 +152,7 @@
     background: var(--bg-hover, #f1f5f9);
 }
 
-[data-theme='dark'] .schools-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
+
 
 .schools-table tbody tr:last-child td {
     border-bottom: none;
@@ -185,13 +169,10 @@
     border-radius: 4px;
     font-family: monospace;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
-[data-theme='dark'] .school-id-badge {
-    background: rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
-}
+
 
 .school-name-cell {
     display: flex;
@@ -206,14 +187,14 @@
 
 .school-name-dv {
     font-size: 1.1rem;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
 .location-cell {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
 }
 
 .location-icon {
@@ -229,17 +210,17 @@
 }
 
 .status-badge.active {
-    color: #10b981;
+    color: #0a0a0a;
 }
 
 .status-badge.inactive {
-    color: #94a3b8;
+    color: #0a0a0a;
 }
 
 .empty-state {
     text-align: center;
     padding: 3rem !important;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
     font-style: italic;
 }
 
@@ -255,7 +236,7 @@
     padding: 0.4rem;
     border-radius: 6px;
     cursor: pointer;
-    color: var(--text-muted);
+    color: var(--color-gray-900);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -267,9 +248,7 @@
     color: var(--text-color);
 }
 
-[data-theme='dark'] .icon-btn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-}
+
 
 .icon-btn.edit-btn:hover:not(:disabled) {
     color: var(--primary);
@@ -277,7 +256,7 @@
 }
 
 .icon-btn.delete-btn:hover:not(:disabled) {
-    color: #ef4444;
+    color: #0a0a0a;
     background: rgba(239, 68, 68, 0.1);
 }
 
@@ -313,10 +292,7 @@
     overflow-y: auto;
 }
 
-[data-theme='dark'] .modal-content {
-    background: var(--card-bg, #1e293b);
-    border: 1px solid var(--border-color, #334155);
-}
+
 
 @keyframes slideUp {
     from {
@@ -346,11 +322,7 @@
     border: 1px solid #fecaca;
 }
 
-[data-theme='dark'] .modal-error {
-    background: rgba(185, 28, 28, 0.1);
-    border-color: rgba(185, 28, 28, 0.3);
-    color: #fca5a5;
-}
+
 
 .school-form .form-group {
     margin-bottom: 1.25rem;
@@ -389,11 +361,7 @@
     box-sizing: border-box;
 }
 
-[data-theme='dark'] .school-form input,
-[data-theme='dark'] .school-form select {
-    background: rgba(0, 0, 0, 0.2);
-    border-color: var(--border-color, #475569);
-}
+
 
 .school-form input:focus,
 .school-form select:focus {
@@ -437,8 +405,4 @@
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-color, #e2e8f0);
-}
-
-[data-theme='dark'] .modal-actions {
-    border-top-color: var(--border-color, #334155);
 }

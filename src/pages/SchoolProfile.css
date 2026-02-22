@@ -31,7 +31,7 @@
 
 .profile-title .title-dv {
     font-size: 1.25rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .header-actions {
@@ -57,7 +57,7 @@
 
 .progress-label {
     font-size: 0.7rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -101,11 +101,7 @@
     /* Adds a shadow when it sticks */
 }
 
-[data-theme="dark"] .tab-row-container {
-    background: var(--bg-primary);
-    /* Ensure it has a solid bg in dark mode instead of transparent so content doesn't bleed through */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-}
+
 
 .tab-row {
     display: flex;
@@ -180,7 +176,7 @@
     background: transparent;
     border: none;
     border-radius: var(--radius-md);
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
     cursor: pointer;
     transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
     white-space: nowrap;
@@ -269,7 +265,7 @@
 
 .content-title-dv {
     font-size: 0.875rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .content-actions {
@@ -290,12 +286,7 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="dark"] .content-actions {
-    background: rgba(30, 41, 59, 0.9);
-    /* Dark mode tint */
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
+
 
 .saved-badge {
     display: flex;
@@ -430,12 +421,12 @@
 .label-en {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--color-gray-700);
+    color: var(--color-gray-900);
 }
 
 .label-dv {
     font-size: 0.75rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-900);
 }
 
 .form-input,
@@ -458,7 +449,7 @@
 }
 
 .form-input::placeholder {
-    color: var(--color-gray-400);
+    color: var(--color-gray-900);
 }
 
 .form-select {
@@ -545,125 +536,7 @@
     transform: none;
 }
 
-/* Dark Mode Overrides - Background Fixes */
-[data-theme="dark"] .profile-content {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
 
-[data-theme="dark"] .tab-row {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .tab-row.primary-tabs {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .tab-row.secondary-tabs {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .tab-btn {
-    color: var(--color-gray-500);
-}
-
-[data-theme="dark"] .tab-btn.saved:not(.active) {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .content-header {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .form-input,
-[data-theme="dark"] .form-select {
-    background: var(--color-gray-100);
-    color: #ffffff;
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .checkbox-group {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .form-checkbox {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .progress-indicator {
-    background: var(--color-gray-100);
-}
-
-/* Dark Mode Overrides - Text Color Fixes */
-[data-theme="dark"] .profile-title .title-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .progress-count {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .content-title h2 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .form-section-title h4 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .label-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .form-checkbox label {
-    color: #ffffff;
-}
-
-/* Dark Mode Overrides - Hover State Fixes */
-[data-theme="dark"] .tab-btn:hover {
-    background: var(--color-gray-100);
-    color: #ffffff;
-}
-
-[data-theme="dark"] .tab-btn.active {
-    background: hsl(var(--color-primary-raw) / 0.15);
-    color: var(--color-primary-light);
-}
-
-[data-theme="dark"] .tab-btn.active .tab-label {
-    color: var(--color-primary-light);
-}
-
-[data-theme="dark"] .save-section-btn:hover {
-    background: var(--color-gray-200);
-}
-
-/* Dark Mode Overrides */
-[data-theme="dark"] .profile-title .title-dv {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .progress-label {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .content-title-dv {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .saved-badge {
-    background: var(--color-gray-100);
-    color: var(--color-success);
-}
-
-[data-theme="dark"] .label-dv {
-    color: #ffffff;
-}
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -766,110 +639,7 @@
     }
 }
 
-/* Dark Mode - NO WHITE BACKGROUNDS */
-[data-theme="dark"] .school-profile {
-    background: transparent;
-}
 
-[data-theme="dark"] .tab-row {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .tab-row.primary-tabs {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .tab-row.secondary-tabs {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .tab-btn {
-    background: transparent;
-    color: var(--color-gray-500);
-}
-
-[data-theme="dark"] .tab-btn:hover {
-    background: var(--color-gray-100);
-    color: #ffffff;
-}
-
-[data-theme="dark"] .tab-btn.active {
-    background: hsl(var(--color-primary-raw) / 0.15);
-    color: var(--color-primary-light);
-}
-
-[data-theme="dark"] .tab-btn.active .tab-label {
-    color: var(--color-primary-light);
-}
-
-[data-theme="dark"] .tab-btn.saved:not(.active) {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .profile-content {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .content-header {
-    background: var(--color-gray-200);
-    border-color: var(--color-gray-300);
-}
-
-[data-theme="dark"] .form-content {
-    background: var(--color-gray-100);
-}
-
-[data-theme="dark"] .form-input,
-[data-theme="dark"] .form-select {
-    background: var(--color-gray-200);
-    color: #ffffff;
-    border-color: var(--color-gray-300);
-}
-
-[data-theme="dark"] .checkbox-group {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .form-checkbox {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .save-section-btn {
-    background: var(--color-gray-200);
-    color: #ffffff;
-    border-color: var(--color-gray-300);
-}
-
-[data-theme="dark"] .saved-badge {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .progress-indicator {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .profile-title .title-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .progress-count {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .content-title h2 {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .label-en {
-    color: #ffffff;
-}
-
-[data-theme="dark"] .form-checkbox label {
-    color: #ffffff;
-}
 
 /* Hide Number Input Spinners */
 /* Chrome, Safari, Edge, Opera */
@@ -891,20 +661,14 @@ input[type="number"] {
     background-color: #dbeafe !important;
 }
 
-[data-theme="dark"] .bg-matrix-total {
-    background-color: #1e293b !important;
-    color: #ffffff;
-}
+
 
 /* Ensure input background matches when read-only and highlighted */
 input.bg-matrix-total:read-only {
     background-color: #dbeafe !important;
 }
 
-[data-theme="dark"] input.bg-matrix-total:read-only {
-    background-color: #1e293b !important;
-    color: #ffffff;
-}
+
 
 /* ===== UI/UX IMPROVEMENTS ===== */
 
@@ -938,9 +702,7 @@ input.bg-matrix-total:read-only {
     background-color: #f8fafc;
 }
 
-[data-theme="dark"] .matrix-scroll-container table tbody tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.03);
-}
+
 
 /* O Level / A Level header fix */
 .result-table-header th {
@@ -973,7 +735,7 @@ input.bg-matrix-total:read-only {
     border-radius: var(--radius-sm, 4px);
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--color-gray-700);
+    color: var(--color-gray-900);
     border: 1px solid var(--color-gray-200);
     white-space: nowrap;
 }
@@ -1018,7 +780,7 @@ input.bg-matrix-total:read-only {
 .resource-card-label {
     font-weight: 600;
     font-size: 0.9375rem;
-    color: var(--color-gray-800);
+    color: var(--color-gray-900);
 }
 
 .resource-item {
@@ -1039,18 +801,7 @@ input.bg-matrix-total:read-only {
     background: #f8fafc;
 }
 
-[data-theme="dark"] .resource-card {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-200);
-}
 
-[data-theme="dark"] .resource-item:hover {
-    background: var(--color-gray-200);
-}
-
-[data-theme="dark"] .resource-card-label {
-    color: #ffffff;
-}
 
 /* Toggle switch style for resource checkboxes */
 .toggle-switch {
@@ -1111,12 +862,7 @@ input.bg-matrix-total:read-only {
     border: 1px solid var(--color-gray-200);
 }
 
-/* Dark Mode Resources Tab */
-[data-theme="dark"] .resource-section-card {
-    background: var(--color-gray-100);
-    border-color: var(--color-gray-300);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
+
 
 /* Matrix Grid Table (O Level) */
 .matrix-grid {
@@ -1136,27 +882,7 @@ input.bg-matrix-total:read-only {
     font-weight: 600;
 }
 
-/* Dark Mode Overrides for Matrix */
-[data-theme="dark"] .matrix-grid th,
-[data-theme="dark"] .matrix-grid td {
-    border-color: var(--color-gray-600);
-    background-color: var(--color-gray-100);
-    color: #ffffff;
-}
 
-[data-theme="dark"] .matrix-grid thead th {
-    background-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .matrix-grid tbody tr:hover td {
-    background-color: var(--color-gray-200);
-}
-
-[data-theme="dark"] .matrix-grid input.form-input {
-    background-color: var(--color-gray-200);
-    border-color: var(--color-gray-400);
-    color: #ffffff;
-}
 
 /* Matrix Grid Input Fix: Remove double border */
 .matrix-grid .form-input {

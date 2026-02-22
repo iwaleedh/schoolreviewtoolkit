@@ -75,7 +75,7 @@
 
 .data-status {
   font-size: 0.75rem;
-  color: #16a34a;
+  color: #0a0a0a;
   font-weight: 500;
   padding: 0.5rem 0.75rem;
   background: #dcfce7;
@@ -113,7 +113,14 @@
 
 .title-dv {
   font-size: 1.375rem;
-  color: var(--color-gray-500);
+  color: var(--color-gray-900);
+  font-weight: 500;
+}
+
+.toolkit-header p {
+  margin: 0;
+  font-size: 1.375rem;
+  color: var(--color-gray-900);
   font-weight: 500;
 }
 
@@ -155,7 +162,7 @@
   background: transparent;
   border: none;
   border-radius: var(--radius-md);
-  color: var(--color-gray-500);
+  color: var(--color-gray-900);
   cursor: pointer;
   transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
   position: relative;
@@ -229,7 +236,7 @@
 }
 
 .content-placeholder p {
-  color: var(--color-gray-500);
+  color: var(--color-gray-900);
   max-width: 420px;
   line-height: 1.7;
   font-size: 0.9375rem;
@@ -237,7 +244,7 @@
 
 .content-placeholder p:last-child {
   margin-top: 0.5rem;
-  color: var(--color-gray-400);
+  color: var(--color-gray-900);
   font-size: 0.875rem;
 }
 
@@ -253,7 +260,7 @@
   border-radius: var(--radius-full);
   font-size: 0.6875rem;
   font-weight: 800;
-  color: var(--color-gray-600);
+  color: var(--color-gray-900);
   margin-left: 0.5rem;
   transition: all 0.2s ease;
 }
@@ -358,94 +365,4 @@
       var(--color-gray-100) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-/* ========================================
-   Dark Mode Overrides
-   NOTE: Gray CSS variables are INVERTED in dark mode.
-   --color-gray-900 = #f8fafc (light!) in dark mode.
-   --color-gray-800 = #f1f5f9 (light!) in dark mode.
-   --color-gray-700 = #e2e8f0 (light!) in dark mode.
-   We must use actual dark hex values here.
-   ======================================== */
-
-[data-theme="dark"] .sse-toolkit {
-  background: transparent;
-}
-
-/* Title adjustments for dark mode */
-[data-theme="dark"] .title-en {
-  background: linear-gradient(135deg, #ffffff 0%, #475569 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-[data-theme="dark"] .page-title .title-en {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .page-title .title-dv {
-  color: #94a3b8;
-}
-
-/* Toolkit header */
-[data-theme="dark"] .toolkit-header {
-  background: #1e293b;
-}
-
-/* Toolkit content - main area */
-[data-theme="dark"] .toolkit-content {
-  background: var(--color-gray-100);
-}
-
-/* Tab Rows & Ghost Pills - Dark Mode */
-[data-theme="dark"] .tab-row {
-  border-color: #334155;
-}
-
-[data-theme="dark"] .tab-row.primary-tabs {
-  background: transparent;
-  border-bottom: 1px solid #334155;
-  padding-bottom: 0.75rem;
-}
-
-[data-theme="dark"] .tab-row.secondary-tabs {
-  background: rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid #334155;
-}
-
-[data-theme="dark"] .tab-pill {
-  color: #94a3b8;
-}
-
-[data-theme="dark"] .tab-pill:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .tab-pill.active {
-  background: hsl(var(--color-primary-raw) / 0.15);
-  color: var(--color-primary-light);
-}
-
-[data-theme="dark"] .tab-pill.active .tab-label-dv {
-  color: var(--color-primary-light);
-}
-
-/* Content placeholder - fix light gradient background */
-[data-theme="dark"] .content-placeholder {
-  background: #1e293b;
-  color: #ffffff;
-}
-
-[data-theme="dark"] .content-placeholder h2 {
-  color: #ffffff;
-}
-
-[data-theme="dark"] .content-placeholder p {
-  color: #94a3b8;
-}
-
-[data-theme="dark"] .content-placeholder p:last-child {
-  color: #64748b;
 }
