@@ -1,0 +1,647 @@
+/* ========================================
+   School Review Toolkit - Enhanced Base Styles
+   ======================================== */
+
+/* Faruma Dhivehi Font */
+@font-face {
+  font-family: 'Faruma';
+  src: url('./fonts/Faruma.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Variables (Enhanced Design Tokens) */
+:root {
+  /* Dimension Themes - Enhanced with gradients */
+  --color-d1-raw: 262 83% 58%;
+  --color-d1: hsl(var(--color-d1-raw));
+  /* #7c3aed */
+  --color-d1-light-raw: 258 90% 66%;
+  --color-d1-light: hsl(var(--color-d1-light-raw));
+  /* #8b5cf6 */
+  --color-d1-gradient: linear-gradient(135deg, hsl(var(--color-d1-raw)) 0%, hsl(var(--color-d1-light-raw)) 100%);
+
+  --color-d2-raw: 243 75% 59%;
+  --color-d2: hsl(var(--color-d2-raw));
+  /* #4f46e5 */
+  --color-d2-light-raw: 239 84% 67%;
+  --color-d2-light: hsl(var(--color-d2-light-raw));
+  /* #6366f1 */
+  --color-d2-gradient: linear-gradient(135deg, hsl(var(--color-d2-raw)) 0%, hsl(var(--color-d2-light-raw)) 100%);
+
+  --color-d3-raw: 160 84% 39%;
+  --color-d3: hsl(var(--color-d3-raw));
+  /* #10b981 */
+  --color-d3-light-raw: 158 64% 52%;
+  --color-d3-light: hsl(var(--color-d3-light-raw));
+  /* #34d399 */
+  --color-d3-gradient: linear-gradient(135deg, hsl(var(--color-d3-raw)) 0%, hsl(var(--color-d3-light-raw)) 100%);
+
+  --color-d4-raw: 38 92% 50%;
+  --color-d4: hsl(var(--color-d4-raw));
+  /* #f59e0b */
+  --color-d4-light-raw: 43 96% 56%;
+  --color-d4-light: hsl(var(--color-d4-light-raw));
+  /* #fbbf24 */
+  --color-d4-gradient: linear-gradient(135deg, hsl(var(--color-d4-raw)) 0%, hsl(var(--color-d4-light-raw)) 100%);
+
+  --color-d5-raw: 350 89% 60%;
+  --color-d5: hsl(var(--color-d5-raw));
+  /* #f43f5e */
+  --color-d5-light-raw: 351 95% 71%;
+  --color-d5-light: hsl(var(--color-d5-light-raw));
+  /* #fb7185 */
+  --color-d5-gradient: linear-gradient(135deg, hsl(var(--color-d5-raw)) 0%, hsl(var(--color-d5-light-raw)) 100%);
+
+  /* Enhanced Primary Colors */
+  --color-primary-raw: 221 83% 53%;
+  --color-primary: hsl(var(--color-primary-raw));
+  /* #2563eb */
+  --color-primary-light-raw: 217 91% 60%;
+  --color-primary-light: hsl(var(--color-primary-light-raw));
+  /* #3b82f6 */
+  --color-primary-dark-raw: 224 76% 48%;
+  --color-primary-dark: hsl(var(--color-primary-dark-raw));
+  /* #1d4ed8 */
+  --color-primary-gradient: linear-gradient(135deg, hsl(var(--color-primary-raw)) 0%, hsl(var(--color-primary-light-raw)) 50%, hsl(var(--color-primary-dark-raw)) 100%);
+  --color-primary-soft: hsl(var(--color-primary-raw)/ 0.1);
+
+  /* Success Colors */
+  --color-success-raw: 142 71% 45%;
+  --color-success: hsl(var(--color-success-raw));
+  /* #22c55e */
+  --color-success-light-raw: 134 74% 55%;
+  --color-success-light: hsl(var(--color-success-light-raw));
+  /* #4ade80 */
+  --color-success-dark-raw: 141 79% 36%;
+  --color-success-dark: hsl(var(--color-success-dark-raw));
+  /* #16a34a */
+  --color-success-gradient: linear-gradient(135deg, hsl(var(--color-success-raw)) 0%, hsl(var(--color-success-light-raw)) 100%);
+  --color-success-soft: hsl(var(--color-success-raw)/ 0.1);
+
+  /* Warning Colors */
+  --color-warning-raw: 38 92% 50%;
+  --color-warning: hsl(var(--color-warning-raw));
+  /* #f59e0b */
+  --color-warning-light-raw: 43 96% 56%;
+  --color-warning-light: hsl(var(--color-warning-light-raw));
+  /* #fbbf24 */
+  --color-warning-dark-raw: 32 95% 44%;
+  --color-warning-dark: hsl(var(--color-warning-dark-raw));
+  /* #d97706 */
+  --color-warning-gradient: linear-gradient(135deg, hsl(var(--color-warning-raw)) 0%, hsl(var(--color-warning-light-raw)) 100%);
+  --color-warning-soft: hsl(var(--color-warning-raw)/ 0.1);
+
+  /* Error Colors */
+  --color-error-raw: 0 84% 60%;
+  --color-error: hsl(var(--color-error-raw));
+  /* #ef4444 */
+  --color-error-light-raw: 0 91% 71%;
+  --color-error-light: hsl(var(--color-error-light-raw));
+  /* #f87171 */
+  --color-error-dark-raw: 0 72% 51%;
+  --color-error-dark: hsl(var(--color-error-dark-raw));
+  /* #dc2626 */
+  --color-error-gradient: linear-gradient(135deg, hsl(var(--color-error-raw)) 0%, hsl(var(--color-error-light-raw)) 100%);
+  --color-error-soft: hsl(var(--color-error-raw)/ 0.1);
+
+  /* Info Colors */
+  --color-info-raw: 199 89% 48%;
+  --color-info: hsl(var(--color-info-raw));
+  /* #0ea5e9 */
+  --color-info-light-raw: 199 92% 56%;
+  --color-info-light: hsl(var(--color-info-light-raw));
+  /* #38bdf8 */
+  --color-info-dark-raw: 200 98% 39%;
+  --color-info-dark: hsl(var(--color-info-dark-raw));
+  /* #0284c7 */
+  --color-info-gradient: linear-gradient(135deg, hsl(var(--color-info-raw)) 0%, hsl(var(--color-info-light-raw)) 100%);
+  --color-info-soft: hsl(var(--color-info-raw)/ 0.1);
+
+  /* Enhanced Gray Palette (Slate) */
+  --color-gray-50-raw: 210 40% 98%;
+  --color-gray-50: hsl(var(--color-gray-50-raw));
+  --color-gray-100-raw: 210 40% 96%;
+  --color-gray-100: hsl(var(--color-gray-100-raw));
+  --color-gray-200-raw: 214 32% 91%;
+  --color-gray-200: hsl(var(--color-gray-200-raw));
+  --color-gray-300-raw: 213 27% 84%;
+  --color-gray-300: hsl(var(--color-gray-300-raw));
+  --color-gray-400-raw: 215 16% 47%;
+  --color-gray-400: hsl(var(--color-gray-400-raw));
+  --color-gray-500-raw: 215 20% 65%;
+  --color-gray-500: hsl(var(--color-gray-500-raw));
+  --color-gray-600-raw: 214 20% 32%;
+  --color-gray-600: hsl(var(--color-gray-600-raw));
+  --color-gray-700-raw: 215 25% 27%;
+  --color-gray-700: hsl(var(--color-gray-700-raw));
+  --color-gray-800-raw: 217 33% 17%;
+  --color-gray-800: hsl(var(--color-gray-800-raw));
+  --color-gray-900-raw: 222 47% 11%;
+  --color-gray-900: hsl(var(--color-gray-900-raw));
+
+  /* Typography */
+  --font-english: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-dhivehi: 'Faruma', 'MV Waheed', sans-serif;
+  --font-size-base: clamp(14px, 1vw + 10px, 16px);
+  --font-size-dhivehi: clamp(16px, 1vw + 12px, 20px);
+  /* Slightly larger for Faruma */
+  --line-height-dhivehi: 2.2;
+  /* Faruma needs more line height */
+
+  /* Layout */
+  --sidebar-width: 280px;
+  --sidebar-collapsed: 64px;
+
+  /* Enhanced Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
+  --shadow-glow-success: 0 0 20px rgba(34, 197, 94, 0.15);
+  --shadow-glow-error: 0 0 20px rgba(239, 68, 68, 0.15);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.03);
+
+  /* Border Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-card: #ffffff;
+  --color-bg-elevated: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+}
+
+/* Local Fonts */
+@font-face {
+  font-family: 'Faruma';
+  src: url('/fonts/Faruma.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-english);
+  background-color: var(--color-gray-50);
+  color: var(--color-gray-900);
+  line-height: 1.6;
+}
+
+/* Dhivehi (RTL) Typography */
+.font-dhivehi,
+[dir="rtl"] {
+  font-family: var(--font-dhivehi);
+  font-size: var(--font-size-dhivehi);
+  line-height: var(--line-height-dhivehi);
+  direction: rtl;
+  text-align: right;
+  /* Improve font rendering for Dhivehi */
+  text-rendering: optimizeLegibility;
+}
+
+/* A4 Page for Reports */
+.report-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  margin: 0 auto;
+  background: white;
+  box-shadow: var(--shadow-xl);
+}
+
+.page-break-after {
+  page-break-after: always;
+}
+
+@media print {
+  .report-page {
+    box-shadow: none;
+    margin: 0;
+    padding: 15mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Enhanced Loading Spinner */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-gray-200);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Shimmer Loading Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+      var(--color-gray-200) 25%,
+      var(--color-gray-100) 50%,
+      var(--color-gray-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Glass Morphism Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+
+
+/* Gradient Text */
+.gradient-text {
+  background: var(--color-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button Base Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:active::before {
+  width: 200%;
+  height: 200%;
+}
+
+.btn-primary {
+  background: var(--color-primary-gradient);
+  color: white;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+}
+
+.btn-secondary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+  border: 1px solid var(--color-gray-200);
+}
+
+.btn-secondary:hover {
+  background: var(--color-gray-200);
+  border-color: var(--color-gray-300);
+}
+
+.btn-success {
+  background: var(--color-success-gradient);
+  color: white;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45);
+}
+
+.btn-danger {
+  background: var(--color-error-gradient);
+  color: white;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-gray-900);
+}
+
+.btn-ghost:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.btn-lg {
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+}
+
+/* Card Base Styles */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Form Input Styles (Intentional Minimalism) */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-gray-900);
+  background: rgba(0, 0, 0, 0.02);
+  border: none;
+  border-bottom: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: all var(--transition-fast);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  background: var(--color-bg-primary);
+  border-bottom-color: hsl(var(--color-primary-raw));
+  box-shadow: 0 4px 15px -3px hsl(var(--color-primary-raw)/ 0.15), 0 -2px 10px -2px rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-gray-900);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-gray-900);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.badge-primary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.badge-success {
+  background: var(--color-success-soft);
+  color: var(--color-success-dark);
+}
+
+.badge-warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-dark);
+}
+
+.badge-error {
+  background: var(--color-error-soft);
+  color: var(--color-error-dark);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--color-gray-200),
+      transparent);
+  margin: 1.5rem 0;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection Color */
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
