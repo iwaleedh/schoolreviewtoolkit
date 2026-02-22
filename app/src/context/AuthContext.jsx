@@ -42,11 +42,8 @@ export function AuthProvider({ children }) {
         try {
             const result = await loginMutation({ email, password });
 
-            if (result instanceof Error) {
-                throw result;
-            }
-
-            if (result && result.token && result.user) {
+            // The mutation now returns an object with { success, token, user, error }
+            if (result && result.success) {
                 // Store token and user
                 localStorage.setItem(TOKEN_KEY, result.token);
                 localStorage.setItem(USER_KEY, JSON.stringify(result.user));
@@ -56,7 +53,8 @@ export function AuthProvider({ children }) {
 
                 return { success: true };
             } else {
-                throw new Error('Invalid response from server');
+                const errorMessage = result?.error || 'Login failed. Please try again.';
+                return { success: false, error: errorMessage };
             }
         } catch (error) {
             const errorMessage = error.message || 'Login failed. Please try again.';
