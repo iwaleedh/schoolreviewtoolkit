@@ -42,37 +42,54 @@ const ACTIONS = {
 
 // Reducer for pending state management
 function pendingReducer(state, action) {
+    // Defensive check: if state is somehow lost, return initial state structure
+    if (!state) {
+        state = {
+            ltScores: {},
+            comments: {},
+            isSyncing: false,
+            lastSyncTime: null,
+            error: null,
+        };
+    }
+
     switch (action.type) {
         case ACTIONS.SET_PENDING_LT_SCORE: {
-            const { indicatorCode, ltColumn, value, source } = action.payload;
+            const { indicatorCode, ltColumn, value, source } = action.payload || {};
+            if (!indicatorCode || !ltColumn) return state;
+
             return {
                 ...state,
                 ltScores: {
-                    ...state.ltScores,
+                    ...(state.ltScores || {}),
                     [indicatorCode]: {
-                        ...state.ltScores[indicatorCode],
+                        ...(state.ltScores?.[indicatorCode] || {}),
                         [ltColumn]: { value, source, timestamp: Date.now() }
                     }
                 },
             };
         }
         case ACTIONS.SET_PENDING_COMMENT: {
-            const { indicatorCode, comment } = action.payload;
+            const { indicatorCode, comment } = action.payload || {};
+            if (!indicatorCode) return state;
+
             return {
                 ...state,
                 comments: {
-                    ...state.comments,
+                    ...(state.comments || {}),
                     [indicatorCode]: { comment, timestamp: Date.now() }
                 },
             };
         }
         case ACTIONS.CLEAR_PENDING_FOR_SOURCE: {
-            const { source } = action.payload;
-            const newLtScores = { ...state.ltScores };
+            const { source } = action.payload || {};
+            if (!source) return state;
+
+            const newLtScores = { ...(state.ltScores || {}) };
             Object.keys(newLtScores).forEach(indicatorCode => {
-                const columns = { ...newLtScores[indicatorCode] };
+                const columns = { ...(newLtScores[indicatorCode] || {}) };
                 Object.keys(columns).forEach(ltColumn => {
-                    if (columns[ltColumn].source === source) {
+                    if (columns[ltColumn]?.source === source) {
                         delete columns[ltColumn];
                     }
                 });
@@ -98,11 +115,10 @@ function pendingReducer(state, action) {
                 ...state,
                 ltScores: {},
                 comments: {},
-                indicatorScores: {},
             };
         }
         case ACTIONS.SET_SYNCING: {
-            return { ...state, isSyncing: action.payload };
+            return { ...state, isSyncing: !!action.payload };
         }
         case ACTIONS.SET_LAST_SYNC: {
             return { ...state, lastSyncTime: action.payload };
@@ -138,27 +154,39 @@ const savePendingToStorage = (pending) => {
 };
 
 // Initial state for reducer
-const createInitialState = () => ({
-    ltScores: loadPendingFromStorage(),
-    comments: (() => {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEYS.PENDING_COMMENTS);
-            return stored ? JSON.parse(stored) : {};
-        } catch {
-            return {};
+const createInitialState = () => {
+    const initialState = {
+        ltScores: {},
+        comments: {},
+        isSyncing: false,
+        lastSyncTime: null,
+        error: null,
+    };
+
+    try {
+        const storedLt = loadPendingFromStorage();
+        if (storedLt && typeof storedLt === 'object') {
+            initialState.ltScores = storedLt;
         }
-    })(),
-    isSyncing: false,
-    lastSyncTime: (() => {
-        try {
-            const stored = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
-            return stored ? new Date(stored) : null;
-        } catch {
-            return null;
+
+        const storedComments = localStorage.getItem(STORAGE_KEYS.PENDING_COMMENTS);
+        if (storedComments) {
+            const parsed = JSON.parse(storedComments);
+            if (parsed && typeof parsed === 'object') {
+                initialState.comments = parsed;
+            }
         }
-    })(),
-    error: null,
-});
+
+        const storedSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
+        if (storedSync) {
+            initialState.lastSyncTime = new Date(storedSync);
+        }
+    } catch (e) {
+        console.warn('Failed to initialize state from localStorage:', e);
+    }
+
+    return initialState;
+};
 
 export function SSEDataProvider({ children }) {
     const { user, token } = useAuth();
@@ -170,60 +198,90 @@ export function SSEDataProvider({ children }) {
     const schoolsQueryResult = useQuery(api.schools.listSchools);
     const schools = useMemo(() => schoolsQueryResult || [], [schoolsQueryResult]);
 
+    // Clear potentially corrupted old keys on mount
+    useEffect(() => {
+        try {
+            console.log('SSEDataProvider: Maintenance - checking for corrupted state');
+            // Check if state is in a crash loop by tracking reloads in session
+            const reloads = parseInt(sessionStorage.getItem('sse_reload_count') || '0', 10);
+            if (reloads > 5) {
+                console.warn('SSEDataProvider: Crash loop detected, clearing localStorage');
+                localStorage.removeItem(STORAGE_KEYS.PENDING_SCORES);
+                localStorage.removeItem(STORAGE_KEYS.PENDING_COMMENTS);
+                sessionStorage.setItem('sse_reload_count', '0');
+            } else {
+                sessionStorage.setItem('sse_reload_count', (reloads + 1).toString());
+            }
+        } catch (e) {
+            console.error('SSEDataProvider: Maintenance error:', e);
+        }
+    }, [user]);
+
     // Set default school if none is set
     useEffect(() => {
-        if (user) {
-            if (user.schoolId && !currentSchoolId) {
-                // Principal: Always use their school
-                setCurrentSchoolId(user.schoolId);
-            } else if (!currentSchoolId && schools.length > 0) {
-                // Admin/Analyst: Use first accessible school
-                if (user.role === 'ADMIN') {
-                    setCurrentSchoolId(schools[0].schoolId);
-                } else if (user.role === 'ANALYST' && user.assignedSchools?.length > 0) {
-                    const firstAssigned = schools.find(s => user.assignedSchools.includes(s.schoolId));
-                    if (firstAssigned) {
-                        setCurrentSchoolId(firstAssigned.schoolId);
+        try {
+            if (user) {
+                if (user.schoolId && !currentSchoolId) {
+                    // Principal: Always use their school
+                    setCurrentSchoolId(user.schoolId);
+                } else if (!currentSchoolId && schools && schools.length > 0) {
+                    // Admin/Analyst: Use first accessible school
+                    if (user.role === 'ADMIN') {
+                        setCurrentSchoolId(schools[0].schoolId);
+                    } else if (user.role === 'ANALYST' && user.assignedSchools?.length > 0) {
+                        const firstAssigned = schools.find(s => user.assignedSchools.includes(s.schoolId));
+                        if (firstAssigned) {
+                            setCurrentSchoolId(firstAssigned.schoolId);
+                        }
                     }
                 }
             }
+        } catch (e) {
+            console.error('SSEDataProvider: Error in default school useEffect:', e);
         }
     }, [user, currentSchoolId, schools]);
 
-    // Convex queries - real-time data from database
-    const indicatorData = useQuery(api.indicatorScores.getAll,
+    // Simplified queries - real-time data from database
+    const indicatorDataResult = useQuery(api.indicatorScores.getAll,
         currentSchoolId ? { schoolId: currentSchoolId } : "skip"
-    ) ?? { scores: {}, sources: {} };
+    );
+    const indicatorScores = useMemo(() => indicatorDataResult?.scores || {}, [indicatorDataResult]);
+    const indicatorSources = useMemo(() => indicatorDataResult?.sources || {}, [indicatorDataResult]);
 
-    const ltScoresData = useQuery(api.ltScores.getAll,
-        (currentSchoolId && token) ? { token, schoolId: currentSchoolId } : "skip"
-    ) ?? {};
-
-    const commentsData = useQuery(api.comments.getAll,
+    const ltScoresDataResult = useQuery(api.ltScores.getAll,
         currentSchoolId ? { schoolId: currentSchoolId } : "skip"
-    ) ?? {};
+    );
+    const ltScores = useMemo(() => ltScoresDataResult || {}, [ltScoresDataResult]);
+
+    const commentsDataResult = useQuery(api.comments.getAll,
+        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+    );
+    const indicatorComments = useMemo(() => commentsDataResult || {}, [commentsDataResult]);
 
     // Convex mutations
     const setIndicatorScoreMutation = useMutation(api.indicatorScores.set);
     const setMultipleScoresMutation = useMutation(api.indicatorScores.setMultiple);
     const clearIndicatorScoresMutation = useMutation(api.indicatorScores.clearAll);
-
     const setLtScoreMutation = useMutation(api.ltScores.set);
     const setMultipleLtScoresMutation = useMutation(api.ltScores.setMultiple);
     const clearLtScoresMutation = useMutation(api.ltScores.clearAll);
-
     const setCommentMutation = useMutation(api.comments.set);
     const clearCommentsMutation = useMutation(api.comments.clearAll);
 
     // Local state for checklist data (CSV data doesn't need persistence)
     const [checklistData, setChecklistData] = useState({});
 
-    // Outcome scores are calculated, not stored
-    const [outcomeScores, setOutcomeScores] = useState({});
-
     // Use reducer for pending state management
     const [pendingState, dispatch] = useReducer(pendingReducer, null, createInitialState);
-    const { ltScores: pendingLTScores, comments: pendingComments, isSyncing, lastSyncTime, error } = pendingState;
+
+    // Defensive check before destructuring
+    const {
+        ltScores: pendingLTScores = {},
+        comments: pendingComments = {},
+        isSyncing = false,
+        lastSyncTime = null,
+        error = null
+    } = pendingState || {};
 
     // Persist pending changes to localStorage whenever they change
     useEffect(() => {
@@ -238,24 +296,20 @@ export function SSEDataProvider({ children }) {
         }
     }, [pendingComments]);
 
-    // Extract scores and sources from query result
-    const indicatorScores = indicatorData.scores;
-    const indicatorSources = indicatorData.sources;
-    const ltScores = ltScoresData;
-    const indicatorComments = commentsData;
-
     // Find current school info
     const currentSchool = useMemo(() => {
-        return schools?.find(s => s.schoolId === currentSchoolId);
+        if (!schools || !currentSchoolId) return null;
+        return schools.find(s => s.schoolId === currentSchoolId) || null;
     }, [schools, currentSchoolId]);
 
     /**
      * Store checklist data from CSV for a source (local only)
      */
     const storeChecklistData = useCallback((source, data) => {
+        if (!source) return;
         setChecklistData(prev => ({
             ...prev,
-            [source]: data
+            [source]: data || []
         }));
     }, []);
 
@@ -263,7 +317,7 @@ export function SSEDataProvider({ children }) {
      * Get checklist data for a source
      */
     const getChecklistData = useCallback((source) => {
-        return checklistData[source] || [];
+        return (source && checklistData[source]) || [];
     }, [checklistData]);
 
     /**
@@ -273,10 +327,7 @@ export function SSEDataProvider({ children }) {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const validatedScore = validateScore(value);
 
-        if (!sanitizedCode) {
-            console.warn('Invalid indicator code:', indicatorCode);
-            return;
-        }
+        if (!sanitizedCode || !currentSchoolId) return;
 
         try {
             await setIndicatorScoreMutation({
@@ -296,6 +347,8 @@ export function SSEDataProvider({ children }) {
      * Set scores for multiple indicators at once
      */
     const setMultipleIndicatorScores = useCallback(async (scores, source = 'unknown') => {
+        if (!scores || !currentSchoolId) return;
+
         const scoresArray = Object.entries(scores)
             .map(([indicatorCode, value]) => {
                 const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
@@ -335,17 +388,13 @@ export function SSEDataProvider({ children }) {
         });
 
         const scoredCount = yesCount + noCount;
-
-        // If no scores entered, return NR
         if (scoredCount === 0) return 'NR';
 
-        // Calculate percentage of "yes" among scored items
         const percentage = (yesCount / scoredCount) * 100;
 
-        // Grade thresholds (SIQAAF framework)
-        if (percentage >= SCORING_THRESHOLDS.FA) return 'FA';
-        if (percentage >= SCORING_THRESHOLDS.MA) return 'MA';
-        if (percentage >= SCORING_THRESHOLDS.A) return 'A';
+        if (percentage >= SCORING_THRESHOLDS.FULLY_ACHIEVED) return 'FA';
+        if (percentage >= SCORING_THRESHOLDS.MOSTLY_ACHIEVED) return 'MA';
+        if (percentage >= SCORING_THRESHOLDS.ACHIEVED) return 'A';
         return 'NS';
     }, [indicatorScores]);
 
@@ -354,9 +403,11 @@ export function SSEDataProvider({ children }) {
      */
     const getScoresForDimension = useCallback((indicatorCodes) => {
         const scores = {};
-        indicatorCodes.forEach(code => {
-            scores[code] = indicatorScores[code] || null;
-        });
+        if (indicatorCodes) {
+            indicatorCodes.forEach(code => {
+                scores[code] = indicatorScores[code] || null;
+            });
+        }
         return scores;
     }, [indicatorScores]);
 
@@ -373,28 +424,26 @@ export function SSEDataProvider({ children }) {
     const getIndicatorStats = useCallback((indicatorCodes) => {
         let yes = 0, no = 0, nr = 0, unscored = 0;
 
-        indicatorCodes.forEach(code => {
-            const score = indicatorScores[code];
-            if (score === 'yes') yes++;
-            else if (score === 'no') no++;
-            else if (score === 'nr') nr++;
-            else unscored++;
-        });
+        if (indicatorCodes) {
+            indicatorCodes.forEach(code => {
+                const score = indicatorScores[code];
+                if (score === 'yes') yes++;
+                else if (score === 'no') no++;
+                else if (score === 'nr') nr++;
+                else unscored++;
+            });
+        }
 
-        return { yes, no, nr, unscored, total: indicatorCodes.length };
+        return { yes, no, nr, unscored, total: indicatorCodes?.length || 0 };
     }, [indicatorScores]);
 
     /**
-     * Set comment locally (offline-first with localStorage persistence)
+     * Set comment locally
      */
     const setIndicatorComment = useCallback((indicatorCode, comment) => {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const sanitizedComment = sanitizeComment(comment);
-
-        if (!sanitizedCode) {
-            console.warn('Invalid indicator code for comment:', indicatorCode);
-            return;
-        }
+        if (!sanitizedCode) return;
 
         dispatch({
             type: ACTIONS.SET_PENDING_COMMENT,
@@ -406,21 +455,18 @@ export function SSEDataProvider({ children }) {
      * Get comment - check pending first, then server data
      */
     const getIndicatorComment = useCallback((indicatorCode) => {
-        const pending = pendingComments[indicatorCode]?.comment;
-        if (pending !== undefined) {
-            return pending;
-        }
-        return indicatorComments[indicatorCode] || '';
+        const pending = pendingComments?.[indicatorCode]?.comment;
+        if (pending !== undefined) return pending;
+        return indicatorComments?.[indicatorCode] || '';
     }, [indicatorComments, pendingComments]);
 
     /**
      * Save pending comments to backend
      */
     const savePendingComments = useCallback(async () => {
-        const pending = Object.entries(pendingComments);
-        if (pending.length === 0) return { success: true, count: 0 };
-
+        if (!pendingComments || Object.keys(pendingComments).length === 0) return { success: true, count: 0 };
         try {
+            const pending = Object.entries(pendingComments);
             await Promise.all(
                 pending.map(([indicatorCode, data]) =>
                     setCommentMutation({
@@ -430,28 +476,22 @@ export function SSEDataProvider({ children }) {
                     })
                 )
             );
-
             dispatch({ type: ACTIONS.CLEAR_PENDING_COMMENTS });
             localStorage.removeItem(STORAGE_KEYS.PENDING_COMMENTS);
             return { success: true, count: pending.length };
         } catch (error) {
-            console.error('Failed to sync comments:', error);
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
-            return { success: false, error, count: pending.length };
+            return { success: false, error, count: 0 };
         }
     }, [pendingComments, setCommentMutation, currentSchoolId]);
 
     /**
-     * Set LT score locally (offline-first - doesn't sync immediately)
+     * Set LT score locally
      */
     const setIndicatorLTScore = useCallback((indicatorCode, ltColumn, value, source = 'unknown') => {
         const sanitizedCode = sanitizeIndicatorCode(indicatorCode);
         const validatedValue = validateLTScore(value);
-
-        if (!sanitizedCode) {
-            console.warn('Invalid indicator code:', indicatorCode);
-            return;
-        }
+        if (!sanitizedCode || !ltColumn) return;
 
         dispatch({
             type: ACTIONS.SET_PENDING_LT_SCORE,
@@ -463,13 +503,9 @@ export function SSEDataProvider({ children }) {
      * Get LT score - check pending (local) first, then server data
      */
     const getIndicatorLTScore = useCallback((indicatorCode, ltColumn) => {
-        // Check pending changes first (local priority)
-        const pending = pendingLTScores[indicatorCode]?.[ltColumn]?.value;
-        if (pending !== undefined) {
-            return pending;
-        }
-        // Fall back to server data
-        return ltScores[indicatorCode]?.[ltColumn] ?? null;
+        const pending = pendingLTScores?.[indicatorCode]?.[ltColumn]?.value;
+        if (pending !== undefined) return pending;
+        return ltScores?.[indicatorCode]?.[ltColumn] ?? null;
     }, [ltScores, pendingLTScores]);
 
     /**
@@ -477,16 +513,15 @@ export function SSEDataProvider({ children }) {
      */
     const getPendingLTScoresForSource = useCallback((source) => {
         const result = [];
+        if (!pendingLTScores) return result;
         Object.entries(pendingLTScores).forEach(([indicatorCode, columns]) => {
-            Object.entries(columns).forEach(([ltColumn, data]) => {
-                if (data.source === source) {
-                    result.push({
-                        indicatorCode,
-                        ltColumn,
-                        value: data.value,
-                    });
-                }
-            });
+            if (columns) {
+                Object.entries(columns).forEach(([ltUser, data]) => {
+                    if (data?.source === source) {
+                        result.push({ indicatorCode, ltColumn: ltUser, value: data.value });
+                    }
+                });
+            }
         });
         return result;
     }, [pendingLTScores]);
@@ -495,25 +530,40 @@ export function SSEDataProvider({ children }) {
      * Check if there are pending changes for a source
      */
     const hasPendingChanges = useCallback((source) => {
+        if (!pendingLTScores) return false;
         return Object.values(pendingLTScores).some(columns =>
-            Object.values(columns).some(data => data.source === source)
+            columns && Object.values(columns).some(data => data?.source === source)
         );
     }, [pendingLTScores]);
 
     /**
-     * Save all pending LT scores to backend (batch sync)
+     * Get the count of pending LT scores for a given source
+     */
+    const getPendingCount = useCallback((source) => {
+        if (!pendingLTScores) return 0;
+        let count = 0;
+        Object.values(pendingLTScores).forEach(columns => {
+            if (columns) {
+                Object.values(columns).forEach(data => {
+                    if (data?.source === source) count++;
+                });
+            }
+        });
+        return count;
+    }, [pendingLTScores]);
+
+    /**
+     * Save all pending LT scores to backend
      */
     const savePendingLTScores = useCallback(async (source) => {
         const pending = getPendingLTScoresForSource(source);
-        if (pending.length === 0 && Object.keys(pendingComments).length === 0) {
-            return { success: true, count: 0 };
-        }
+        const commentsPending = pendingComments && Object.keys(pendingComments).length > 0;
+
+        if (pending.length === 0 && !commentsPending) return { success: true, count: 0 };
 
         dispatch({ type: ACTIONS.SET_SYNCING, payload: true });
         try {
-            // Save LT scores
             if (pending.length > 0) {
-                // Use batch mutation if available, otherwise fall back to individual calls
                 if (setMultipleLtScoresMutation) {
                     await setMultipleLtScoresMutation({
                         token,
@@ -522,7 +572,6 @@ export function SSEDataProvider({ children }) {
                         schoolId: currentSchoolId,
                     });
                 } else {
-                    // Fallback: save individually
                     await Promise.all(
                         pending.map(({ indicatorCode, ltColumn, value }) =>
                             setLtScoreMutation({
@@ -538,24 +587,17 @@ export function SSEDataProvider({ children }) {
                 }
             }
 
-            // Also save pending comments
-            if (Object.keys(pendingComments).length > 0) {
-                await savePendingComments();
-            }
+            if (commentsPending) await savePendingComments();
 
-            // Clear pending scores for this source
             dispatch({ type: ACTIONS.CLEAR_PENDING_FOR_SOURCE, payload: { source } });
-
             const now = new Date();
             dispatch({ type: ACTIONS.SET_LAST_SYNC, payload: now });
             localStorage.setItem(STORAGE_KEYS.LAST_SYNC, now.toISOString());
             dispatch({ type: ACTIONS.CLEAR_ERROR });
-
             return { success: true, count: pending.length };
         } catch (err) {
-            console.error('Failed to sync LT scores:', err);
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
-            return { success: false, error: err, count: pending.length };
+            return { success: false, error: err, count: 0 };
         } finally {
             dispatch({ type: ACTIONS.SET_SYNCING, payload: false });
         }
@@ -569,43 +611,31 @@ export function SSEDataProvider({ children }) {
     }, []);
 
     /**
-     * Get pending comments count
-     */
-    const getPendingCount = useCallback((source) => {
-        return getPendingLTScoresForSource(source).length;
-    }, [getPendingLTScoresForSource]);
-
-    /**
      * Clear all scores (reset)
      */
     const clearAllScores = useCallback(async () => {
+        if (!currentSchoolId) return;
         try {
             await Promise.all([
                 clearIndicatorScoresMutation({ schoolId: currentSchoolId }),
                 clearLtScoresMutation({ token, schoolId: currentSchoolId }),
                 clearCommentsMutation({ schoolId: currentSchoolId }),
             ]);
-            setOutcomeScores({});
             dispatch({ type: ACTIONS.CLEAR_ALL_PENDING });
             localStorage.removeItem(STORAGE_KEYS.PENDING_SCORES);
             localStorage.removeItem(STORAGE_KEYS.PENDING_COMMENTS);
         } catch (err) {
-            console.error('Failed to clear all scores:', err);
             dispatch({ type: ACTIONS.SET_ERROR, payload: ERROR_MESSAGES.SYNC_FAILED });
             throw err;
         }
     }, [clearIndicatorScoresMutation, clearLtScoresMutation, clearCommentsMutation, currentSchoolId, token]);
 
     const value = useMemo(() => ({
-        // State
         indicatorScores,
-        outcomeScores,
         indicatorSources,
         indicatorComments,
         ltScores,
         allData: checklistData,
-
-        // Offline-first state
         pendingLTScores,
         pendingComments,
         isSyncing,
@@ -614,8 +644,6 @@ export function SSEDataProvider({ children }) {
         currentSchoolId,
         schools,
         currentSchool,
-
-        // Actions
         setCurrentSchoolId,
         setIndicatorScore,
         setMultipleIndicatorScores,
@@ -638,7 +666,6 @@ export function SSEDataProvider({ children }) {
         getChecklistData,
     }), [
         indicatorScores,
-        outcomeScores,
         indicatorSources,
         indicatorComments,
         ltScores,
@@ -649,6 +676,8 @@ export function SSEDataProvider({ children }) {
         lastSyncTime,
         error,
         currentSchoolId,
+        schools,
+        currentSchool,
         setCurrentSchoolId,
         setIndicatorScore,
         setMultipleIndicatorScores,
@@ -666,8 +695,6 @@ export function SSEDataProvider({ children }) {
         getPendingCount,
         discardPendingLTScores,
         getPendingLTScoresForSource,
-        schools,
-        currentSchool,
         clearAllScores,
         storeChecklistData,
         getChecklistData,

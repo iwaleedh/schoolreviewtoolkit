@@ -33,7 +33,7 @@ function TeacherSurvey() {
     );
 
     const teacherSurveyEnabled = useQuery(api.teacherSurvey.getSetting,
-        schoolId ? { key: "teacherSurveyEnabled", schoolId } : { key: "teacherSurveyEnabled" }
+        { key: "teacherSurveyEnabled" }
     );
     const submitSurvey = useMutation(api.teacherSurvey.submitOnlineSurvey);
     const createTeacherMutation = useMutation(api.teacherSurvey.createTeacher);

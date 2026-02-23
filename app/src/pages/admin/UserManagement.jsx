@@ -9,7 +9,7 @@ function UserManagement() {
     const { user: currentUser, token } = useAuth();
 
     // Fetch users
-    const users = useQuery(api.users.listUsers, token ? { token } : "skip");
+    const users = useQuery(api.users.listUsers);
 
     // Mutations
     const registerUser = useMutation(api.auth.register);
