@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import { useSSEData } from '../context/SSEDataContext';
-import { 
-    calculateIndicatorScore, 
-    calculateOutcomeScore, 
-    calculateSubstrandDistribution 
+import {
+    calculateIndicatorScore,
+    calculateOutcomeScore,
+    calculateSubstrandDistribution
 } from '../utils/backendScoring';
 
 /**
@@ -18,8 +18,8 @@ export function useDimensionData(dimension) {
     const [rawData, setRawData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
-    const { indicatorScores, indicatorSources, ltScores, pendingLTScores } = useSSEData();
+
+    const { indicatorScores, indicatorSources, ltScores } = useSSEData();
 
     // Load CSV file
     useEffect(() => {
@@ -36,13 +36,13 @@ export function useDimensionData(dimension) {
                 const basePath = import.meta.env.BASE_URL || '/';
                 const fileName = `${dimension}.csv`;
                 const response = await fetch(`${basePath}Checklist/${fileName}`);
-                
+
                 if (!response.ok) {
                     throw new Error(`Failed to load ${fileName}: ${response.status}`);
                 }
 
                 const csvText = await response.text();
-                
+
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
@@ -97,8 +97,8 @@ export function useDimensionData(dimension) {
             if (!indicatorCode) return;
 
             // Get all data points for this indicator from SSEDataContext
-            const dataPoints = collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorScores, indicatorSources);
-            
+            const dataPoints = collectDataPoints(indicatorCode, ltScores, indicatorScores, indicatorSources);
+
             // Calculate indicator score
             const indicatorResult = calculateIndicatorScore(dataPoints);
 
@@ -157,11 +157,11 @@ export function useDimensionData(dimension) {
 
             strand.substrands.forEach((substrand) => {
                 const outcomesArray = [];
-                
+
                 substrand.outcomes.forEach((outcome) => {
                     // Calculate outcome score from indicators
                     const outcomeResult = calculateOutcomeScore(outcome.indicators);
-                    
+
                     outcomesArray.push({
                         id: outcome.id,
                         title: outcome.title,
@@ -180,12 +180,12 @@ export function useDimensionData(dimension) {
                     outcomes: outcomesArray,
                     distribution,
                 });
-                
+
                 // Add outcomes to strand-level collection
                 if (!strandObj.allOutcomes) strandObj.allOutcomes = [];
                 strandObj.allOutcomes.push(...outcomesArray);
             });
-            
+
             // Calculate strand-level distribution
             strandObj.distribution = calculateSubstrandDistribution(strandObj.allOutcomes || []);
 
@@ -193,7 +193,7 @@ export function useDimensionData(dimension) {
         });
 
         return result;
-    }, [rawData, ltScores, pendingLTScores, indicatorScores, indicatorSources]);
+    }, [rawData, ltScores, indicatorScores, indicatorSources]);
 
     return { data: rawData, loading, error, hierarchy };
 }
@@ -201,18 +201,12 @@ export function useDimensionData(dimension) {
 /**
  * Collect all data points for an indicator from multiple sources
  */
-function collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorScores, indicatorSources) {
+function collectDataPoints(indicatorCode, ltScores, indicatorScores, indicatorSources) {
     const dataPoints = [];
 
     const ltColumns = ['LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'LT7', 'LT8', 'LT9', 'LT10'];
-    
+
     ltColumns.forEach(column => {
-        const pendingValue = pendingLTScores?.[indicatorCode]?.[column]?.value;
-        if (pendingValue !== undefined && pendingValue !== null && pendingValue !== '') {
-            dataPoints.push({ source: column, value: normalizeLTValue(pendingValue) });
-            return;
-        }
-        
         const serverValue = ltScores?.[indicatorCode]?.[column];
         if (serverValue !== undefined && serverValue !== null && serverValue !== '') {
             dataPoints.push({ source: column, value: normalizeLTValue(serverValue) });
@@ -222,9 +216,9 @@ function collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorSc
     const indicatorValue = indicatorScores?.[indicatorCode];
     if (indicatorValue !== undefined && indicatorValue !== null) {
         const sourceName = indicatorSources?.[indicatorCode] || 'Checklist';
-        dataPoints.push({ 
-            source: sourceName, 
-            value: normalizeIndicatorValue(indicatorValue) 
+        dataPoints.push({
+            source: sourceName,
+            value: normalizeIndicatorValue(indicatorValue)
         });
     }
 

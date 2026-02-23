@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SSEDataProvider } from './context/SSEDataContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import SSEToolkit from './pages/SSEToolkit';
@@ -17,9 +17,18 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import UserManagement from './pages/admin/UserManagement';
 import SchoolManagement from './pages/admin/SchoolManagement';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
+
+function IndexRedirect() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
 
 function App() {
   return (
@@ -33,8 +42,8 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Home redirects to login */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              {/* Home redirects intelligently based on role */}
+              <Route path="/" element={<IndexRedirect />} />
 
               {/* Protected routes - require authentication */}
               <Route element={<ProtectedRoute />}>
@@ -58,6 +67,7 @@ function App() {
               {/* Admin Management routes */}
               <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route element={<MainLayout />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<UserManagement />} />
                   <Route path="/admin/schools" element={<SchoolManagement />} />
                 </Route>

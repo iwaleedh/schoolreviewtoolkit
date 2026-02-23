@@ -140,12 +140,6 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
         setIndicatorLTScore,
         setIndicatorComment,
         getIndicatorComment,
-        savePendingLTScores,
-        hasPendingChanges,
-        getPendingCount,
-        isSyncing,
-        lastSyncTime,
-        pendingComments,
     } = useSSEData();
     const [data, setData] = useState([]);
     const [groupedData, setGroupedData] = useState([]);
@@ -155,7 +149,6 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [ltGroups, setLtGroups] = useState(MAX_LT_GROUPS);
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [saveStatus, setSaveStatus] = useState(null); // null, 'success', 'error'
     const [columnConfig, setColumnConfig] = useState({
         colsPerGroup: 5,
         groupPrefix: 'LT',
@@ -190,23 +183,7 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
         };
     }, []);
 
-    // Clear save status after 3 seconds
-    useEffect(() => {
-        if (saveStatus) {
-            const timer = setTimeout(() => setSaveStatus(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [saveStatus]);
 
-    // Save all pending changes to backend
-    const handleSaveAll = async () => {
-        const result = await savePendingLTScores(source);
-        if (result.success) {
-            setSaveStatus('success');
-        } else {
-            setSaveStatus('error');
-        }
-    };
 
     // Parse CSV data
     useEffect(() => {
@@ -405,11 +382,6 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
         return { percentage, yes, no, nrExplicit, pending: total - completed };
     }, [data, getLPScore, ltGroups, columnConfig]);
 
-    // Count pending scores and comments
-    const pendingScoresCount = getPendingCount(source);
-    const pendingCommentsCount = Object.keys(pendingComments).length;
-    const totalPendingCount = pendingScoresCount + pendingCommentsCount;
-    const hasChanges = hasPendingChanges(source) || pendingCommentsCount > 0;
 
     // Filter available LT groups based on selection
     const visibleLTGroups = useMemo(() => {
@@ -476,43 +448,13 @@ export default function LessonPlanChecklist({ csvFileName, title, titleDv, sourc
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
 
-                {/* Save Status & Button */}
+                {/* Real-time Status */}
                 <div className="lt-header-actions">
                     {/* Online/Offline Status */}
                     <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
                         {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
-                        <span>{isOnline ? 'Online' : 'Offline'}</span>
+                        <span>{isOnline ? 'Online (Auto-Saving)' : 'Offline (Changes will not be saved)'}</span>
                     </div>
-
-                    {/* Pending Changes Badge */}
-                    {hasChanges && (
-                        <div className="pending-badge">
-                            <span>{totalPendingCount} unsaved</span>
-                        </div>
-                    )}
-
-                    {/* Last Sync Time */}
-                    {lastSyncTime && (
-                        <div className="last-sync">
-                            <span>Last saved: {new Date(lastSyncTime).toLocaleTimeString()}</span>
-                        </div>
-                    )}
-
-                    {/* Save Button */}
-                    <button
-                        className={`save-all-btn ${saveStatus === 'success' ? 'success' : ''} ${saveStatus === 'error' ? 'error' : ''}`}
-                        onClick={handleSaveAll}
-                        disabled={isSyncing || !hasChanges}
-                        title={!isOnline ? 'You are offline. Changes will sync when you come back online.' : 'Save all changes'}
-                    >
-                        {isSyncing ? (
-                            <><RotateCcw size={16} className="spin" /> Saving...</>
-                        ) : saveStatus === 'success' ? (
-                            <><Save size={16} /> Saved!</>
-                        ) : (
-                            <><Save size={16} /> Save{hasChanges ? ` (${totalPendingCount})` : ''}</>
-                        )}
-                    </button>
                 </div>
             </div>
 

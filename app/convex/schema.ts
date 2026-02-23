@@ -177,4 +177,13 @@ export default defineSchema({
     })
         .index("by_schoolId", ["schoolId"])
         .index("by_atoll", ["atoll"]),
+
+    // School Profiles (Comprehensive Data)
+    schoolProfiles: defineTable({
+        schoolId: v.string(), // "SCH-001"
+        data: v.any(), // Flexible schema to accommodate all 200+ profile fields
+        lastUpdatedBy: v.optional(v.string()), // email or user ID
+        lastUpdatedAt: v.optional(v.number()),
+    })
+        .index("by_schoolId", ["schoolId"]),
 });

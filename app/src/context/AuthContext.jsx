@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
                 setToken(result.token);
                 setUser(result.user);
 
-                return { success: true };
+                return { success: true, user: result.user };
             } else {
                 const errorMessage = result?.error || 'Login failed. Please try again.';
                 return { success: false, error: errorMessage };

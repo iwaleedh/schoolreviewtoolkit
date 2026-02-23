@@ -28,3 +28,4 @@ convex/_generated
 
 # Local Netlify folder
 .netlify
+.vercel

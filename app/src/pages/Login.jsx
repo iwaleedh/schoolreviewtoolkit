@@ -15,7 +15,11 @@ function Login() {
     const navigate = useNavigate();
 
     // Redirect if already authenticated
+    const userRole = useAuth().user?.role;
     if (isAuthenticated && !isLoading) {
+        if (userRole === 'ADMIN') {
+            return <Navigate to="/admin" replace />;
+        }
         return <Navigate to="/dashboard" replace />;
     }
 
@@ -33,7 +37,11 @@ function Login() {
         const result = await login(email.trim(), password);
 
         if (result.success) {
-            navigate('/dashboard');
+            if (result.user?.role === 'ADMIN') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
         } else {
             setError(result.error || 'Login failed. Please try again.');
         }

@@ -1,0 +1,472 @@
+.admin-dashboard {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    color: var(--text-color);
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-header {
+    margin-bottom: 2.5rem;
+}
+
+.admin-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.admin-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* Metrics Grid */
+.admin-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.metric-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
+}
+
+.metric-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.metric-icon-wrapper.blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.metric-icon-wrapper.amber {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.metric-icon-wrapper.green {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.metric-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-value {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-color);
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* Split Layout */
+.admin-content-split {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+/* Schools Section */
+.schools-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: 280px;
+    transition: border-color 0.2s ease;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.search-icon {
+    color: var(--text-muted);
+    margin-right: 0.75rem;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    outline: none;
+}
+
+/* System Progress Visualization */
+.admin-system-progress {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.progress-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.export-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.progress-bar-container {
+    height: 24px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    display: flex;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-segment {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-segment.completed {
+    background: #10b981;
+}
+
+.progress-segment.active {
+    background: #3b82f6;
+}
+
+.progress-segment.default {
+    background: var(--border-color);
+}
+
+.progress-legend {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.legend-item .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.completed {
+    background: #10b981;
+}
+
+.dot.active {
+    background: #3b82f6;
+}
+
+.dot.default {
+    background: var(--border-color);
+}
+
+/* Filters */
+.filters-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: 200px;
+    transition: border-color 0.2s ease;
+}
+
+.filter-box:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.filter-icon {
+    color: var(--text-muted);
+    margin-right: 0.75rem;
+}
+
+.filter-box select {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.875rem;
+    color: var(--text-color);
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+/* Grid */
+.schools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+.school-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.school-card:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-surface-hover, rgba(59, 130, 246, 0.02));
+}
+
+.school-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.school-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.school-identity h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.school-id-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    border-radius: 4px;
+}
+
+.school-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+}
+
+.school-location {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.action-icon {
+    color: var(--text-muted);
+    transition: color 0.2s, transform 0.2s;
+}
+
+.school-card:hover .action-icon {
+    color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+/* Attention Sidebar */
+.attention-sidebar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.attention-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.attention-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.attention-icon {
+    color: #ef4444;
+    /* red-500 */
+}
+
+.attention-desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.attention-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.attention-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.attention-rank {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.attention-item h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-color);
+}
+
+.attention-issue {
+    font-size: 0.8125rem;
+    color: #ef4444;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+}
+
+@keyframes fadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .admin-content-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}

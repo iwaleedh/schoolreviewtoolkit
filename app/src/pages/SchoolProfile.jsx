@@ -4,7 +4,10 @@
  * Comprehensive school information form with 16 sections in tab format
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { useAuth } from '../context/AuthContext';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
     Building,
@@ -20,8 +23,8 @@ import {
     Heart,
     Shield,
     Wifi,
+    WifiOff,
     Monitor,
-    Save,
     ChevronDown,
     ChevronUp,
     CheckCircle,
@@ -452,6 +455,21 @@ const initialFormData = {
 // Removed hardcoded SCHOOL_ID
 
 // ==========================================
+// Custom Debounce Hook
+// ==========================================
+function useDebouncedCallback(callback, delay) {
+    const timeoutRef = useRef(null);
+    return useCallback((...args) => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => {
+            callback(...args);
+        }, delay);
+    }, [callback, delay]);
+}
+
+// ==========================================
 // Virtualized Staff List Component
 // ==========================================
 const VirtualStaffList = ({ staffList, handleStaffChange, handleRemoveStaff, parentRef }) => {
@@ -525,61 +543,134 @@ const VirtualStaffList = ({ staffList, handleStaffChange, handleRemoveStaff, par
 
 function SchoolProfile() {
     const { currentSchoolId, currentSchool } = useSSEData();
+    const { user } = useAuth();
     const [formData, setFormData] = useState(initialFormData);
     const [activeTab, setActiveTab] = useState('basic');
     const contentRef = useRef(null);
-    const staffListParentRef = useRef(null); // Ref for the scrollable container of the staff list
-    const [savedSections, setSavedSections] = useState([]);
+    const staffListParentRef = useRef(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [lastSyncTime, setLastSyncTime] = useState(null);
+
+    // Convex Real-Time Data
+    const profileData = useQuery(api.schoolProfile.getBySchool,
+        currentSchoolId ? { schoolId: currentSchoolId } : "skip"
+    );
+    const updateProfileMutation = useMutation(api.schoolProfile.updateFields);
+
+    // Track pending updates to batch them
+    const pendingUpdates = useRef({});
+    // Track if we've done the initial load from Convex
+    const hasLoadedRef = useRef(false);
+
+    // Monitor online/offline status
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // Load initial data from Convex
+    useEffect(() => {
+        if (profileData && profileData.data && !hasLoadedRef.current) {
+            setFormData(prev => ({
+                ...prev,
+                ...profileData.data
+            }));
+            hasLoadedRef.current = true;
+            if (profileData.lastUpdatedAt) {
+                setLastSyncTime(profileData.lastUpdatedAt);
+            }
+        }
+    }, [profileData]);
+
+    // Reset loaded ref when school changes
+    useEffect(() => {
+        hasLoadedRef.current = false;
+        setFormData(initialFormData); // Clear form while loading
+    }, [currentSchoolId]);
+
+    // Perform the actual save to Convex
+    const performSave = useCallback(async () => {
+        if (!currentSchoolId || !user?.email || Object.keys(pendingUpdates.current).length === 0) return;
+
+        setIsSaving(true);
+        const updatesToSave = { ...pendingUpdates.current };
+        pendingUpdates.current = {}; // clear immediately so new edits are caught
+
+        try {
+            await updateProfileMutation({
+                schoolId: currentSchoolId,
+                updates: updatesToSave,
+                updatedBy: user.email,
+            });
+            setLastSyncTime(Date.now());
+        } catch (err) {
+            console.error("Failed to save profile:", err);
+            // Re-merge failed updates back into pending
+            pendingUpdates.current = { ...updatesToSave, ...pendingUpdates.current };
+        } finally {
+            setIsSaving(false);
+        }
+    }, [currentSchoolId, user, updateProfileMutation]);
+
+    const debouncedSave = useDebouncedCallback(performSave, 1500);
+
+    // Centralized updater for form data
+    const updateFormData = (changes) => {
+        if (!changes || Object.keys(changes).length === 0) return;
+        setFormData(prev => ({ ...prev, ...changes }));
+        Object.assign(pendingUpdates.current, changes);
+        debouncedSave();
+    };
 
     const handleInputChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        updateFormData({ [field]: value });
     };
 
     const handleStatusCycle = (field) => {
-        setFormData(prev => {
-            const current = prev[field];
-            let nextVal;
-            // Cycle: true (Green/Yes) -> false (Red/No) -> 'nr' (Grey/NR) -> true
-            if (current === true) nextVal = false;
-            else if (current === false) nextVal = 'nr';
-            else nextVal = true; // includes 'nr', null, undefined
+        const current = formData[field];
+        let nextVal;
+        // Cycle: true (Green/Yes) -> false (Red/No) -> 'nr' (Grey/NR) -> true
+        if (current === true) nextVal = false;
+        else if (current === false) nextVal = 'nr';
+        else nextVal = true; // includes 'nr', null, undefined
 
-            return { ...prev, [field]: nextVal };
-        });
+        updateFormData({ [field]: nextVal });
     };
 
     const handleAddStaff = () => {
-        setFormData(prev => ({
-            ...prev,
-            sp_mgmt_staffList: [...(prev.sp_mgmt_staffList || []), {
-                id: Date.now(),
-                name: '',
-                designation: '',
-                qualification: '',
-                currentPostDuration: '',
-                teacherDuration: '',
-                educationDuration: '',
-                certificate: '',
-                mobile: ''
-            }]
-        }));
+        const newStaffList = [...(formData.sp_mgmt_staffList || []), {
+            id: Date.now(),
+            name: '',
+            designation: '',
+            qualification: '',
+            currentPostDuration: '',
+            teacherDuration: '',
+            educationDuration: '',
+            certificate: '',
+            mobile: ''
+        }];
+        updateFormData({ sp_mgmt_staffList: newStaffList });
     };
 
     const handleRemoveStaff = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            sp_mgmt_staffList: (prev.sp_mgmt_staffList || []).filter((_, i) => i !== index)
-        }));
+        const newStaffList = (formData.sp_mgmt_staffList || []).filter((_, i) => i !== index);
+        updateFormData({ sp_mgmt_staffList: newStaffList });
     };
 
     const handleStaffChange = (index, field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            sp_mgmt_staffList: (prev.sp_mgmt_staffList || []).map((staff, i) =>
-                i === index ? { ...staff, [field]: value } : staff
-            )
-        }));
+        const newStaffList = (formData.sp_mgmt_staffList || []).map((staff, i) =>
+            i === index ? { ...staff, [field]: value } : staff
+        );
+        updateFormData({ sp_mgmt_staffList: newStaffList });
     };
 
     const handleTabClick = (tabId) => {
@@ -588,24 +679,6 @@ function SchoolProfile() {
         setTimeout(() => {
             contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 50);
-    };
-
-    const handleSaveSection = () => {
-        setIsSaving(true);
-        setTimeout(() => {
-            setSavedSections(prev =>
-                prev.includes(activeTab) ? prev : [...prev, activeTab]
-            );
-            setIsSaving(false);
-        }, 500);
-    };
-
-    const handleSaveAll = () => {
-        setIsSaving(true);
-        setTimeout(() => {
-            setSavedSections(allSections.map(s => s.id));
-            setIsSaving(false);
-        }, 1000);
     };
 
     // Get current tab info
@@ -880,8 +953,13 @@ function SchoolProfile() {
                     : '';
             }
         }
-
-        setFormData(updatedData);
+        const changes = {};
+        for (const key in updatedData) {
+            if (updatedData[key] !== formData[key]) {
+                changes[key] = updatedData[key];
+            }
+        }
+        updateFormData(changes);
     };
 
     const renderMatrixInput = (field, isReadOnly = false, className = '') => (
@@ -2806,37 +2884,25 @@ function SchoolProfile() {
                     <span className="title-dv font-dhivehi" dir="rtl">{currentSchool?.nameDv || "ސްކޫލް ޕްރޮފައިލް"}</span>
                 </div>
                 <div className="header-actions">
-                    <div className="progress-indicator">
-                        <span className="progress-count">{savedSections.length}/{allSections.length}</span>
-                        <span className="progress-label">Saved</span>
+                    <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
+                        {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        <span>{isOnline ? (isSaving ? 'Saving...' : 'Online (Auto-Saving)') : 'Offline (Changes will not be saved)'}</span>
                     </div>
-                    <button
-                        className="save-all-btn"
-                        onClick={handleSaveAll}
-                        disabled={isSaving}
-                    >
-                        <Save size={18} />
-                        {isSaving ? 'Saving...' : 'Save All'}
-                    </button>
                 </div>
             </header>
 
             {/* Primary Navigation Tabs */}
             <div className="tab-row-container">
                 <div className="tab-row primary-tabs">
-                    {primaryTabs.map(tab => {
-                        const isSaved = savedSections.includes(tab.id);
-                        return (
-                            <button
-                                key={tab.id}
-                                className={`tab-btn ${activeTab === tab.id ? 'active' : ''} ${isSaved ? 'saved' : ''}`}
-                                onClick={() => handleTabClick(tab.id)}
-                            >
-                                <span className="tab-label font-dhivehi" dir="rtl">{tab.labelDv}</span>
-                                {isSaved && <CheckCircle size={14} className="tab-saved-icon" />}
-                            </button>
-                        );
-                    })}
+                    {primaryTabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                            onClick={() => handleTabClick(tab.id)}
+                        >
+                            <span className="tab-label font-dhivehi" dir="rtl">{tab.labelDv}</span>
+                        </button>
+                    ))}
                 </div>
 
                 {/* Secondary Tabs Row */}
@@ -2861,20 +2927,9 @@ function SchoolProfile() {
                         )}
                     </div>
                     <div className="content-actions">
-                        {savedSections.includes(activeTab) && (
-                            <span className="saved-badge">
-                                <CheckCircle size={16} />
-                                Saved
-                            </span>
-                        )}
-                        <button
-                            className="save-section-btn"
-                            onClick={handleSaveSection}
-                            disabled={isSaving}
-                        >
-                            <Save size={16} />
-                            {isSaving ? 'Saving...' : 'Save Section'}
-                        </button>
+                        <div className="sync-status text-sm text-gray-500 italic">
+                            {isSaving ? 'Saving changes...' : (lastSyncTime ? `Last saved: ${new Date(lastSyncTime).toLocaleTimeString()}` : '')}
+                        </div>
                     </div>
                 </div>
 

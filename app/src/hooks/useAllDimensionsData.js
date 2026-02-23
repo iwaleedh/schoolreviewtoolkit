@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import { useSSEData } from '../context/SSEDataContext';
-import { 
-    calculateIndicatorScore, 
-    calculateOutcomeScore, 
-    calculateSubstrandDistribution 
+import {
+    calculateIndicatorScore,
+    calculateOutcomeScore,
+    calculateSubstrandDistribution
 } from '../utils/backendScoring';
 import { getGradeFromPercentage } from '../utils/constants';
 
@@ -20,8 +20,8 @@ export function useAllDimensionsData() {
     const [rawData, setRawData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
-    const { indicatorScores, indicatorSources, ltScores, pendingLTScores } = useSSEData();
+
+    const { indicatorScores, indicatorSources, ltScores } = useSSEData();
 
     useEffect(() => {
         const loadAllDimensions = async () => {
@@ -33,14 +33,14 @@ export function useAllDimensionsData() {
                 const loadPromises = DIMENSION_IDS.map(async (dimId) => {
                     const fileName = `${dimId}.csv`;
                     const response = await fetch(`${basePath}Checklist/${fileName}`);
-                    
+
                     if (!response.ok) {
                         console.warn(`Failed to load ${fileName}: ${response.status}`);
                         return { dimId, data: [] };
                     }
 
                     const csvText = await response.text();
-                    
+
                     return new Promise((resolve) => {
                         Papa.parse(csvText, {
                             header: true,
@@ -81,7 +81,7 @@ export function useAllDimensionsData() {
 
         DIMENSION_IDS.forEach((dimId) => {
             const dimensionRawData = rawData[dimId] || [];
-            
+
             if (dimensionRawData.length === 0) {
                 result[dimId] = {
                     score: 0,
@@ -115,7 +115,7 @@ export function useAllDimensionsData() {
                 if (!indicatorCode) return;
                 totalIndicatorCount++;
 
-                const dataPoints = collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorScores, indicatorSources);
+                const dataPoints = collectDataPoints(indicatorCode, ltScores, indicatorScores, indicatorSources);
                 const indicatorResult = calculateIndicatorScore(dataPoints);
 
                 if (!strandMap.has(strandKey)) {
@@ -145,7 +145,7 @@ export function useAllDimensionsData() {
             const strandsArray = [];
             strandMap.forEach((strand) => {
                 const outcomesArray = [];
-                
+
                 strand.outcomes.forEach((outcome) => {
                     const outcomeResult = calculateOutcomeScore(outcome.indicators);
                     outcomesArray.push({
@@ -179,22 +179,16 @@ export function useAllDimensionsData() {
         });
 
         return result;
-    }, [rawData, ltScores, pendingLTScores, indicatorScores, indicatorSources]);
+    }, [rawData, ltScores, indicatorScores, indicatorSources]);
 
     return { dimensions, loading, error };
 }
 
-function collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorScores, indicatorSources) {
+function collectDataPoints(indicatorCode, ltScores, indicatorScores, indicatorSources) {
     const dataPoints = [];
     const ltColumns = ['LT1', 'LT2', 'LT3', 'LT4', 'LT5', 'LT6', 'LT7', 'LT8', 'LT9', 'LT10'];
-    
+
     ltColumns.forEach(column => {
-        const pendingValue = pendingLTScores?.[indicatorCode]?.[column]?.value;
-        if (pendingValue !== undefined && pendingValue !== null && pendingValue !== '') {
-            dataPoints.push({ source: column, value: normalizeLTValue(pendingValue) });
-            return;
-        }
-        
         const serverValue = ltScores?.[indicatorCode]?.[column];
         if (serverValue !== undefined && serverValue !== null && serverValue !== '') {
             dataPoints.push({ source: column, value: normalizeLTValue(serverValue) });
@@ -204,9 +198,9 @@ function collectDataPoints(indicatorCode, ltScores, pendingLTScores, indicatorSc
     const indicatorValue = indicatorScores?.[indicatorCode];
     if (indicatorValue !== undefined && indicatorValue !== null) {
         const sourceName = indicatorSources?.[indicatorCode] || 'Checklist';
-        dataPoints.push({ 
-            source: sourceName, 
-            value: normalizeIndicatorValue(indicatorValue) 
+        dataPoints.push({
+            source: sourceName,
+            value: normalizeIndicatorValue(indicatorValue)
         });
     }
 
@@ -233,7 +227,7 @@ function normalizeIndicatorValue(value) {
 
 function calculateDimensionScoreFromOutcomes(outcomes) {
     const validOutcomes = outcomes.filter(o => o.score !== undefined);
-    
+
     if (validOutcomes.length === 0) {
         return { percentage: 0, grade: 'NR' };
     }

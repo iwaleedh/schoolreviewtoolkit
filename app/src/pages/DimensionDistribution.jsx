@@ -13,7 +13,7 @@ function DimensionDistribution() {
     const { dimensionId } = useParams();
     const navigate = useNavigate();
     const { hierarchy, loading, error } = useDimensionData(dimensionId);
-    const { indicatorScores, ltScores, pendingLTScores } = useSSEData();
+    const { indicatorScores, ltScores } = useSSEData();
 
     const dimensionInfo = DIMENSIONS.find(d => d.id === dimensionId);
 
@@ -45,24 +45,8 @@ function DimensionDistribution() {
             });
         }
 
-        // From pendingLTScores
-        if (pendingLTScores) {
-            Object.entries(pendingLTScores).forEach(([code, columns]) => {
-                Object.values(columns).forEach((data) => {
-                    if (data?.value !== undefined && data?.value !== null) {
-                        const val = data.value;
-                        if (val === 'yes' || val === 1 || val === '1') {
-                            scores[code] = 1;
-                        } else if (val === 'no' || val === 0 || val === '0') {
-                            scores[code] = 0;
-                        }
-                    }
-                });
-            });
-        }
-
         return scores;
-    }, [indicatorScores, ltScores, pendingLTScores]);
+    }, [indicatorScores, ltScores]);
 
     // Calculate custom graph scores for D2 and D5
     const customGraphsData = useMemo(() => {

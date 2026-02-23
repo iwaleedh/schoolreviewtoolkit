@@ -68,6 +68,7 @@ const menuItems = [
         labelDv: 'ޔޫޒަރުން',
         labelEn: 'Users',
         adminOnly: true,
+        globalOnly: true,
     },
     {
         id: 'schools',
@@ -76,6 +77,7 @@ const menuItems = [
         labelDv: 'ސްކޫލްތައް',
         labelEn: 'Schools',
         adminOnly: true,
+        globalOnly: true,
     },
 ];
 
@@ -127,7 +129,7 @@ function Sidebar({ collapsed, onToggle }) {
             </div>
 
             {/* School Selector */}
-            {!collapsed && accessibleSchools.length > 1 && (
+            {!collapsed && accessibleSchools.length > 1 && !location.pathname.startsWith('/admin') && (
                 <div className="sidebar-school-selector">
                     <label className="selector-label font-dhivehi" dir="rtl">ސްކޫލް އިޚްތިޔާރު ކުރައްވާ:</label>
                     <select
@@ -144,7 +146,7 @@ function Sidebar({ collapsed, onToggle }) {
                     </select>
                 </div>
             )}
-            {!collapsed && accessibleSchools.length === 1 && (
+            {!collapsed && accessibleSchools.length === 1 && !location.pathname.startsWith('/admin') && (
                 <div className="sidebar-school-display">
                     <span className="school-name-badge font-dhivehi" dir="rtl">
                         {accessibleSchools[0].nameDv || accessibleSchools[0].name}
@@ -154,8 +156,34 @@ function Sidebar({ collapsed, onToggle }) {
 
             {/* Navigation */}
             <nav className="sidebar-nav" role="menubar">
+                {user?.role === 'ADMIN' && !location.pathname.startsWith('/admin') && (
+                    <NavLink
+                        to="/admin"
+                        className="nav-item back-to-admin"
+                        title={collapsed ? "Global Dashboard" : undefined}
+                    >
+                        <ChevronLeft size={22} className="nav-icon" />
+                        {!collapsed && <span className="label-en">Global Admin Dashboard</span>}
+                    </NavLink>
+                )}
+                {user?.role === 'ADMIN' && location.pathname.startsWith('/admin') && (
+                    <NavLink
+                        to="/admin"
+                        className={`nav-item ${location.pathname === '/admin' ? 'active' : ''}`}
+                        title={collapsed ? "Global Dashboard" : undefined}
+                    >
+                        <LayoutDashboard size={22} className="nav-icon" />
+                        {!collapsed && <span className="label-en">Global Dashboard</span>}
+                    </NavLink>
+                )}
                 {menuItems.map((item) => {
+                    const isAdminGlobalView = location.pathname.startsWith('/admin');
+
                     if (item.adminOnly && user?.role !== 'ADMIN') return null;
+                    if (isAdminGlobalView && !item.globalOnly) return null; // Hide school tabs in global view
+                    if (!isAdminGlobalView && item.globalOnly) return null; // Hide global tabs in school view
+
+                    if (item.id === 'dashboard' && user?.role === 'ADMIN') return null; // Admin uses Global Dashboard or custom route instead of standard dashboard if desired
 
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path ||

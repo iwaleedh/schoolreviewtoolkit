@@ -70,19 +70,12 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         setIndicatorLTScore,
         setIndicatorComment,
         getIndicatorComment,
-        savePendingLTScores,
-        hasPendingChanges,
-        getPendingCount,
-        isSyncing,
-        lastSyncTime,
-        pendingComments,
     } = useSSEData();
 
     const [expandedOutcomes, setExpandedOutcomes] = useState({});
     const [expandedComments, setExpandedComments] = useState({});
     const [commentDrafts, setCommentDrafts] = useState({}); // Local state for comment drafts
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [saveStatus, setSaveStatus] = useState(null); // null, 'success', 'error'
     const [selectedView, setSelectedView] = useState('all'); // 'all' or specific LT
 
     // Monitor online/offline status
@@ -99,13 +92,7 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
         };
     }, []);
 
-    // Clear save status after 3 seconds
-    useEffect(() => {
-        if (saveStatus) {
-            const timer = setTimeout(() => setSaveStatus(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [saveStatus]);
+
 
     // Toggle functions
     const toggleOutcome = (id) => setExpandedOutcomes(prev => ({ ...prev, [id]: !prev[id] }));
@@ -141,22 +128,6 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
     const updateCommentDraft = (indicatorCode, value) => {
         setCommentDrafts(prev => ({ ...prev, [indicatorCode]: value }));
     };
-
-    // Save all pending changes to backend
-    const handleSaveAll = async () => {
-        const result = await savePendingLTScores(source);
-        if (result.success) {
-            setSaveStatus('success');
-        } else {
-            setSaveStatus('error');
-        }
-    };
-
-    // Count pending scores and comments
-    const pendingScoresCount = getPendingCount(source);
-    const pendingCommentsCount = Object.keys(pendingComments).length;
-    const totalPendingCount = pendingScoresCount + pendingCommentsCount;
-    const hasChanges = hasPendingChanges(source) || pendingCommentsCount > 0;
 
     // Cycle through LT scores: empty → 1 → 0 → NA → empty
     const handleLTScoreCycle = (indicatorCode, ltColumn) => {
@@ -286,43 +257,13 @@ function LTChecklist({ csvFileName, title, titleDv, source }) {
                     <span className="title-dv font-dhivehi" dir="rtl">{titleDv}</span>
                 </h2>
 
-                {/* Save Status & Button */}
+                {/* Real-time Status */}
                 <div className="lt-header-actions">
                     {/* Online/Offline Status */}
                     <div className={`connection-status ${isOnline ? 'online' : 'offline'}`}>
                         {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
-                        <span>{isOnline ? 'Online' : 'Offline'}</span>
+                        <span>{isOnline ? 'Online (Auto-Saving)' : 'Offline (Changes will not be saved)'}</span>
                     </div>
-
-                    {/* Pending Changes Badge */}
-                    {hasChanges && (
-                        <div className="pending-badge">
-                            <span>{totalPendingCount} unsaved</span>
-                        </div>
-                    )}
-
-                    {/* Last Sync Time */}
-                    {lastSyncTime && (
-                        <div className="last-sync">
-                            <span>Last saved: {new Date(lastSyncTime).toLocaleTimeString()}</span>
-                        </div>
-                    )}
-
-                    {/* Save Button */}
-                    <button
-                        className={`save-all-btn ${saveStatus === 'success' ? 'success' : ''} ${saveStatus === 'error' ? 'error' : ''}`}
-                        onClick={handleSaveAll}
-                        disabled={isSyncing || !hasChanges}
-                        title={!isOnline ? 'You are offline. Changes will sync when you come back online.' : 'Save all changes'}
-                    >
-                        {isSyncing ? (
-                            <><RotateCcw size={16} className="spin" /> Saving...</>
-                        ) : saveStatus === 'success' ? (
-                            <><Save size={16} /> Saved!</>
-                        ) : (
-                            <><Save size={16} /> Save{hasChanges ? ` (${totalPendingCount})` : ''}</>
-                        )}
-                    </button>
                 </div>
             </div>
 
