@@ -17,6 +17,31 @@ import {
 import { useSSEData } from '../../context/SSEDataContext';
 import './AdminDashboard.css';
 
+// Helper to generate a consistent, vibrant gradient based on school name
+const getAvatarGradient = (name) => {
+    const gradients = [
+        'linear-gradient(135deg, #fecaca, #f87171)', // Red
+        'linear-gradient(135deg, #fed7aa, #fb923c)', // Orange
+        'linear-gradient(135deg, #fef08a, #facc15)', // Yellow
+        'linear-gradient(135deg, #bbf7d0, #4ade80)', // Green
+        'linear-gradient(135deg, #a7f3d0, #34d399)', // Emerald
+        'linear-gradient(135deg, #99f6e4, #2dd4bf)', // Teal
+        'linear-gradient(135deg, #bae6fd, #38bdf8)', // Light Blue
+        'linear-gradient(135deg, #bfdbfe, #60a5fa)', // Blue
+        'linear-gradient(135deg, #c7d2fe, #818cf8)', // Indigo
+        'linear-gradient(135deg, #ddd6fe, #a78bfa)', // Violet
+        'linear-gradient(135deg, #e9d5ff, #c084fc)', // Purple
+        'linear-gradient(135deg, #fbcfe8, #f472b6)', // Pink
+        'linear-gradient(135deg, #fecdd3, #fb7185)', // Rose
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+};
+
 function AdminDashboard() {
     const navigate = useNavigate();
     const { setCurrentSchoolId } = useSSEData();
@@ -180,7 +205,10 @@ function AdminDashboard() {
                                 onClick={() => handleSchoolClick(school.schoolId)}
                             >
                                 <div className="school-card-header">
-                                    <div className="school-avatar">
+                                    <div
+                                        className="school-avatar"
+                                        style={{ background: getAvatarGradient(school.name) }}
+                                    >
                                         {school.name.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div className="school-identity">
