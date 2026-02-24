@@ -22,9 +22,26 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import './App.css';
 
+function LoadingScreen() {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      backgroundColor: 'var(--color-bg-primary, #ffffff)',
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="spinner spinner-lg" style={{ margin: '0 auto 1rem' }} />
+        <p style={{ color: 'var(--color-gray-500, #64748b)', fontSize: '0.875rem' }}>Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function IndexRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  if (isLoading) return null;
+  if (isLoading) return <LoadingScreen />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role === 'ADMIN') return <Navigate to="/admin" replace />;
   return <Navigate to="/dashboard" replace />;
