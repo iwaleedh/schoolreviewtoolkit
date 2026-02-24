@@ -12,8 +12,8 @@ dist
 dist-ssr
 *.local
 
-# Convex
-convex/_generated
+# Convex (keep generated files tracked for CI builds)
+# convex/_generated
 
 # Editor directories and files
 .vscode/*
