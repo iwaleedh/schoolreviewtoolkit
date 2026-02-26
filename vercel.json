@@ -1,3 +1,10 @@
 {
-    "name": "school-review-toolkit"
+    "name": "school-review-toolkit",
+    "rootDirectory": "app",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
 }
