@@ -207,7 +207,7 @@ export const login = mutation({
                 },
             };
         } catch (error: any) {
-            console.error(`Fetal login error:`, error.message);
+            console.error(`Fatal login error:`, error.message);
             return { success: false, error: error.message || "An unexpected server error occurred" };
         }
     },

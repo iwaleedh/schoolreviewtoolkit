@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
-import useAuth from '../../hooks/useAuth';
 import { Edit, Trash2, Building2, CheckCircle2, XCircle, MapPin } from 'lucide-react';
 import './SchoolManagement.css';
 
 function SchoolManagement() {
-    const { user: currentUser } = useAuth();
 
     // Fetch schools
     const schools = useQuery(api.schools.listSchools);

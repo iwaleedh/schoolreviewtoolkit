@@ -243,6 +243,7 @@ export function SSEDataProvider({ children }) {
             schoolId: currentSchoolId,
         }).catch(err => {
             console.error('Failed to sync comment:', err);
+            alert('Failed to sync comment to server. Please check your connection.');
         });
     }, [setCommentMutation, currentSchoolId]);
 
@@ -273,6 +274,7 @@ export function SSEDataProvider({ children }) {
             schoolId: currentSchoolId,
         }).catch(err => {
             console.error('Failed to sync LT score:', err);
+            alert('Failed to sync LT score to server. Please check your connection.');
         });
     }, [setLtScoreMutation, currentSchoolId, token]);
 

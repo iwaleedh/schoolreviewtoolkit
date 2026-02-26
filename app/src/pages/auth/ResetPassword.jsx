@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -10,23 +10,14 @@ function ResetPassword() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
 
-    // Validate token visually
-    const [isValidToken, setIsValidToken] = useState(!!token);
+    const isValidToken = !!token;
 
     const applyReset = useMutation(api.auth.resetPasswordWithToken);
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [status, setStatus] = useState('idle'); // idle, loading, success, error
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        if (!token) {
-            setStatus('error');
-            setMessage('Invalid reset link. Ensure you copied the entire URL.');
-            setIsValidToken(false);
-        }
-    }, [token]);
+    const [status, setStatus] = useState(token ? 'idle' : 'error'); // idle, loading, success, error
+    const [message, setMessage] = useState(token ? '' : 'Invalid reset link. Ensure you copied the entire URL.');
 
     const handleSubmit = async (e) => {
         e.preventDefault();

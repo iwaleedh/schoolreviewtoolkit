@@ -8,13 +8,13 @@ function MobileTopBar() {
     const location = useLocation();
     const { currentSchoolId, setCurrentSchoolId, schools } = useSSEData();
 
-    // Don't show in admin routes
-    if (location.pathname.startsWith('/admin')) return null;
-
     const currentSchool = useMemo(
         () => schools?.find(s => s.schoolId === currentSchoolId),
         [schools, currentSchoolId]
     );
+
+    // Don't show in admin routes
+    if (location.pathname.startsWith('/admin')) return null;
 
     const hasMultipleSchools = schools && schools.length > 1;
 

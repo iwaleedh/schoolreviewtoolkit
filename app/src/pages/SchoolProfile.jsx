@@ -614,6 +614,7 @@ function SchoolProfile() {
             setLastSyncTime(Date.now());
         } catch (err) {
             console.error("Failed to save profile:", err);
+            alert("Failed to save profile changes. Changes will be retried automatically. Please check your connection.");
             // Re-merge failed updates back into pending
             pendingUpdates.current = { ...updatesToSave, ...pendingUpdates.current };
         } finally {
